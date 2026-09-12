@@ -1840,8 +1840,34 @@
                 } catch (e) {}
                 renderNetwork();
               }
+              if (delId && customNodes.some(n => n.id === delId)) {
+                customNodes = customNodes.filter(n => n.id !== delId);
+                saveCustomNodesToStorage();
+                if (networkData && networkData.nodes) {
+                  networkData.nodes = networkData.nodes.filter(n => n.id !== delId);
+                }
+                populateNodeDropdown(networkData.nodes);
+                renderNetwork();
+              }
             } else if (payload.new && payload.new.node_id) {
               const row = payload.new;
+
+              // Deteksi update pada katalog titik junction kustom
+              if (row.node_id === '__SCADA_CUSTOM_NODES__' || row.gauge_type === 'custom_nodes_catalog') {
+                try {
+                  const incomingNodes = JSON.parse(row.notes);
+                  if (Array.isArray(incomingNodes)) {
+                    customNodes = incomingNodes;
+                    saveCustomNodesToStorage();
+                    mergeCustomNodesIntoNetwork();
+                    populateNodeDropdown(networkData.nodes);
+                    renderNetwork();
+                    console.log(`⚡ Realtime custom nodes diperbarui dari Supabase (${customNodes.length} titik).`);
+                  }
+                } catch (e) {}
+                return;
+              }
+
               telemetryReadings[row.node_id] = {
                 nodeId: row.node_id,
                 nodeLabel: row.node_label || row.node_id,
@@ -1884,6 +1910,9 @@
             telemetryReadings = {};
             telemetryHistory = [];
             data.forEach(row => {
+              if (row.node_id === '__SCADA_CUSTOM_NODES__' || row.gauge_type === 'custom_nodes_catalog') {
+                return; // Lewati record katalog sistem
+              }
               telemetryReadings[row.node_id] = {
                 nodeId: row.node_id,
                 nodeLabel: row.node_label || row.node_id,
@@ -1964,17 +1993,19 @@
     // Helper sinkronisasi batch dari lokal ke Supabase
     async function syncLocalReadingsToSupabase(readings) {
       if (!supabaseClient || !readings) return;
-      const rows = Object.values(readings).map(r => ({
-        node_id: r.nodeId,
-        node_label: r.nodeLabel || r.nodeId,
-        pressure_bar: Number(r.pressure_bar),
-        pressure_m: Number(r.pressure_m || (r.pressure_bar * HEAD_PER_BAR)),
-        confidence: Number(r.confidence || 1.0),
-        officer_name: r.officerName || 'Petugas Lapangan',
-        gauge_type: r.gauge_type || 'manual',
-        notes: r.notes || '',
-        updated_at: r.timestamp || new Date().toISOString()
-      }));
+      const rows = Object.values(readings)
+        .filter(r => r.nodeId !== '__SCADA_CUSTOM_NODES__' && r.gauge_type !== 'custom_nodes_catalog')
+        .map(r => ({
+          node_id: r.nodeId,
+          node_label: r.nodeLabel || r.nodeId,
+          pressure_bar: Number(r.pressure_bar),
+          pressure_m: Number(r.pressure_m || (r.pressure_bar * HEAD_PER_BAR)),
+          confidence: Number(r.confidence || 1.0),
+          officer_name: r.officerName || 'Petugas Lapangan',
+          gauge_type: r.gauge_type || 'manual',
+          notes: r.notes || '',
+          updated_at: r.timestamp || new Date().toISOString()
+        }));
       if (rows.length === 0) return;
       try {
         await supabaseClient.from('scada_telemetry').upsert(rows, { onConflict: 'node_id' });
@@ -4069,52 +4100,189 @@
 
     // ================= FITUR PENAMBAHAN TITIK JUNCTION KUSTOM =================
     /**
-     * Memuat daftar custom nodes dari backend /api/custom-nodes atau fallback localStorage
+     * Memuat daftar custom nodes secara bertingkat: Supabase Cloud -> Server Lokal -> LocalStorage
      */
     async function loadCustomNodes() {
-      let loaded = null;
+      let cloudNodes = null;
 
-      // 1. Coba dari server lokal jika aktif
+      // 1. Coba muat dari Supabase Cloud (sumber utama real-time)
+      if (supabaseClient) {
+        try {
+          // A. Baca dari baris katalog sistem __SCADA_CUSTOM_NODES__
+          const { data: catData, error: catErr } = await supabaseClient
+            .from('scada_telemetry')
+            .select('*')
+            .eq('node_id', '__SCADA_CUSTOM_NODES__');
+
+          if (!catErr && Array.isArray(catData) && catData.length > 0 && catData[0].notes) {
+            try {
+              const parsed = JSON.parse(catData[0].notes);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                cloudNodes = parsed;
+                console.log(`⚡ Berhasil memuat ${cloudNodes.length} titik junction kustom dari katalog Supabase Cloud.`);
+              }
+            } catch (e) {}
+          }
+
+          // B. Jika katalog belum ada, coba baca baris individual bertipe custom_junction
+          if (!cloudNodes || cloudNodes.length === 0) {
+            const { data: indData } = await supabaseClient
+              .from('scada_telemetry')
+              .select('*')
+              .eq('gauge_type', 'custom_junction');
+
+            if (indData && indData.length > 0) {
+              cloudNodes = [];
+              indData.forEach(row => {
+                try {
+                  const parsed = JSON.parse(row.notes);
+                  if (parsed && parsed.id) cloudNodes.push(parsed);
+                } catch (e) {}
+              });
+              if (cloudNodes.length > 0) {
+                console.log(`⚡ Berhasil memulihkan ${cloudNodes.length} titik kustom individual dari Supabase Cloud.`);
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('Gagal memuat custom nodes dari Supabase Cloud:', err);
+        }
+      }
+
+      // 2. Coba dari server lokal jika aktif
+      let serverNodes = null;
       try {
         const res = await fetch('/api/custom-nodes');
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data)) {
-            loaded = data;
-            console.log(`✅ Berhasil memuat ${loaded.length} titik junction kustom dari server.js`);
+          if (Array.isArray(data) && data.length > 0) {
+            serverNodes = data;
+            console.log(`✅ Berhasil membaca ${serverNodes.length} titik kustom dari server.js lokal.`);
           }
         }
       } catch (e) {
-        console.log('Server.js /api/custom-nodes tidak aktif, beralih ke local storage.');
+        console.log('Server.js /api/custom-nodes tidak aktif, menggunakan Cloud & LocalStorage.');
       }
 
-      // 2. Fallback / Sinkronisasi dengan localStorage
+      // 3. Fallback / Sinkronisasi dengan localStorage
+      let localNodes = null;
       try {
         const raw = localStorage.getItem('scada_custom_nodes');
         if (raw) {
-          const localNodes = JSON.parse(raw);
-          if (Array.isArray(localNodes)) {
-            if (!loaded) {
-              loaded = localNodes;
-            } else {
-              // Gabungkan tanpa duplikasi ID
-              const existingIds = new Set(loaded.map(n => n.id));
-              localNodes.forEach(ln => {
-                if (!existingIds.has(ln.id)) {
-                  loaded.push(ln);
-                  existingIds.add(ln.id);
-                }
-              });
-            }
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localNodes = parsed;
           }
         }
       } catch (e) {
         console.warn('Gagal membaca custom nodes dari localStorage:', e);
       }
 
-      customNodes = loaded || [];
+      // 4. Gabungkan semua sumber tanpa duplikasi ID (prioritas: local -> server -> cloud)
+      const mergedMap = new Map();
+      (localNodes || []).forEach(n => mergedMap.set(n.id, n));
+      (serverNodes || []).forEach(n => mergedMap.set(n.id, n));
+      (cloudNodes || []).forEach(n => mergedMap.set(n.id, n));
+
+      customNodes = Array.from(mergedMap.values());
       saveCustomNodesToStorage();
       mergeCustomNodesIntoNetwork();
+
+      // Jika ada titik kustom yang belum tersimpan di Supabase Cloud, otomatis cadangkan
+      if (supabaseClient && customNodes.length > 0 && (!cloudNodes || cloudNodes.length < customNodes.length)) {
+        syncAllCustomNodesToSupabase();
+      }
+    }
+
+    /**
+     * Menyimpan titik kustom tunggal dan memperbarui katalog di Supabase Cloud
+     */
+    async function syncCustomNodeToSupabase(newNode) {
+      if (!supabaseClient) return;
+      try {
+        // 1. Simpan baris spesifik node ke scada_telemetry
+        const nodeRow = {
+          node_id: newNode.id,
+          node_label: newNode.label,
+          pressure_bar: 0,
+          pressure_m: 0,
+          confidence: 1.0,
+          officer_name: 'Petugas Lapangan',
+          gauge_type: 'custom_junction',
+          notes: JSON.stringify(newNode),
+          updated_at: newNode.createdAt || new Date().toISOString()
+        };
+        await supabaseClient.from('scada_telemetry').upsert(nodeRow, { onConflict: 'node_id' });
+
+        // 2. Perbarui baris katalog utama __SCADA_CUSTOM_NODES__
+        const catalogRow = {
+          node_id: '__SCADA_CUSTOM_NODES__',
+          node_label: 'DAFTAR_TITIK_KUSTOM',
+          pressure_bar: 0,
+          pressure_m: 0,
+          confidence: 1.0,
+          officer_name: 'Sistem SCADA',
+          gauge_type: 'custom_nodes_catalog',
+          notes: JSON.stringify(customNodes),
+          updated_at: new Date().toISOString()
+        };
+        await supabaseClient.from('scada_telemetry').upsert(catalogRow, { onConflict: 'node_id' });
+        console.log(`⚡ Titik kustom "${newNode.label}" berhasil disimpan ke server Supabase Cloud!`);
+      } catch (err) {
+        console.warn('⚠️ Gagal sinkronisasi titik kustom ke Supabase Cloud:', err);
+      }
+    }
+
+    /**
+     * Sinkronisasi seluruh customNodes ke Supabase Cloud
+     */
+    async function syncAllCustomNodesToSupabase() {
+      if (!supabaseClient || customNodes.length === 0) return;
+      try {
+        const catalogRow = {
+          node_id: '__SCADA_CUSTOM_NODES__',
+          node_label: 'DAFTAR_TITIK_KUSTOM',
+          pressure_bar: 0,
+          pressure_m: 0,
+          confidence: 1.0,
+          officer_name: 'Sistem SCADA',
+          gauge_type: 'custom_nodes_catalog',
+          notes: JSON.stringify(customNodes),
+          updated_at: new Date().toISOString()
+        };
+        await supabaseClient.from('scada_telemetry').upsert(catalogRow, { onConflict: 'node_id' });
+        console.log(`⚡ Otomatis mencadangkan ${customNodes.length} titik junction kustom ke Supabase Cloud.`);
+      } catch (err) {
+        console.warn('Gagal mencadangkan custom nodes ke Supabase:', err);
+      }
+    }
+
+    /**
+     * Menghapus titik kustom dari Supabase Cloud
+     */
+    async function deleteCustomNodeFromSupabase(nodeId) {
+      if (!supabaseClient) return;
+      try {
+        // 1. Hapus baris spesifik node
+        await supabaseClient.from('scada_telemetry').delete().eq('node_id', nodeId);
+
+        // 2. Perbarui katalog utama
+        const catalogRow = {
+          node_id: '__SCADA_CUSTOM_NODES__',
+          node_label: 'DAFTAR_TITIK_KUSTOM',
+          pressure_bar: 0,
+          pressure_m: 0,
+          confidence: 1.0,
+          officer_name: 'Sistem SCADA',
+          gauge_type: 'custom_nodes_catalog',
+          notes: JSON.stringify(customNodes),
+          updated_at: new Date().toISOString()
+        };
+        await supabaseClient.from('scada_telemetry').upsert(catalogRow, { onConflict: 'node_id' });
+        console.log(`🗑️ Titik kustom ${nodeId} berhasil dihapus dari Supabase Cloud.`);
+      } catch (err) {
+        console.warn('Gagal menghapus custom node dari Supabase:', err);
+      }
     }
 
     /**
@@ -4503,6 +4671,9 @@
       customNodes.push(newNode);
       saveCustomNodesToStorage();
 
+      // Sinkron langsung ke Supabase Cloud
+      syncCustomNodeToSupabase(newNode).catch(() => {});
+
       // Sinkron ke backend server.js jika tersedia
       try {
         await fetch('/api/custom-nodes', {
@@ -4529,7 +4700,7 @@
       // Arahkan peta ke titik baru
       map.flyTo([lat, lng], 17, { duration: 1.2 });
 
-      alert(`✅ Berhasil menambahkan titik junction "${label}"!\nTitik kini muncul di peta dan daftar pengukuran tekanan.`);
+      alert(`✅ Berhasil menambahkan titik junction "${label}"!\nTitik kini tersimpan di Supabase Cloud, server lokal, dan peramban.`);
     }
 
     /**
@@ -4546,6 +4717,9 @@
       // Hapus dari customNodes
       customNodes = customNodes.filter(n => n.id !== nodeId);
       saveCustomNodesToStorage();
+
+      // Hapus dari Supabase Cloud
+      deleteCustomNodeFromSupabase(nodeId).catch(() => {});
 
       // Hapus dari backend lokal server.js
       try {

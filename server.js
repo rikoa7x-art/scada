@@ -91,6 +91,9 @@ async function pullTelemetrySnapshotFromSupabase() {
         const readings = {};
         const history = [];
         rows.forEach(r => {
+          if (r.node_id === '__SCADA_CUSTOM_NODES__' || r.gauge_type === 'custom_nodes_catalog') {
+            return; // Lewati record katalog kustom
+          }
           readings[r.node_id] = {
             nodeId: r.node_id,
             nodeLabel: r.node_label || r.node_id,
@@ -121,6 +124,85 @@ async function pullTelemetrySnapshotFromSupabase() {
     }
   } catch (err) {
     console.warn('[Server] Gagal memuat snapshot awal dari Supabase:', err.message);
+  }
+  return null;
+}
+
+// ================= SUPABASE SYNC UNTUK TITIK JUNCTION KUSTOM =================
+async function syncCustomNodesCatalogToSupabase(customNodes) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    const catalogRow = {
+      node_id: '__SCADA_CUSTOM_NODES__',
+      node_label: 'DAFTAR_TITIK_KUSTOM',
+      pressure_bar: 0,
+      pressure_m: 0,
+      confidence: 1,
+      officer_name: 'Sistem SCADA',
+      gauge_type: 'custom_nodes_catalog',
+      notes: JSON.stringify(customNodes),
+      updated_at: new Date().toISOString()
+    };
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(catalogRow)
+    });
+
+    if (res.ok) {
+      console.log(`⚡ [Server] Sinkron katalog ${customNodes.length} titik junction kustom ke Supabase Cloud sukses.`);
+    } else {
+      console.warn(`[Server] Supabase custom nodes sync response: ${res.status}`);
+    }
+  } catch (err) {
+    console.warn('[Server] Supabase custom nodes sync gagal:', err.message);
+  }
+}
+
+async function deleteCustomNodeFromSupabase(nodeId, remainingCustomNodes) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    // 1. Hapus baris spesifik node dari Supabase
+    await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.${encodeURIComponent(nodeId)}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+
+    // 2. Perbarui katalog __SCADA_CUSTOM_NODES__ di Supabase
+    await syncCustomNodesCatalogToSupabase(remainingCustomNodes);
+    console.log(`🗑️ [Server] Hapus titik junction kustom di Supabase: ${nodeId}`);
+  } catch (err) {
+    console.warn('[Server] Supabase custom node delete error:', err.message);
+  }
+}
+
+async function pullCustomNodesSnapshotFromSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.__SCADA_CUSTOM_NODES__`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0 && rows[0].notes) {
+        const parsed = JSON.parse(rows[0].notes);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('[Server] Gagal memuat snapshot custom nodes dari Supabase:', err.message);
   }
   return null;
 }
@@ -500,6 +582,9 @@ const server = http.createServer(async (req, res) => {
         }
 
         await writeCustomNodesSafe(nodes);
+        // Teruskan asinkron ke Supabase Cloud
+        syncCustomNodesCatalogToSupabase(nodes).catch(() => {});
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, node: nodeObj }));
         return;
@@ -516,6 +601,8 @@ const server = http.createServer(async (req, res) => {
         let nodes = await readCustomNodesSafe();
         nodes = nodes.filter(n => n.id !== nodeId);
         await writeCustomNodesSafe(nodes);
+        // Hapus dari Supabase Cloud
+        deleteCustomNodeFromSupabase(nodeId, nodes).catch(() => {});
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, message: `Titik kustom ${nodeId} berhasil dihapus` }));
@@ -614,6 +701,21 @@ server.listen(PORT, '0.0.0.0', async () => {
     }
   } catch (e) {
     console.warn('[Server] Gagal cek snapshot awal Supabase:', e.message);
+  }
+
+  // Jika data titik junction kustom lokal kosong, coba muat snapshot dari Supabase Cloud
+  try {
+    const localNodes = await readCustomNodesSafe();
+    if (!localNodes || localNodes.length === 0) {
+      console.log('📡 Mengecek cadangan titik junction kustom di Supabase Cloud...');
+      const cloudNodes = await pullCustomNodesSnapshotFromSupabase();
+      if (cloudNodes && cloudNodes.length > 0) {
+        await writeCustomNodesSafe(cloudNodes);
+        console.log(`✅ Berhasil memuat ${cloudNodes.length} titik junction kustom dari Supabase Cloud ke server lokal.`);
+      }
+    }
+  } catch (e) {
+    console.warn('[Server] Gagal cek snapshot custom nodes Supabase:', e.message);
   }
 
   if (process.argv.includes('--open')) {
