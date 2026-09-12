@@ -1,5 +1,5 @@
 /**
- * SCADA Backend Server & Telemetry Gateway PDAM Kota Subang
+ * SCADA Backend Server & Telemetry Gateway Prodist Scada
  * - Melayani Antarmuka SCADA Web
  * - Proxy Aman ke NVIDIA NIM API (Llama-3.2-11b-vision-instruct) bebas CORS
  * - Manajemen Data Telemetri & Kalkulasi Debit
@@ -384,7 +384,7 @@ server.on('error', (err) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('================================================================');
-  console.log(`🌊 SCADA MONITORING PDAM KOTA SUBANG BERJALAN PADA:`);
+  console.log(`🌊 PRODIST SCADA MONITORING BERJALAN PADA:`);
   console.log(`📡 Akses Lokal PC:     http://localhost:${PORT}`);
   console.log(`📱 Akses Smartphone:  http://<IP_KOMPUTER_ANDA>:${PORT}`);
   console.log(`🤖 AI Engine:          meta/llama-3.2-11b-vision-instruct (NVIDIA NIM)`);

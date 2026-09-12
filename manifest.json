@@ -1,7 +1,7 @@
 {
-  "name": "SCADA PDAM Kota Subang",
-  "short_name": "SCADA Subang",
-  "description": "Sistem Monitoring Hidrolika & Tekanan Pipa Air Minum PDAM Kota Subang",
+  "name": "Prodist Scada",
+  "short_name": "Prodist Scada",
+  "description": "Sistem Monitoring Hidrolika & Tekanan Pipa Prodist Scada",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#090e17",

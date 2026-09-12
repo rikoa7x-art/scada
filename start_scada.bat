@@ -1,12 +1,12 @@
 @echo off
-title SCADA PDAM Kota Subang - Monitoring Pipa & AI Vision
+title Prodist Scada - Monitoring Jaringan Pipa & AI Vision
 color 0b
 
 REM Pindahkan ke direktori dimana file BAT ini berada
 cd /d "%~dp0"
 
 echo =======================================================================
-echo    PDAM TIRTA KOTA SUBANG - SISTEM SCADA MONITORING JARINGAN PIPA
+echo    PRODIST SCADA - SISTEM MONITORING JARINGAN PIPA
 echo =======================================================================
 echo.
 

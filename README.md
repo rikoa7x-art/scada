@@ -1,6 +1,6 @@
-# 💧 SCADA PDAM Tirta Kota Subang (Mobile-First Web App)
+# 💧 Prodist Scada (Mobile-First Web App)
 
-Sistem Informasi SCADA Monitoring Jaringan Pipa Air Bersih PDAM Kota Subang berbasis web mandiri (*standalone web*), ramah ponsel pintar (*mobile-first*), dan siap dijalankan langsung melalui **GitHub Pages**.
+Sistem Informasi Prodist Scada Monitoring Jaringan Pipa Air Bersih berbasis web mandiri (*standalone web*), ramah ponsel pintar (*mobile-first*), dan siap dijalankan langsung melalui **GitHub Pages**.
 
 🌐 **Akses Aplikasi (Live Demo)**:  
 👉 **[https://rikoa7x-art.github.io/scada/](https://rikoa7x-art.github.io/scada/)**
@@ -32,4 +32,4 @@ Jika ingin menjalankan server lokal di PC kantor:
 - Panduan Deploy GitHub Pages: [`PANDUAN_DEPLOY_GITHUB.md`](./PANDUAN_DEPLOY_GITHUB.md)
 - Panduan Operasional SCADA: [`PANDUAN_SCADA_SUBANG.md`](./PANDUAN_SCADA_SUBANG.md)
 
-Dikembangkan untuk optimalisasi monitoring hidrolika jaringan pipa PDAM Tirta Kota Subang.
+Dikembangkan untuk optimalisasi monitoring hidrolika jaringan pipa Prodist Scada.

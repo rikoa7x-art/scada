@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#090e17">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Sistem Monitoring Hidrolika & Tekanan Pipa Air Minum PDAM Kota Subang">
+  <meta name="description" content="Sistem Monitoring Hidrolika & Tekanan Pipa Air Minum Prodist Scada">
   <link rel="manifest" href="manifest.json">
-  <title>SCADA Monitoring Jaringan Pipa PDAM Kota Subang</title>
+  <title>Prodist Scada - Monitoring Jaringan Pipa</title>
   <link rel="icon" type="image/jpeg" href="logo.jpg">
   
   <!-- Leaflet CSS & Fonts -->
@@ -1197,11 +1197,11 @@
   <header>
     <div class="brand-section">
       <div class="brand-logo">
-        <img src="logo.jpg" alt="Logo PDAM Tirta Subang SCADA">
+        <img src="logo.jpg" alt="Logo Prodist Scada">
       </div>
       <div class="brand-text">
         <h1>
-          <span class="brand-title-full">PDAM TIRTA SUBANG</span>
+          <span class="brand-title-full">PRODIST SCADA</span>
           <span class="scada-badge">SCADA LIVE</span>
           <span class="scada-badge" id="cloud-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399;" title="Tersinkronisasi Realtime dengan Supabase Cloud">⚡ CLOUD SYNC</span>
         </h1>
@@ -2843,7 +2843,7 @@
         telemetryReadings
       );
 
-      let csv = 'DATA SCADA JARINGAN PIPA PDAM KOTA SUBANG\n';
+      let csv = 'DATA PRODIST SCADA JARINGAN PIPA\n';
       csv += `Tanggal Ekspor: ${new Date().toLocaleString('id-ID')}\n`;
       csv += `Total Pasokan Air: ${solved.summary.totalDischargeLps} L/s (${solved.summary.totalDischarge_m3h} m3/jam)\n`;
       csv += `Tekanan Rata-Rata: ${solved.summary.avgPressureBar} bar\n\n`;
@@ -3585,7 +3585,7 @@
     // Unduh Cadangan Data Telemetri (JSON)
     function exportTelemetryBackup() {
       const backup = {
-        app: 'SCADA PDAM Tirta Subang',
+        app: 'Prodist Scada',
         version: '2.0-mobile',
         exportedAt: new Date().toISOString(),
         readingsCount: Object.keys(telemetryReadings).length,
