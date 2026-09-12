@@ -18,6 +18,111 @@ const PORT = process.env.PORT || 3000;
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '';
 const TELEMETRY_FILE = path.join(__dirname, 'telemetry_subang.json');
 const SUBANG_NETWORK_FILE = path.join(__dirname, 'epanet_subang.json');
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://nbjfxzulzxxujudntdab.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iamZ4enVsenh4dWp1ZG50ZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTE2MzIsImV4cCI6MjEwNDc4NzYzMn0.LlIr9TLE3sE7X9xsohQcFrsU0OM8lisy1ymUvV-kdLo';
+
+// Helper sinkronisasi data telemetri ke Supabase Cloud REST API
+async function syncTelemetryToSupabase(reading) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    const payload = {
+      node_id: reading.nodeId,
+      node_label: reading.nodeLabel || reading.nodeId,
+      pressure_bar: Number(reading.pressure_bar),
+      pressure_m: Number(reading.pressure_m || (reading.pressure_bar * 10.197)),
+      confidence: Number(reading.confidence || 1.0),
+      officer_name: reading.officerName || 'Petugas Lapangan',
+      gauge_type: reading.gauge_type || 'manual',
+      notes: reading.notes || '',
+      updated_at: reading.timestamp || new Date().toISOString()
+    };
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?on_conflict=node_id`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      console.log(`⚡ [Server] Sinkron titik ${reading.nodeLabel || reading.nodeId} ke Supabase Cloud sukses.`);
+    } else {
+      console.warn(`[Server] Supabase sync response: ${res.status}`);
+    }
+  } catch (err) {
+    console.warn('[Server] Supabase sync gagal:', err.message);
+  }
+}
+
+async function deleteTelemetryFromSupabase(nodeId) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    const url = nodeId
+      ? `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.${encodeURIComponent(nodeId)}`
+      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=neq.___NEVER_MATCH___`;
+    await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    console.log(`🗑️ [Server] Hapus data telemetri di Supabase: ${nodeId || 'RESET_ALL'}`);
+  } catch (err) {
+    console.warn('[Server] Supabase delete error:', err.message);
+  }
+}
+
+async function pullTelemetrySnapshotFromSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?select=*`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        const readings = {};
+        const history = [];
+        rows.forEach(r => {
+          readings[r.node_id] = {
+            nodeId: r.node_id,
+            nodeLabel: r.node_label || r.node_id,
+            pressure_bar: Number(r.pressure_bar),
+            pressure_m: Number(r.pressure_m || (r.pressure_bar * 10.197)),
+            confidence: Number(r.confidence || 1.0),
+            officerName: r.officer_name || 'Petugas Lapangan',
+            gauge_type: r.gauge_type || 'manual',
+            notes: r.notes || '',
+            timestamp: r.updated_at || new Date().toISOString()
+          };
+          history.push({
+            id: 'TEL-' + r.node_id,
+            nodeId: r.node_id,
+            nodeLabel: r.node_label || r.node_id,
+            pressure_bar: Number(r.pressure_bar),
+            officerName: r.officer_name || 'Petugas Lapangan',
+            notes: r.notes || '',
+            timestamp: r.updated_at || new Date().toISOString()
+          });
+        });
+        return {
+          lastUpdated: new Date().toISOString(),
+          readings,
+          history
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('[Server] Gagal memuat snapshot awal dari Supabase:', err.message);
+  }
+  return null;
+}
 
 // Periksa API key saat startup
 if (!NVIDIA_API_KEY) {
@@ -268,6 +373,9 @@ const server = http.createServer(async (req, res) => {
 
         await writeTelemetrySafe(teleData);
 
+        // Teruskan asinkron ke Supabase Cloud
+        syncTelemetryToSupabase(teleData.readings[newReading.nodeId]).catch(() => {});
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           success: true,
@@ -289,6 +397,7 @@ const server = http.createServer(async (req, res) => {
             teleData.lastUpdated = new Date().toISOString();
             await writeTelemetrySafe(teleData);
           }
+          deleteTelemetryFromSupabase(nodeId).catch(() => {});
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: `Data telemetri ${nodeId} berhasil dihapus` }));
           return;
@@ -302,6 +411,7 @@ const server = http.createServer(async (req, res) => {
             history: []
           };
           await writeTelemetrySafe(resetData);
+          deleteTelemetryFromSupabase(null).catch(() => {});
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Semua data telemetri berhasil di-reset' }));
           return;
@@ -382,14 +492,30 @@ server.on('error', (err) => {
   throw err;
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', async () => {
   console.log('================================================================');
   console.log(`🌊 PRODIST SCADA MONITORING BERJALAN PADA:`);
   console.log(`📡 Akses Lokal PC:     http://localhost:${PORT}`);
   console.log(`📱 Akses Smartphone:  http://<IP_KOMPUTER_ANDA>:${PORT}`);
   console.log(`🤖 AI Engine:          meta/llama-3.2-11b-vision-instruct (NVIDIA NIM)`);
   console.log(`🔑 API Key:            ${NVIDIA_API_KEY ? '✅ Terdeteksi' : '❌ Belum diatur (cek .env)'}`);
+  console.log(`⚡ Supabase Cloud:     ${SUPABASE_URL ? '✅ Aktif (' + SUPABASE_URL + ')' : '❌ Belum diatur'}`);
   console.log('================================================================');
+
+  // Jika telemetri lokal kosong, coba muat snapshot dari Supabase Cloud
+  try {
+    const localTele = await readTelemetrySafe();
+    if (!localTele.readings || Object.keys(localTele.readings).length === 0) {
+      console.log('📡 Mengecek cadangan data di Supabase Cloud...');
+      const cloudSnapshot = await pullTelemetrySnapshotFromSupabase();
+      if (cloudSnapshot && Object.keys(cloudSnapshot.readings).length > 0) {
+        await writeTelemetrySafe(cloudSnapshot);
+        console.log(`✅ Berhasil memuat ${Object.keys(cloudSnapshot.readings).length} titik telemetri dari Supabase Cloud ke server lokal.`);
+      }
+    }
+  } catch (e) {
+    console.warn('[Server] Gagal cek snapshot awal Supabase:', e.message);
+  }
 
   if (process.argv.includes('--open')) {
     const { exec } = require('child_process');

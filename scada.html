@@ -1696,11 +1696,13 @@
         try {
           supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
           console.log('⚡ Supabase Cloud Client Initialized:', SUPABASE_CONFIG.url);
-          updateCloudBadge(true);
+          startSupabaseRealtime();
         } catch (err) {
           console.warn('Gagal inisialisasi Supabase:', err);
           updateCloudBadge(false);
         }
+      } else {
+        updateCloudBadge(false);
       }
     }
 
@@ -1733,7 +1735,9 @@
               const delId = payload.old?.node_id;
               if (delId && telemetryReadings[delId]) {
                 delete telemetryReadings[delId];
-                localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+                try {
+                  localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+                } catch (e) {}
                 renderNetwork();
               }
             } else if (payload.new && payload.new.node_id) {
@@ -1744,12 +1748,14 @@
                 pressure_bar: Number(row.pressure_bar),
                 pressure_m: Number(row.pressure_m || (row.pressure_bar * HEAD_PER_BAR)),
                 confidence: Number(row.confidence || 1.0),
-                officerName: row.officer_name || 'Petugas',
+                officerName: row.officer_name || 'Petugas Lapangan',
                 gauge_type: row.gauge_type || 'manual',
                 notes: row.notes || '',
                 timestamp: row.updated_at || new Date().toISOString()
               };
-              localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+              try {
+                localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+              } catch (e) {}
               renderNetwork();
             }
           })
@@ -1759,6 +1765,122 @@
           });
       } catch (err) {
         console.warn('Gagal mengaktifkan Realtime Supabase:', err);
+      }
+    }
+
+    // Muat data telemetri secara bertingkat: Supabase Cloud -> Server Lokal -> LocalStorage
+    async function loadTelemetryData() {
+      let loadedFromCloud = false;
+
+      // 1. Coba muat dari Supabase Cloud
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('scada_telemetry')
+            .select('*')
+            .order('updated_at', { ascending: false });
+
+          if (!error && Array.isArray(data) && data.length > 0) {
+            telemetryReadings = {};
+            telemetryHistory = [];
+            data.forEach(row => {
+              telemetryReadings[row.node_id] = {
+                nodeId: row.node_id,
+                nodeLabel: row.node_label || row.node_id,
+                pressure_bar: Number(row.pressure_bar),
+                pressure_m: Number(row.pressure_m || (row.pressure_bar * HEAD_PER_BAR)),
+                confidence: Number(row.confidence || 1.0),
+                officerName: row.officer_name || 'Petugas Lapangan',
+                gauge_type: row.gauge_type || 'manual',
+                notes: row.notes || '',
+                timestamp: row.updated_at || new Date().toISOString()
+              };
+              telemetryHistory.push({
+                id: 'TEL-' + row.node_id,
+                nodeId: row.node_id,
+                nodeLabel: row.node_label || row.node_id,
+                pressure_bar: Number(row.pressure_bar),
+                officerName: row.officer_name || 'Petugas Lapangan',
+                notes: row.notes || '',
+                timestamp: row.updated_at || new Date().toISOString()
+              });
+            });
+            try {
+              localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+            } catch (e) {}
+            console.log(`⚡ Berhasil memuat ${data.length} titik telemetri dari Supabase Cloud.`);
+            loadedFromCloud = true;
+          }
+        } catch (err) {
+          console.warn('Gagal memuat telemetri dari Supabase Cloud:', err);
+        }
+      }
+
+      // 2. Jika cloud belum ada data / offline, coba muat dari Server Lokal /api/telemetry
+      if (!loadedFromCloud) {
+        try {
+          const tRes = await fetch('/api/telemetry');
+          if (tRes.ok) {
+            const tData = await tRes.json();
+            if (tData.readings && Object.keys(tData.readings).length > 0) {
+              telemetryReadings = tData.readings;
+              telemetryHistory = tData.history || [];
+              window._lastTelemetryUpdate = tData.lastUpdated;
+              try {
+                localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+              } catch (e) {}
+              console.log(`📡 Berhasil memuat ${Object.keys(telemetryReadings).length} titik telemetri dari server lokal.`);
+              
+              // Jika Supabase aktif, sinkronkan data server lokal ke Supabase
+              if (supabaseClient) {
+                syncLocalReadingsToSupabase(telemetryReadings);
+              }
+              return;
+            }
+          }
+        } catch (e) {
+          // Server lokal offline
+        }
+
+        // 3. Fallback ke LocalStorage (data offline di HP / browser)
+        try {
+          const localSaved = localStorage.getItem('scada_subang_telemetry_readings');
+          if (localSaved) {
+            const parsed = JSON.parse(localSaved);
+            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+              telemetryReadings = parsed;
+              console.log(`📱 Berhasil memulihkan ${Object.keys(telemetryReadings).length} titik telemetri dari memori lokal.`);
+              if (supabaseClient) {
+                syncLocalReadingsToSupabase(telemetryReadings);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Gagal membaca localStorage:', e);
+        }
+      }
+    }
+
+    // Helper sinkronisasi batch dari lokal ke Supabase
+    async function syncLocalReadingsToSupabase(readings) {
+      if (!supabaseClient || !readings) return;
+      const rows = Object.values(readings).map(r => ({
+        node_id: r.nodeId,
+        node_label: r.nodeLabel || r.nodeId,
+        pressure_bar: Number(r.pressure_bar),
+        pressure_m: Number(r.pressure_m || (r.pressure_bar * HEAD_PER_BAR)),
+        confidence: Number(r.confidence || 1.0),
+        officer_name: r.officerName || 'Petugas Lapangan',
+        gauge_type: r.gauge_type || 'manual',
+        notes: r.notes || '',
+        updated_at: r.timestamp || new Date().toISOString()
+      }));
+      if (rows.length === 0) return;
+      try {
+        await supabaseClient.from('scada_telemetry').upsert(rows, { onConflict: 'node_id' });
+        console.log(`⚡ Otomatis mencadangkan ${rows.length} titik ke Supabase Cloud.`);
+      } catch (err) {
+        console.warn('Gagal sinkron lokal ke Supabase:', err);
       }
     }
 
@@ -1959,21 +2081,8 @@
         defaultSubangNetwork = data;
         console.log(`✅ Berhasil memuat ${networkData.nodes.length} nodes dan ${networkData.pipes.length} pipa Kota Subang.`);
 
-        // Muat data telemetri yang tersimpan di server
-        try {
-          const tRes = await fetch('/api/telemetry');
-          if (tRes.ok) {
-            const tData = await tRes.json();
-            if (tData.readings) {
-              telemetryReadings = tData.readings;
-              telemetryHistory = tData.history || [];
-              window._lastTelemetryUpdate = tData.lastUpdated;
-              console.log(`📡 Berhasil memuat ${Object.keys(telemetryReadings).length} titik telemetri tersimpan.`);
-            }
-          }
-        } catch (e) {
-          console.log('Tidak ada data telemetri tersimpan di server.');
-        }
+        // Muat data telemetri tersimpan (Supabase Cloud -> Server Lokal -> LocalStorage)
+        await loadTelemetryData();
 
         populateNodeDropdown(networkData.nodes);
         renderNetwork();
@@ -2732,11 +2841,46 @@
       await commitTelemetry(readingData);
     }
 
-    // Commit Telemetri ke State & Server
+    // Commit Telemetri ke State & Server (LocalStorage + Supabase Cloud + Server Lokal)
     async function commitTelemetry(readingData) {
       telemetryReadings[readingData.nodeId] = readingData;
       telemetryHistory.unshift(readingData);
 
+      // 1. Simpan segera ke localStorage (agar aman jika offline/aplikasi ditutup)
+      try {
+        localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+      } catch (e) {
+        console.warn('Gagal menyimpan ke localStorage:', e);
+      }
+
+      // 2. Simpan permanen ke Supabase Cloud (jika aktif)
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient
+            .from('scada_telemetry')
+            .upsert({
+              node_id: readingData.nodeId,
+              node_label: readingData.nodeLabel || readingData.nodeId,
+              pressure_bar: Number(readingData.pressure_bar),
+              pressure_m: Number(readingData.pressure_m || (readingData.pressure_bar * HEAD_PER_BAR)),
+              confidence: Number(readingData.confidence || 1.0),
+              officer_name: readingData.officerName || 'Petugas Lapangan',
+              gauge_type: readingData.gauge_type || 'manual',
+              notes: readingData.notes || '',
+              updated_at: readingData.timestamp || new Date().toISOString()
+            }, { onConflict: 'node_id' });
+
+          if (error) {
+            console.warn('⚠️ Gagal menyimpan ke Supabase Cloud:', error.message);
+          } else {
+            console.log('⚡ Berhasil tersimpan di Supabase Cloud:', readingData.nodeLabel);
+          }
+        } catch (err) {
+          console.warn('⚠️ Gagal koneksi ke Supabase Cloud:', err);
+        }
+      }
+
+      // 3. Simpan ke server.js lokal jika aktif
       try {
         await fetch('/api/telemetry', {
           method: 'POST',
@@ -2744,7 +2888,7 @@
           body: JSON.stringify(readingData)
         });
       } catch (e) {
-        console.log('Tersimpan di sesi lokal browser.');
+        console.log('Tersimpan di sesi lokal browser & Supabase.');
       }
 
       renderNetwork();
@@ -2764,6 +2908,26 @@
 
       delete telemetryReadings[nodeId];
 
+      // 1. Simpan perubahan ke localStorage
+      try {
+        localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+      } catch (e) {}
+
+      // 2. Hapus dari Supabase Cloud
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient
+            .from('scada_telemetry')
+            .delete()
+            .eq('node_id', nodeId);
+          if (error) console.warn('Gagal menghapus dari Supabase:', error);
+          else console.log('🗑️ Berhasil menghapus dari Supabase Cloud:', nodeId);
+        } catch (err) {
+          console.warn('Error delete Supabase:', err);
+        }
+      }
+
+      // 3. Hapus dari server.js lokal
       try {
         await fetch(`/api/telemetry?nodeId=${encodeURIComponent(nodeId)}`, {
           method: 'DELETE'
@@ -2787,6 +2951,7 @@
       ];
 
       let successCount = 0;
+      const simRows = [];
 
       for (const sp of samplePoints) {
         const found = networkData.nodes.find(n => n.label === sp.label);
@@ -2806,7 +2971,19 @@
           telemetryReadings[found.id] = readingData;
           telemetryHistory.unshift(readingData);
 
-          // Persist ke server
+          simRows.push({
+            node_id: found.id,
+            node_label: found.label,
+            pressure_bar: sp.pressure,
+            pressure_m: Math.round(sp.pressure * HEAD_PER_BAR * 100) / 100,
+            confidence: 0.96,
+            officer_name: 'Tim Monitoring Subang (Simulasi)',
+            gauge_type: 'manual',
+            notes: sp.notes,
+            updated_at: readingData.timestamp
+          });
+
+          // Persist ke server lokal
           try {
             await fetch('/api/telemetry', {
               method: 'POST',
@@ -2819,8 +2996,23 @@
         }
       }
 
+      // Simpan ke localStorage
+      try {
+        localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+      } catch (e) {}
+
+      // Simpan batch ke Supabase Cloud
+      if (supabaseClient && simRows.length > 0) {
+        try {
+          await supabaseClient.from('scada_telemetry').upsert(simRows, { onConflict: 'node_id' });
+          console.log(`⚡ ${simRows.length} titik simulasi berhasil disimpan ke Supabase Cloud.`);
+        } catch (err) {
+          console.warn('Gagal batch upsert simulasi ke Supabase:', err);
+        }
+      }
+
       renderNetwork();
-      alert(`✅ Berhasil memuat data telemetri simulasi pada ${successCount} titik manometer Kota Subang!\n\nDebit air (Q) di setiap pipa telah terhitung otomatis dan ditampilkan pada peta.`);
+      alert(`✅ Berhasil memuat data telemetri simulasi pada ${successCount} titik manometer Kota Subang!\n\nData tersimpan ke Supabase Cloud & memori lokal. Debit air (Q) di setiap pipa telah terhitung otomatis dan ditampilkan pada peta.`);
     }
 
     // Reset Semua Data Telemetri
@@ -2828,10 +3020,32 @@
       if (!confirm('Reset semua data pembacaan telemetri lapangan?')) return;
       telemetryReadings = {};
       telemetryHistory = [];
+
+      // 1. Bersihkan localStorage
       try {
-        // Gunakan parameter action=reset_all yang aman
+        localStorage.removeItem('scada_subang_telemetry_readings');
+        localStorage.removeItem('scada_subang_telemetry_history');
+      } catch (e) {}
+
+      // 2. Bersihkan Supabase Cloud
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient
+            .from('scada_telemetry')
+            .delete()
+            .neq('node_id', '___NEVER_MATCH___');
+          if (error) console.warn('Gagal reset data di Supabase:', error);
+          else console.log('🧹 Berhasil reset semua data di Supabase Cloud');
+        } catch (err) {
+          console.warn('Error reset Supabase:', err);
+        }
+      }
+
+      // 3. Reset di server lokal
+      try {
         await fetch('/api/telemetry?action=reset_all', { method: 'DELETE' });
       } catch (e) {}
+
       renderNetwork();
     }
 
@@ -3617,6 +3831,11 @@
               localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
               localStorage.setItem('scada_subang_telemetry_history', JSON.stringify(telemetryHistory.slice(0, 50)));
             } catch (err) {}
+
+            // Sinkronkan ke Supabase Cloud
+            if (supabaseClient) {
+              syncLocalReadingsToSupabase(imported.readings);
+            }
 
             renderNetwork();
             alert('✅ Berhasil memulihkan ' + Object.keys(imported.readings).length + ' data pengukuran telemetri!');
