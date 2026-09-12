@@ -1245,6 +1245,11 @@
         <span>📸</span> Scan Foto AI
       </button>
 
+      <!-- Tambah Titik Junction Button -->
+      <button class="btn btn-dark" onclick="openAddJunctionModal()" title="Tambah Titik Junction / Manometer Pengukuran Tekanan Baru" style="border-color: rgba(168, 85, 247, 0.6); color: #c084fc;">
+        <span>➕</span> Tambah Titik
+      </button>
+
       <!-- Quick Simulation -->
       <button class="btn btn-accent" onclick="runSubangQuickSimulation()" title="Muat simulasi data telemetri di titik-titik strategis Subang">
         <span>🧪</span> Contoh Simulasi
@@ -1296,6 +1301,12 @@
       <button id="btn-gps-fab" class="fab-gps" onclick="locateUser()" title="Deteksi Lokasi Saya & Simpul Terdekat">
         <span>📍</span>
       </button>
+
+      <!-- Floating Banner Mode Pilih Lokasi di Peta -->
+      <div id="map-pick-banner" style="display: none; position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 1500; background: rgba(15, 23, 42, 0.95); border: 2px solid #a855f7; box-shadow: 0 8px 32px rgba(0,0,0,0.8); border-radius: 30px; padding: 8px 18px; align-items: center; gap: 12px; color: #ffffff; font-family: var(--font-sans); font-size: 12.5px; max-width: 90%; box-sizing: border-box;">
+        <span>🗺️ <b>Klik pada peta</b> untuk menetapkan posisi titik junction baru</span>
+        <button type="button" class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: rgba(244,63,94,0.4); padding: 3px 8px;" onclick="cancelMapPickMode()">Batal</button>
+      </div>
 
       <!-- KPI Floating Overlays -->
       <div class="kpi-overlay">
@@ -1585,6 +1596,75 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Titik Junction Baru -->
+  <div class="modal-backdrop" id="modal-add-junction" onclick="if(event.target===this) closeAddJunctionModal()">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 style="color: #c084fc;"><span>➕</span> Tambah Titik Junction / Manometer Baru</h3>
+        <button class="modal-close" onclick="closeAddJunctionModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Label / Nama Simpul -->
+        <div class="input-group">
+          <label for="new-node-label">Nama / Label Titik Simpul:</label>
+          <input type="text" id="new-node-label" class="input-control" placeholder="Contoh: J_MANOMETER_OTISTA_01" style="font-weight: 700; color: #c084fc;">
+          <small style="font-size: 11px; color: var(--text-muted);">Gunakan nama yang mudah dikenali tim lapangan (misal: J-PASAR, J350, dll).</small>
+        </div>
+
+        <!-- Koordinat (Lat & Lng) -->
+        <div class="input-group">
+          <label>Koordinat Lokasi Pipa (Latitude, Longitude):</label>
+          <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+            <input type="number" step="0.000001" id="new-node-lat" class="input-control" placeholder="Latitude (misal: -6.565123)" style="flex: 1;" oninput="onNewNodeCoordsChanged()">
+            <input type="number" step="0.000001" id="new-node-lng" class="input-control" placeholder="Longitude (misal: 107.765432)" style="flex: 1;" oninput="onNewNodeCoordsChanged()">
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-dark btn-sm" style="flex: 1; justify-content: center; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" onclick="startMapPickMode()">
+              <span>🗺️</span> Pilih di Peta
+            </button>
+            <button type="button" class="btn btn-dark btn-sm" style="flex: 1; justify-content: center; border-color: rgba(16, 185, 129, 0.4); color: #34d399;" onclick="useCurrentGpsForNewNode()">
+              <span>📍</span> Gunakan GPS HP
+            </button>
+          </div>
+        </div>
+
+        <!-- Elevasi Tanah -->
+        <div class="input-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label for="new-node-elevation">Elevasi Tanah (mdpl):</label>
+            <button type="button" class="btn btn-dark btn-xs" style="padding: 2px 8px; font-size: 11px; color: #38bdf8;" onclick="autoEstimateElevationForNewNode()">
+              <span>⚡</span> Estimasi Otomatis
+            </button>
+          </div>
+          <input type="number" step="0.5" id="new-node-elevation" class="input-control" placeholder="Contoh: 72" value="70">
+          <small style="font-size: 11px; color: var(--text-muted);">Diperlukan untuk perhitungan Total Dynamic Head (HGL) dan gravitasi air.</small>
+        </div>
+
+        <!-- Deteksi Pipa Terdekat -->
+        <div id="new-node-pipe-info" style="background: rgba(15, 23, 42, 0.7); border: 1px dashed #334155; border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: #94a3b8; line-height: 1.4;">
+          ℹ️ Tentukan koordinat untuk melihat pipa distribusi terdekat secara otomatis.
+        </div>
+
+        <!-- Catatan / Keterangan Lokasi -->
+        <div class="input-group">
+          <label for="new-node-notes">Keterangan Lokasi Manometer:</label>
+          <input type="text" id="new-node-notes" class="input-control" placeholder="Contoh: Boks manometer pipa transmisi 150mm depan Toko ABC">
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button type="button" class="btn btn-dark" style="flex: 1; justify-content: center;" onclick="closeAddJunctionModal()">
+            Batal
+          </button>
+          <button type="button" class="btn btn-accent" style="flex: 2; justify-content: center; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-color: #8b5cf6;" onclick="saveCustomJunction()">
+            <span>💾</span> Simpan Titik Junction Baru
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1916,6 +1996,8 @@
     let _autoRefreshTimer = null; // Timer auto-refresh polling
     let _isPopupOpen = false; // Flag: jangan re-render saat popup terbuka
     let showAllNodes = false; // Default: hanya tampilkan titik pantau ideal (45 titik)
+    let customNodes = []; // Node junction custom yang ditambahkan pengguna
+    let isMapPickingMode = false; // Mode klik peta untuk menentukan titik junction baru
 
     // Konstanta
     const HEAD_PER_BAR = 10.197;
@@ -2101,6 +2183,9 @@
         defaultSubangNetwork = data;
         console.log(`✅ Berhasil memuat ${networkData.nodes.length} nodes dan ${networkData.pipes.length} pipa Kota Subang.`);
 
+        // Muat titik junction kustom yang ditambahkan pengguna
+        await loadCustomNodes();
+
         // Muat data telemetri tersimpan (Supabase Cloud -> Server Lokal -> LocalStorage)
         await loadTelemetryData();
 
@@ -2163,10 +2248,11 @@
           const opt = document.createElement('option');
           opt.value = n.id;
           const hasTele = telemetryReadings[n.id];
-          const icon = hasTele ? '📡' : (n.type === 'reservoir' ? '💧' : '⭐');
+          const icon = hasTele ? '📡' : (n.isCustom ? '⭐' : (n.type === 'reservoir' ? '💧' : '⭐'));
+          const customTag = n.isCustom ? ' [KUSTOM]' : '';
           const reason = n.monitoringReason ? ` — ${n.monitoringReason}` : ` (${n.elevation} m)`;
           const teleVal = hasTele ? ` [${hasTele.pressure_bar} bar]` : '';
-          opt.textContent = `${icon} ${n.label || n.id}${reason}${teleVal}`;
+          opt.textContent = `${icon} ${n.label || n.id}${customTag}${reason}${teleVal}`;
           optgroup.appendChild(opt);
         });
 
@@ -2344,7 +2430,7 @@
             <div style="font-family: var(--font-sans); font-size: 12px; min-width: 220px;">
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                 <b style="color: #38bdf8; font-size: 14px;">📡 Sensor ${safeLabel}</b>
-                <span class="scada-badge">LIVE SENSOR</span>
+                <span class="scada-badge">${n.isCustom ? 'KUSTOM LIVE' : 'LIVE SENSOR'}</span>
               </div>
               <div style="margin: 8px 0; border-top: 1px solid #334155; padding-top: 6px;">
                 <b>Tekanan Aktual:</b> <span style="color: #38bdf8; font-weight: 800; font-size: 16px;">${n.measuredPressure} bar</span> (${(n.measuredPressure * HEAD_PER_BAR).toFixed(1)} m)<br>
@@ -2360,10 +2446,64 @@
                 <button class="btn btn-dark" style="padding: 5px 8px; font-size: 10.5px; justify-content: center; color: #f43f5e; border-color: #f43f5e40;" onclick="removeNodeTelemetry('${n.id}')">
                   <span>🗑️</span> Hapus Telemetri Titik Ini
                 </button>
+                ${n.isCustom ? `
+                <button class="btn btn-dark" style="padding: 5px 8px; font-size: 10.5px; justify-content: center; color: #f43f5e; border-color: rgba(244, 63, 94, 0.4);" onclick="deleteCustomJunction('${n.id}')">
+                  <span>🗑️</span> Hapus Titik Junction Ini
+                </button>` : ''}
               </div>
             </div>
           `);
           nodeLayers.push(teleMarker);
+
+        } else if (n.isCustom) {
+          // Titik Pantau Manometer Kustom Tambahan Pengguna
+          const customMarker = L.circleMarker([n.lat, n.lng], {
+            radius: 8,
+            fillColor: '#8b5cf6',
+            color: '#ffffff',
+            weight: 2.5,
+            fillOpacity: 1
+          }).addTo(map);
+
+          customMarker.bindTooltip(`<b>⭐ ${escapeHtml(n.label)}</b> • Titik Kustom`, {
+            direction: 'top',
+            offset: [0, -8]
+          });
+
+          const pipeDesc = n.nearestPipeInfo ? `<div style="font-size: 11px; color: #38bdf8; margin-top: 4px;">🌊 ${escapeHtml(n.nearestPipeInfo)}</div>` : '';
+          const reasonDesc = n.monitoringReason ? `<div style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">ℹ️ ${escapeHtml(n.monitoringReason)}</div>` : '';
+
+          customMarker.bindPopup(`
+            <div style="font-family: var(--font-sans); font-size: 12px; min-width: 230px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <b style="color: #c084fc; font-size: 14px;">⭐ Titik ${escapeHtml(n.label)}</b>
+                <span style="font-size: 10px; color: var(--text-muted);">${n.elevation} mdpl</span>
+              </div>
+              <div style="margin-bottom: 6px;">
+                <span style="background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 700;">
+                  ⭐ TITIK MANOMETER KUSTOM
+                </span>
+                ${pipeDesc}
+                ${reasonDesc}
+              </div>
+              <div style="margin: 6px 0; border-top: 1px solid #334155; padding-top: 6px;">
+                <b>Estimasi Tekanan:</b> <span style="color: #38bdf8; font-weight: 700; font-size: 14px;">${n.pressure?.toFixed(2) || '0.00'} bar</span><br>
+                <b>Head Total:</b> ${(n.totalHead || n.elevation).toFixed(1)} m
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                <button class="btn btn-manual" style="padding: 6px 10px; font-size: 11px; width: 100%; justify-content: center;" onclick="openInputModal('${n.id}', 'manual')">
+                  <span>✍️</span> Ukur di Titik Ini (Manual)
+                </button>
+                <button class="btn btn-ai" style="padding: 6px 10px; font-size: 11px; width: 100%; justify-content: center;" onclick="openInputModal('${n.id}', 'ai')">
+                  <span>📸</span> Scan Foto AI
+                </button>
+                <button class="btn btn-dark" style="padding: 5px 8px; font-size: 10.5px; justify-content: center; color: #f43f5e; border-color: rgba(244, 63, 94, 0.4);" onclick="deleteCustomJunction('${n.id}')">
+                  <span>🗑️</span> Hapus Titik Junction Ini
+                </button>
+              </div>
+            </div>
+          `);
+          nodeLayers.push(customMarker);
 
         } else if (n.isMonitoringPoint) {
           // Titik Pantau Tekanan Ideal (Strategic Pressure Points)
@@ -3643,6 +3783,10 @@
     function applyAreaNetwork(network, areaName) {
       networkData = network;
 
+      if (currentAreaId === 'subang_kota') {
+        mergeCustomNodesIntoNetwork();
+      }
+
       // Reset titik telemetri aktif agar tidak konflik dengan wilayah sebelumnya
       telemetryReadings = {};
       telemetryHistory = [];
@@ -3809,6 +3953,11 @@
               '✍️ Ukur Tekanan di ' + escapeHtml(nearestNode.label || nearestNode.id) +
               '</button>';
           }
+
+          popupHtml += '<button class="btn btn-dark btn-xs" style="width: 100%; justify-content: center; margin-top: 6px; border-color: rgba(168, 85, 247, 0.5); color: #c084fc;" onclick="openAddJunctionModal(' + uLat + ', ' + uLng + ')">' +
+            '➕ Pasang Titik Junction di Sini' +
+            '</button>';
+
           popupHtml += '</div>';
 
           userLocationMarker.bindPopup(popupHtml).openPopup();
@@ -3917,6 +4066,530 @@
         syncModalOpenState();
       }
     }
+
+    // ================= FITUR PENAMBAHAN TITIK JUNCTION KUSTOM =================
+    /**
+     * Memuat daftar custom nodes dari backend /api/custom-nodes atau fallback localStorage
+     */
+    async function loadCustomNodes() {
+      let loaded = null;
+
+      // 1. Coba dari server lokal jika aktif
+      try {
+        const res = await fetch('/api/custom-nodes');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            loaded = data;
+            console.log(`✅ Berhasil memuat ${loaded.length} titik junction kustom dari server.js`);
+          }
+        }
+      } catch (e) {
+        console.log('Server.js /api/custom-nodes tidak aktif, beralih ke local storage.');
+      }
+
+      // 2. Fallback / Sinkronisasi dengan localStorage
+      try {
+        const raw = localStorage.getItem('scada_custom_nodes');
+        if (raw) {
+          const localNodes = JSON.parse(raw);
+          if (Array.isArray(localNodes)) {
+            if (!loaded) {
+              loaded = localNodes;
+            } else {
+              // Gabungkan tanpa duplikasi ID
+              const existingIds = new Set(loaded.map(n => n.id));
+              localNodes.forEach(ln => {
+                if (!existingIds.has(ln.id)) {
+                  loaded.push(ln);
+                  existingIds.add(ln.id);
+                }
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal membaca custom nodes dari localStorage:', e);
+      }
+
+      customNodes = loaded || [];
+      saveCustomNodesToStorage();
+      mergeCustomNodesIntoNetwork();
+    }
+
+    /**
+     * Simpan data customNodes ke localStorage
+     */
+    function saveCustomNodesToStorage() {
+      try {
+        localStorage.setItem('scada_custom_nodes', JSON.stringify(customNodes));
+      } catch (e) {
+        console.warn('Gagal menyimpan custom nodes ke localStorage:', e);
+      }
+    }
+
+    /**
+     * Menggabungkan customNodes ke dalam networkData.nodes dan defaultSubangNetwork.nodes
+     */
+    function mergeCustomNodesIntoNetwork() {
+      if (!networkData || !networkData.nodes) return;
+      customNodes.forEach(cNode => {
+        const enriched = {
+          ...cNode,
+          isCustom: true,
+          isMonitoringPoint: true,
+          category: cNode.category || 'custom_junction',
+          categoryLabel: cNode.categoryLabel || 'Titik Pantau Kustom Lapangan',
+          zoneLabel: cNode.zoneLabel || '⭐ Titik Pantau Kustom Lapangan'
+        };
+        const idx = networkData.nodes.findIndex(n => n.id === cNode.id);
+        if (idx >= 0) {
+          networkData.nodes[idx] = enriched;
+        } else {
+          networkData.nodes.push(enriched);
+        }
+      });
+
+      if (defaultSubangNetwork && defaultSubangNetwork.nodes && defaultSubangNetwork !== networkData) {
+        customNodes.forEach(cNode => {
+          const enriched = {
+            ...cNode,
+            isCustom: true,
+            isMonitoringPoint: true,
+            category: cNode.category || 'custom_junction',
+            categoryLabel: cNode.categoryLabel || 'Titik Pantau Kustom Lapangan',
+            zoneLabel: cNode.zoneLabel || '⭐ Titik Pantau Kustom Lapangan'
+          };
+          const idx = defaultSubangNetwork.nodes.findIndex(n => n.id === cNode.id);
+          if (idx >= 0) {
+            defaultSubangNetwork.nodes[idx] = enriched;
+          } else {
+            defaultSubangNetwork.nodes.push(enriched);
+          }
+        });
+      }
+    }
+
+    /**
+     * Membuka modal form penambahan titik junction baru
+     */
+    function openAddJunctionModal(lat = null, lng = null) {
+      const modal = document.getElementById('modal-add-junction');
+      if (!modal) return;
+
+      const labelInput = document.getElementById('new-node-label');
+      const elevInput = document.getElementById('new-node-elevation');
+      const latInput = document.getElementById('new-node-lat');
+      const lngInput = document.getElementById('new-node-lng');
+      const notesInput = document.getElementById('new-node-notes');
+
+      // Auto-suggest nama jika kosong
+      if (labelInput && !labelInput.value) {
+        const nextNum = customNodes.length + 1;
+        labelInput.value = `J_MANOMETER_${String(nextNum).padStart(2, '0')}`;
+      }
+
+      if (elevInput) {
+        elevInput.dataset.userTouched = 'false';
+      }
+
+      if (lat !== null && lng !== null) {
+        if (latInput) latInput.value = Number(lat).toFixed(6);
+        if (lngInput) lngInput.value = Number(lng).toFixed(6);
+        onNewNodeCoordsChanged();
+      } else if (latInput && lngInput && latInput.value && lngInput.value) {
+        onNewNodeCoordsChanged();
+      } else {
+        const infoEl = document.getElementById('new-node-pipe-info');
+        if (infoEl) {
+          infoEl.innerHTML = 'ℹ️ Tentukan koordinat untuk melihat pipa distribusi terdekat secara otomatis.';
+        }
+      }
+
+      modal.classList.add('active');
+      syncModalOpenState();
+    }
+
+    /**
+     * Menutup modal form penambahan titik junction baru
+     */
+    function closeAddJunctionModal() {
+      const modal = document.getElementById('modal-add-junction');
+      if (modal) {
+        modal.classList.remove('active');
+        syncModalOpenState();
+      }
+    }
+
+    /**
+     * Memulai mode penunjukan posisi di peta dengan kursor crosshair
+     */
+    function startMapPickMode() {
+      closeAddJunctionModal();
+      isMapPickingMode = true;
+
+      const banner = document.getElementById('map-pick-banner');
+      if (banner) banner.style.display = 'flex';
+
+      const mapEl = document.getElementById('map');
+      if (mapEl) mapEl.style.cursor = 'crosshair';
+
+      // Pasang listener satu kali klik pada peta
+      map.once('click', onMapPicked);
+    }
+
+    /**
+     * Callback saat peta diklik pada mode penunjukan posisi
+     */
+    function onMapPicked(e) {
+      const { lat, lng } = e.latlng;
+      cancelMapPickMode();
+      openAddJunctionModal(lat, lng);
+    }
+
+    /**
+     * Membatalkan mode penunjukan posisi di peta
+     */
+    function cancelMapPickMode() {
+      isMapPickingMode = false;
+
+      const banner = document.getElementById('map-pick-banner');
+      if (banner) banner.style.display = 'none';
+
+      const mapEl = document.getElementById('map');
+      if (mapEl) mapEl.style.cursor = '';
+
+      map.off('click', onMapPicked);
+    }
+
+    /**
+     * Mengambil koordinat GPS perangkat HP saat ini untuk input junction baru
+     */
+    function useCurrentGpsForNewNode() {
+      if (!navigator.geolocation) {
+        alert('Peramban Anda tidak mendukung fitur Geolocation GPS.');
+        return;
+      }
+
+      const infoEl = document.getElementById('new-node-pipe-info');
+      if (infoEl) {
+        infoEl.innerHTML = '<span style="color: #38bdf8;">🛰️ Mendeteksi koordinat GPS perangkat Anda...</span>';
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const uLat = pos.coords.latitude;
+          const uLng = pos.coords.longitude;
+          const latInput = document.getElementById('new-node-lat');
+          const lngInput = document.getElementById('new-node-lng');
+          if (latInput) latInput.value = uLat.toFixed(6);
+          if (lngInput) lngInput.value = uLng.toFixed(6);
+          onNewNodeCoordsChanged();
+        },
+        (err) => {
+          alert('Gagal mendeteksi lokasi GPS: ' + err.message + '\nPastikan izin lokasi diberikan pada peramban HP.');
+          onNewNodeCoordsChanged();
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    /**
+     * Mencari pipa dan simpul terdekat dari titik koordinat (lat, lng)
+     */
+    function findNearestPipeAndNode(lat, lng) {
+      if (!networkData) return { nearestNode: null, nearestPipe: null, nodeDist: Infinity, pipeDist: Infinity };
+
+      const nodes = networkData.nodes || [];
+      const pipes = networkData.pipes || [];
+
+      // 1. Simpul terdekat
+      let nearestNode = null;
+      let minNodeDistMeters = Infinity;
+
+      for (const n of nodes) {
+        const dLat = (n.lat - lat) * 111000;
+        const dLng = (n.lng - lng) * 111000 * Math.cos(lat * Math.PI / 180);
+        const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+        if (dist < minNodeDistMeters) {
+          minNodeDistMeters = dist;
+          nearestNode = n;
+        }
+      }
+
+      // 2. Pipa terdekat
+      let nearestPipe = null;
+      let minPipeDistMeters = Infinity;
+      const nodeMap = new Map();
+      nodes.forEach(n => nodeMap.set(n.id, n));
+
+      const cosLat = Math.cos(lat * Math.PI / 180);
+
+      for (const p of pipes) {
+        let coords = p.routeCoordinates;
+        if (!coords || coords.length < 2) {
+          const sn = nodeMap.get(p.startNodeId);
+          const en = nodeMap.get(p.endNodeId);
+          if (sn && en) coords = [[sn.lat, sn.lng], [en.lat, en.lng]];
+        }
+        if (!coords || coords.length < 2) continue;
+
+        for (let i = 0; i < coords.length - 1; i++) {
+          const p1 = coords[i];
+          const p2 = coords[i + 1];
+          const p1x = (p1[1] - lng) * 111000 * cosLat;
+          const p1y = (p1[0] - lat) * 111000;
+          const p2x = (p2[1] - lng) * 111000 * cosLat;
+          const p2y = (p2[0] - lat) * 111000;
+
+          const dx = p2x - p1x;
+          const dy = p2y - p1y;
+          const lenSq = dx * dx + dy * dy;
+          let t = 0;
+          if (lenSq > 0) {
+            t = Math.max(0, Math.min(1, (-p1x * dx + -p1y * dy) / lenSq));
+          }
+          const projX = p1x + t * dx;
+          const projY = p1y + t * dy;
+          const segDist = Math.sqrt(projX * projX + projY * projY);
+          if (segDist < minPipeDistMeters) {
+            minPipeDistMeters = segDist;
+            nearestPipe = p;
+          }
+        }
+      }
+
+      return {
+        nearestNode,
+        nodeDist: Math.round(minNodeDistMeters),
+        nearestPipe,
+        pipeDist: Math.round(minPipeDistMeters)
+      };
+    }
+
+    /**
+     * Handler saat nilai koordinat (Lat/Lng) pada modal berubah
+     */
+    function onNewNodeCoordsChanged() {
+      const latVal = parseFloat(document.getElementById('new-node-lat')?.value);
+      const lngVal = parseFloat(document.getElementById('new-node-lng')?.value);
+      const infoEl = document.getElementById('new-node-pipe-info');
+      if (!infoEl) return;
+
+      if (isNaN(latVal) || isNaN(lngVal)) {
+        infoEl.innerHTML = 'ℹ️ Tentukan koordinat untuk melihat pipa distribusi terdekat secara otomatis.';
+        return;
+      }
+
+      const { nearestNode, nodeDist, nearestPipe, pipeDist } = findNearestPipeAndNode(latVal, lngVal);
+
+      let pipeHtml = '';
+      if (nearestPipe) {
+        const sName = nearestPipe.startNodeLabel || nearestPipe.startNodeId || 'A';
+        const eName = nearestPipe.endNodeLabel || nearestPipe.endNodeId || 'B';
+        pipeHtml = `<div style="color: #38bdf8; font-weight: 600; margin-bottom: 4px;">
+          🌊 Terdeteksi di dekat pipa <b>${escapeHtml(sName)} ➔ ${escapeHtml(eName)}</b> (jarak ±${pipeDist} meter)
+        </div>
+        <div style="font-size: 11px; color: #94a3b8;">
+          Diameter: <b>${nearestPipe.diameter || 100} mm</b> (${escapeHtml(nearestPipe.material || 'PVC')})
+        </div>`;
+      } else {
+        pipeHtml = '<div style="color: #94a3b8;">Tidak ada pipa terdeteksi di sekitar koordinat ini.</div>';
+      }
+
+      let nodeHtml = '';
+      if (nearestNode) {
+        nodeHtml = `<div style="margin-top: 5px; font-size: 11px; color: #cbd5e1;">
+          📍 Simpul terdekat: <b>${escapeHtml(nearestNode.label || nearestNode.id)}</b> (±${nodeDist} m, Elevasi: <b>${nearestNode.elevation} mdpl</b>)
+        </div>`;
+
+        // Tawarkan pengisian otomatis elevasi jika user belum mengedit manual
+        const elevInput = document.getElementById('new-node-elevation');
+        if (elevInput && elevInput.dataset.userTouched !== 'true') {
+          elevInput.value = nearestNode.elevation;
+        }
+      }
+
+      infoEl.innerHTML = pipeHtml + nodeHtml;
+    }
+
+    /**
+     * Mengestimasi elevasi tanah secara otomatis berdasarkan simpul jaringan terdekat
+     */
+    function autoEstimateElevationForNewNode() {
+      const latVal = parseFloat(document.getElementById('new-node-lat')?.value);
+      const lngVal = parseFloat(document.getElementById('new-node-lng')?.value);
+      if (isNaN(latVal) || isNaN(lngVal)) {
+        alert('Tentukan koordinat Latitude & Longitude terlebih dahulu (via klik peta atau GPS).');
+        return;
+      }
+
+      const { nearestNode, nodeDist } = findNearestPipeAndNode(latVal, lngVal);
+      if (nearestNode) {
+        const elevInput = document.getElementById('new-node-elevation');
+        if (elevInput) {
+          elevInput.value = nearestNode.elevation;
+          elevInput.dataset.userTouched = 'true';
+        }
+        alert(`⚡ Elevasi tanah diatur ke ${nearestNode.elevation} mdpl (mengacu pada simpul terdekat "${nearestNode.label || nearestNode.id}", jarak ±${nodeDist} m).`);
+      } else {
+        alert('Tidak menemukan simpul referensi di sekitar koordinat.');
+      }
+    }
+
+    /**
+     * Menyimpan titik junction baru ke database lokal dan state SCADA
+     */
+    async function saveCustomJunction() {
+      const labelInput = document.getElementById('new-node-label');
+      const latInput = document.getElementById('new-node-lat');
+      const lngInput = document.getElementById('new-node-lng');
+      const elevInput = document.getElementById('new-node-elevation');
+      const notesInput = document.getElementById('new-node-notes');
+
+      const label = (labelInput?.value || '').trim();
+      const lat = parseFloat(latInput?.value);
+      const lng = parseFloat(lngInput?.value);
+      const elevation = parseFloat(elevInput?.value);
+      const notes = (notesInput?.value || '').trim();
+
+      if (!label) {
+        alert('Nama / label titik simpul wajib diisi!');
+        labelInput?.focus();
+        return;
+      }
+
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        alert('Koordinat Latitude & Longitude tidak valid! Silakan tentukan melalui klik peta atau GPS.');
+        return;
+      }
+
+      // Cek apakah label bentrok dengan node bawaan
+      const existingBaseNode = (defaultSubangNetwork?.nodes || []).find(n => (n.label || '').toLowerCase() === label.toLowerCase() && !n.isCustom);
+      if (existingBaseNode) {
+        alert(`Nama titik "${label}" sudah digunakan oleh simpul bawaan jaringan Subang. Mohon gunakan nama lain.`);
+        return;
+      }
+
+      // Info pipa terdekat untuk metadata
+      const { nearestPipe, pipeDist } = findNearestPipeAndNode(lat, lng);
+      let pipeText = '';
+      if (nearestPipe) {
+        const sName = nearestPipe.startNodeLabel || nearestPipe.startNodeId || 'A';
+        const eName = nearestPipe.endNodeLabel || nearestPipe.endNodeId || 'B';
+        pipeText = `Dekat Pipa ${sName} - ${eName} (Ø${nearestPipe.diameter}mm, ±${pipeDist}m)`;
+      }
+
+      const nodeId = 'cnode_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 4);
+
+      const newNode = {
+        id: nodeId,
+        label: label,
+        lat: lat,
+        lng: lng,
+        elevation: isNaN(elevation) ? 70 : elevation,
+        type: 'junction',
+        isMonitoringPoint: true,
+        isCustom: true,
+        category: 'custom_junction',
+        categoryLabel: 'Titik Pantau Kustom Lapangan',
+        zoneLabel: '⭐ Titik Pantau Kustom Lapangan',
+        monitoringReason: notes || pipeText || 'Titik pantau manometer kustom',
+        nearestPipeInfo: pipeText,
+        createdAt: new Date().toISOString()
+      };
+
+      // Simpan ke array kustom & localStorage
+      customNodes.push(newNode);
+      saveCustomNodesToStorage();
+
+      // Sinkron ke backend server.js jika tersedia
+      try {
+        await fetch('/api/custom-nodes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newNode)
+        });
+      } catch (err) {
+        console.log('Backend /api/custom-nodes tidak aktif (berjalan offline/GitHub Pages).');
+      }
+
+      // Gabungkan ke networkData
+      mergeCustomNodesIntoNetwork();
+
+      // Update dropdown & render peta
+      populateNodeDropdown(networkData.nodes);
+      renderNetwork();
+
+      // Reset form & tutup modal
+      if (labelInput) labelInput.value = '';
+      if (notesInput) notesInput.value = '';
+      closeAddJunctionModal();
+
+      // Arahkan peta ke titik baru
+      map.flyTo([lat, lng], 17, { duration: 1.2 });
+
+      alert(`✅ Berhasil menambahkan titik junction "${label}"!\nTitik kini muncul di peta dan daftar pengukuran tekanan.`);
+    }
+
+    /**
+     * Menghapus titik junction kustom beserta telemetrinya jika ada
+     */
+    async function deleteCustomJunction(nodeId) {
+      const node = customNodes.find(n => n.id === nodeId);
+      const label = node ? node.label : nodeId;
+
+      if (!confirm(`Apakah Anda yakin ingin menghapus titik junction "${label}"?\nData pengukuran tekanan (telemetri) di titik ini juga akan dihapus.`)) {
+        return;
+      }
+
+      // Hapus dari customNodes
+      customNodes = customNodes.filter(n => n.id !== nodeId);
+      saveCustomNodesToStorage();
+
+      // Hapus dari backend lokal server.js
+      try {
+        await fetch(`/api/custom-nodes?id=${encodeURIComponent(nodeId)}`, {
+          method: 'DELETE'
+        });
+      } catch (err) {
+        console.log('Backend /api/custom-nodes tidak aktif.');
+      }
+
+      // Hapus data telemetri terkait jika ada
+      if (telemetryReadings[nodeId]) {
+        delete telemetryReadings[nodeId];
+        try {
+          localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+        } catch (e) {}
+
+        // Hapus dari server lokal
+        try {
+          await fetch(`/api/telemetry?nodeId=${encodeURIComponent(nodeId)}`, { method: 'DELETE' });
+        } catch (e) {}
+
+        // Hapus dari Supabase jika ada
+        if (supabaseClient) {
+          try {
+            await supabaseClient.from('scada_telemetry').delete().eq('node_id', nodeId);
+          } catch (e) {}
+        }
+      }
+
+      // Hapus dari networkData.nodes
+      if (networkData && networkData.nodes) {
+        networkData.nodes = networkData.nodes.filter(n => n.id !== nodeId);
+      }
+      if (defaultSubangNetwork && defaultSubangNetwork.nodes) {
+        defaultSubangNetwork.nodes = defaultSubangNetwork.nodes.filter(n => n.id !== nodeId);
+      }
+
+      // Re-render
+      populateNodeDropdown(networkData.nodes);
+      renderNetwork();
+
+      alert(`🗑️ Titik junction "${label}" berhasil dihapus.`);
+    }
   </script>
 
   <!-- Mobile Bottom Navigation Bar -->
@@ -3951,6 +4624,9 @@
         <button class="modal-close" onclick="closeMobileMenuModal()">&times;</button>
       </div>
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px;">
+        <button class="btn btn-accent" style="justify-content: flex-start; padding: 10px 14px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-color: #8b5cf6;" onclick="closeMobileMenuModal(); openAddJunctionModal();">
+          <span>➕</span> <div><b>Tambah Titik Junction Baru</b><br><small style="opacity: 0.8;">Pasang titik manometer baru via GPS / Peta</small></div>
+        </button>
         <button class="btn btn-accent" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); runSubangQuickSimulation();">
           <span>🧪</span> <div><b>Contoh Simulasi Tekanan</b><br><small style="opacity: 0.8;">Muat 6 titik pantau transmisi Kota Subang</small></div>
         </button>

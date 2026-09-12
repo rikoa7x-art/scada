@@ -17,6 +17,7 @@ const { analyzePressureGauge } = require('./ai_vision_reader.js');
 const PORT = process.env.PORT || 3000;
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '';
 const TELEMETRY_FILE = path.join(__dirname, 'telemetry_subang.json');
+const CUSTOM_NODES_FILE = path.join(__dirname, 'custom_nodes_subang.json');
 const SUBANG_NETWORK_FILE = path.join(__dirname, 'epanet_subang.json');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://nbjfxzulzxxujudntdab.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iamZ4enVsenh4dWp1ZG50ZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTE2MzIsImV4cCI6MjEwNDc4NzYzMn0.LlIr9TLE3sE7X9xsohQcFrsU0OM8lisy1ymUvV-kdLo';
@@ -137,6 +138,28 @@ if (!fs.existsSync(TELEMETRY_FILE)) {
     readings: {},
     history: []
   }, null, 2), 'utf8');
+}
+
+// Inisialisasi Database Titik Junction Kustom jika belum ada
+if (!fs.existsSync(CUSTOM_NODES_FILE)) {
+  fs.writeFileSync(CUSTOM_NODES_FILE, JSON.stringify([], null, 2), 'utf8');
+}
+
+async function readCustomNodesSafe() {
+  try {
+    const content = await fsPromises.readFile(CUSTOM_NODES_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch (err) {
+    if (err.code === 'ENOENT') return [];
+    console.error('Error membaca file custom nodes:', err.message);
+    return [];
+  }
+}
+
+async function writeCustomNodesSafe(nodes) {
+  const tempFile = CUSTOM_NODES_FILE + '.tmp';
+  await fsPromises.writeFile(tempFile, JSON.stringify(nodes, null, 2), 'utf8');
+  await fsPromises.rename(tempFile, CUSTOM_NODES_FILE);
 }
 
 // Simple file lock untuk mencegah race condition penulisan
@@ -420,6 +443,82 @@ const server = http.createServer(async (req, res) => {
         // Jika tidak ada parameter, tolak untuk mencegah penghapusan tidak sengaja
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Sertakan parameter nodeId untuk hapus spesifik, atau action=reset_all untuk reset semua data' }));
+        return;
+      }
+    }
+
+    // ----------------------------------------------------
+    // API ROUTE 4: Titik Junction Kustom (GET, POST, DELETE)
+    // ----------------------------------------------------
+    if (pathname === '/api/custom-nodes') {
+      if (req.method === 'GET') {
+        const nodes = await readCustomNodesSafe();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(nodes));
+        return;
+      }
+
+      if (req.method === 'POST') {
+        const rawBody = await getRequestBody(req);
+        const newNode = parseJsonBody(rawBody);
+
+        if (!newNode.label || newNode.lat === undefined || newNode.lng === undefined) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'label, lat, dan lng wajib diisi' }));
+          return;
+        }
+
+        const nodes = await readCustomNodesSafe();
+        const existingIdx = nodes.findIndex(n => n.id === newNode.id);
+
+        const nodeObj = {
+          id: newNode.id || 'custom-node-' + Date.now(),
+          lat: Number(newNode.lat),
+          lng: Number(newNode.lng),
+          elevation: Number(newNode.elevation || 0),
+          type: 'junction',
+          label: String(newNode.label).trim(),
+          demand: 0,
+          accessories: [],
+          pressure: 0,
+          headloss: 0,
+          isMonitoringPoint: true,
+          category: 'custom_junction',
+          categoryLabel: newNode.categoryLabel || '⭐ Titik Pantau Kustom Lapangan',
+          monitoringReason: newNode.monitoringReason || newNode.notes || 'Titik Manometer Tambahan Lapangan',
+          zone: 'custom',
+          zoneLabel: newNode.zoneLabel || '⭐ Titik Pantau Kustom Lapangan',
+          nearestPipeInfo: newNode.nearestPipeInfo || null,
+          isCustom: true,
+          createdAt: newNode.createdAt || new Date().toISOString()
+        };
+
+        if (existingIdx >= 0) {
+          nodes[existingIdx] = nodeObj;
+        } else {
+          nodes.push(nodeObj);
+        }
+
+        await writeCustomNodesSafe(nodes);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, node: nodeObj }));
+        return;
+      }
+
+      if (req.method === 'DELETE') {
+        const nodeId = reqUrl.searchParams.get('id') || reqUrl.searchParams.get('nodeId');
+        if (!nodeId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Parameter id atau nodeId wajib disertakan' }));
+          return;
+        }
+
+        let nodes = await readCustomNodesSafe();
+        nodes = nodes.filter(n => n.id !== nodeId);
+        await writeCustomNodesSafe(nodes);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: `Titik kustom ${nodeId} berhasil dihapus` }));
         return;
       }
     }
