@@ -931,7 +931,7 @@
         position: absolute !important;
         top: 8px !important;
         left: 8px !important;
-        right: 58px !important; /* Space for layers icon */
+        right: 62px !important; /* Space for layers icon */
         z-index: 500 !important;
         display: flex !important;
         grid-template-columns: none !important;
@@ -984,6 +984,32 @@
       }
       .kpi-subtext {
         display: none !important;
+      }
+
+      
+      /* Hide big map legend by default on mobile */
+      .map-legend {
+        display: none !important;
+      }
+      .btn-legend-pill {
+        position: absolute !important;
+        top: 46px !important;
+        left: 8px !important;
+        z-index: 500 !important;
+        background: rgba(15, 23, 42, 0.90) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        color: #38bdf8 !important;
+        border-radius: 14px !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        padding: 3px 9px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
       }
 
       /* 4. Leaflet Map Controls Positioned Intelligently */
@@ -1175,7 +1201,7 @@
       </div>
       <div class="brand-text">
         <h1>
-          PDAM TIRTA KOTA SUBANG
+          <span class="brand-title-full">PDAM TIRTA SUBANG</span>
           <span class="scada-badge">SCADA LIVE</span>
           <span class="scada-badge" id="cloud-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399;" title="Tersinkronisasi Realtime dengan Supabase Cloud">⚡ CLOUD SYNC</span>
         </h1>
@@ -1231,14 +1257,11 @@
     </div>
 
     <div class="mobile-header-actions">
-      <button class="btn btn-dark btn-sm" onclick="openAreaManagerModal()" title="Pilih Wilayah" style="padding: 4px 8px; font-size: 11px;">
-        <span>🗺️</span> <span id="mobile-current-area-label" style="color: #38bdf8; font-weight: 700; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Subang</span>
+      <button class="btn btn-dark btn-sm" onclick="openAreaManagerModal()" title="Pilih Wilayah" style="padding: 5px 9px; font-size: 11.5px; border-color: rgba(56, 189, 248, 0.4);">
+        <span>🗺️</span> <span id="mobile-current-area-label" style="color: #38bdf8; font-weight: 700; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Subang</span>
       </button>
-      <button class="btn btn-dark btn-sm" id="btn-gps-header" onclick="locateUser()" title="Cari Lokasi Saya (GPS)" style="padding: 4px 8px; font-size: 13px;">
-        <span>📍</span>
-      </button>
-      <button class="btn btn-dark btn-sm" onclick="openMobileMenuModal()" title="Menu Lengkap" style="padding: 4px 8px; font-size: 13px;">
-        <span>⋮</span>
+      <button class="btn btn-dark btn-sm" onclick="openMobileMenuModal()" title="Menu Lengkap" style="padding: 5px 9px; font-size: 13px; border-color: rgba(255, 255, 255, 0.2);">
+        <span>⚙️</span>
       </button>
     </div>
   </header>
@@ -3448,6 +3471,9 @@
         <button class="btn btn-accent" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); runSubangQuickSimulation();">
           <span>🧪</span> <div><b>Contoh Simulasi Tekanan</b><br><small style="opacity: 0.8;">Muat 6 titik pantau transmisi Kota Subang</small></div>
         </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); openLegendModal();">
+          <span>📖</span> <div><b>Legenda Warna Pipa & Simpul</b><br><small style="opacity: 0.8;">Arti warna aliran debit & simbol simpul</small></div>
+        </button>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); toggleNodeVisibility();">
           <span>⭐</span> <div><b>Ganti Tampilan Titik</b><br><small style="opacity: 0.8;">Titik Ideal (45) vs Semua Simpul (314)</small></div>
         </button>
@@ -3472,6 +3498,66 @@
         </button>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="window.open('epanet.html', '_blank')">
           <span>📐</span> <div><b>Buka EPANET Designer</b><br><small style="opacity: 0.8;">Perencanaan teknis jaringan pipa</small></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Legenda & Status Aliran Pipa -->
+  <div class="modal-backdrop" id="modal-legend" onclick="if(event.target===this) closeLegendModal()">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 style="font-size: 15px; font-weight: 700; color: #38bdf8;">📖 Legenda Status Pipa & Simpul</h3>
+        <button class="modal-close" onclick="closeLegendModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top: 10px;">
+        <div style="font-weight: 700; color: #ffffff; margin-bottom: 8px; font-size: 12px; border-bottom: 1px solid #1e293b; padding-bottom: 4px;">
+          STATUS ALIRAN PIPA (Q)
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 24px; height: 6px; border-radius: 3px; background: #0284c7; flex-shrink: 0;"></div>
+            <span><b>Debit Tinggi (> 20 L/s)</b> — Pipa Transmisi Utama</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 24px; height: 4px; border-radius: 2px; background: #10b981; flex-shrink: 0;"></div>
+            <span><b>Normal Optimal</b> — Kecepatan 0.3 - 2.0 m/s</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 24px; height: 4px; border-radius: 2px; background: #f59e0b; flex-shrink: 0;"></div>
+            <span><b>Aliran Rendah (< 0.3 m/s)</b> — Resiko Endapan</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 24px; height: 5px; border-radius: 2px; background: #ef4444; flex-shrink: 0;"></div>
+            <span style="color: #fca5a5;"><b>Tekanan Drop (< 0.5 bar)</b> — Indikasi Bocor</span>
+          </div>
+        </div>
+
+        <div style="font-weight: 700; color: #ffffff; margin-bottom: 8px; font-size: 12px; border-bottom: 1px solid #1e293b; padding-bottom: 4px;">
+          TITIK PANTAU STRATEGIS (45 TITIK)
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #0ea5e9; border: 2px solid #fff; flex-shrink: 0;"></div>
+            <span><b>💧 Sumber Reservoir (R1, R2)</b> — Elevasi 154-155 mdpl</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; border: 2px solid #fff; flex-shrink: 0;"></div>
+            <span><b>🔀 Percabangan Transmisi</b> — Pipa Ø ≥ 150mm</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #ec4899; border: 2px solid #fff; flex-shrink: 0;"></div>
+            <span><b>⛰️ Zona Elevasi Kritis</b> — Puncak (Air Mati) / Lembah (Pecah)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; border: 2px solid #fff; flex-shrink: 0;"></div>
+            <span><b>🏘️ Distribusi DMA</b> — Ujung Wilayah Pelayanan</span>
+          </div>
+        </div>
+
+        <button class="btn btn-dark" style="width: 100%; justify-content: center; margin-top: 16px; padding: 10px;" onclick="closeLegendModal()">
+          Tutup Legenda
         </button>
       </div>
     </div>
