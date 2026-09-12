@@ -1840,15 +1840,8 @@
                 } catch (e) {}
                 renderNetwork();
               }
-              if (delId && customNodes.some(n => n.id === delId)) {
-                customNodes = customNodes.filter(n => n.id !== delId);
-                saveCustomNodesToStorage();
-                if (networkData && networkData.nodes) {
-                  networkData.nodes = networkData.nodes.filter(n => n.id !== delId);
-                }
-                populateNodeDropdown(networkData.nodes);
-                renderNetwork();
-              }
+              // Catatan: JANGAN hapus customNodes di sini saat ada row telemetri dihapus!
+              // Penghapusan titik kustom hanya boleh diatur via katalog master __SCADA_CUSTOM_NODES__.
             } else if (payload.new && payload.new.node_id) {
               const row = payload.new;
 
@@ -1865,6 +1858,11 @@
                     console.log(`⚡ Realtime custom nodes diperbarui dari Supabase (${customNodes.length} titik).`);
                   }
                 } catch (e) {}
+                return;
+              }
+
+              // Abaikan record placeholder titik kustom yang belum memiliki bacaan tekanan aktual
+              if (row.gauge_type === 'custom_junction') {
                 return;
               }
 
@@ -1910,8 +1908,8 @@
             telemetryReadings = {};
             telemetryHistory = [];
             data.forEach(row => {
-              if (row.node_id === '__SCADA_CUSTOM_NODES__' || row.gauge_type === 'custom_nodes_catalog') {
-                return; // Lewati record katalog sistem
+              if (row.node_id === '__SCADA_CUSTOM_NODES__' || row.gauge_type === 'custom_nodes_catalog' || row.gauge_type === 'custom_junction') {
+                return; // Lewati record katalog sistem & placeholder titik kustom yang belum diukur
               }
               telemetryReadings[row.node_id] = {
                 nodeId: row.node_id,
@@ -1994,7 +1992,7 @@
     async function syncLocalReadingsToSupabase(readings) {
       if (!supabaseClient || !readings) return;
       const rows = Object.values(readings)
-        .filter(r => r.nodeId !== '__SCADA_CUSTOM_NODES__' && r.gauge_type !== 'custom_nodes_catalog')
+        .filter(r => r.nodeId !== '__SCADA_CUSTOM_NODES__' && r.gauge_type !== 'custom_nodes_catalog' && r.gauge_type !== 'custom_junction')
         .map(r => ({
           node_id: r.nodeId,
           node_label: r.nodeLabel || r.nodeId,
@@ -3117,15 +3115,34 @@
         localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
       } catch (e) {}
 
-      // 2. Hapus dari Supabase Cloud
+      // 2. Hapus dari Supabase Cloud (jika titik kustom, kembalikan ke row placeholder custom_junction)
       if (supabaseClient) {
         try {
-          const { error } = await supabaseClient
-            .from('scada_telemetry')
-            .delete()
-            .eq('node_id', nodeId);
-          if (error) console.warn('Gagal menghapus dari Supabase:', error);
-          else console.log('🗑️ Berhasil menghapus dari Supabase Cloud:', nodeId);
+          const isCustomNode = customNodes.some(n => n.id === nodeId);
+          if (isCustomNode) {
+            const cNode = customNodes.find(n => n.id === nodeId);
+            await supabaseClient
+              .from('scada_telemetry')
+              .upsert({
+                node_id: nodeId,
+                node_label: cNode ? cNode.label : nodeId,
+                pressure_bar: 0,
+                pressure_m: 0,
+                confidence: 1.0,
+                officer_name: 'Petugas Lapangan',
+                gauge_type: 'custom_junction',
+                notes: JSON.stringify(cNode || {}),
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'node_id' });
+            console.log('⚡ Berhasil mereset telemetri titik kustom di Supabase Cloud:', nodeId);
+          } else {
+            const { error } = await supabaseClient
+              .from('scada_telemetry')
+              .delete()
+              .eq('node_id', nodeId);
+            if (error) console.warn('Gagal menghapus dari Supabase:', error);
+            else console.log('🗑️ Berhasil menghapus dari Supabase Cloud:', nodeId);
+          }
         } catch (err) {
           console.warn('Error delete Supabase:', err);
         }
@@ -3231,15 +3248,36 @@
         localStorage.removeItem('scada_subang_telemetry_history');
       } catch (e) {}
 
-      // 2. Bersihkan Supabase Cloud
+      // 2. Bersihkan Supabase Cloud (KECUALI katalog titik junction kustom)
       if (supabaseClient) {
         try {
+          // A. Hapus semua record pembacaan telemetri (kecuali katalog master)
           const { error } = await supabaseClient
             .from('scada_telemetry')
             .delete()
-            .neq('node_id', '___NEVER_MATCH___');
+            .neq('node_id', '__SCADA_CUSTOM_NODES__');
           if (error) console.warn('Gagal reset data di Supabase:', error);
-          else console.log('🧹 Berhasil reset semua data di Supabase Cloud');
+          else console.log('🧹 Berhasil reset data telemetri di Supabase Cloud');
+
+          // B. Untuk titik junction kustom yang aktif, pulihkan baris placeholder custom_junction (tekanan 0)
+          if (customNodes && customNodes.length > 0) {
+            const placeholderRows = customNodes.map(cn => ({
+              node_id: cn.id,
+              node_label: cn.label,
+              pressure_bar: 0,
+              pressure_m: 0,
+              confidence: 1.0,
+              officer_name: 'Petugas Lapangan',
+              gauge_type: 'custom_junction',
+              notes: JSON.stringify(cn),
+              updated_at: new Date().toISOString()
+            }));
+            await supabaseClient
+              .from('scada_telemetry')
+              .upsert(placeholderRows, { onConflict: 'node_id' });
+            // Pastikan katalog master __SCADA_CUSTOM_NODES__ tersinkron
+            syncAllCustomNodesToSupabase();
+          }
         } catch (err) {
           console.warn('Error reset Supabase:', err);
         }

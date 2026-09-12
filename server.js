@@ -60,9 +60,10 @@ async function syncTelemetryToSupabase(reading) {
 async function deleteTelemetryFromSupabase(nodeId) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
   try {
+    // Saat reset_all (nodeId = null): hapus semua row telemetri KECUALI katalog __SCADA_CUSTOM_NODES__
     const url = nodeId
       ? `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.${encodeURIComponent(nodeId)}`
-      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=neq.___NEVER_MATCH___`;
+      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=neq.__SCADA_CUSTOM_NODES__`;
     await fetch(url, {
       method: 'DELETE',
       headers: {
@@ -91,8 +92,8 @@ async function pullTelemetrySnapshotFromSupabase() {
         const readings = {};
         const history = [];
         rows.forEach(r => {
-          if (r.node_id === '__SCADA_CUSTOM_NODES__' || r.gauge_type === 'custom_nodes_catalog') {
-            return; // Lewati record katalog kustom
+          if (r.node_id === '__SCADA_CUSTOM_NODES__' || r.gauge_type === 'custom_nodes_catalog' || r.gauge_type === 'custom_junction') {
+            return; // Lewati record katalog kustom & placeholder titik kustom
           }
           readings[r.node_id] = {
             nodeId: r.node_id,
@@ -517,6 +518,11 @@ const server = http.createServer(async (req, res) => {
           };
           await writeTelemetrySafe(resetData);
           deleteTelemetryFromSupabase(null).catch(() => {});
+          // Pastikan katalog custom nodes tetap utuh dan tersinkron ke Supabase Cloud
+          const currentNodes = await readCustomNodesSafe();
+          if (currentNodes && currentNodes.length > 0) {
+            syncCustomNodesCatalogToSupabase(currentNodes).catch(() => {});
+          }
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Semua data telemetri berhasil di-reset' }));
           return;
