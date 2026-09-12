@@ -731,36 +731,7 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Responsive Design untuk Mobile & Tablet */
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px 12px;
-      }
-      .header-actions {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .workspace {
-        flex-direction: column;
-      }
-      .scada-sidebar {
-        width: 100%;
-        height: 45vh;
-        border-left: none;
-        border-top: 1px solid var(--border-color);
-      }
-      .kpi-overlay {
-        right: 14px;
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .map-legend {
-        display: none;
-      }
-    }
-
-    /* Print Styles */
+        /* Print Styles */
     @media print {
       body {
         background: #ffffff !important;
@@ -792,16 +763,11 @@
       }
     }
 
-    /* ================= RESPONSIVE MOBILE STYLES & PWA ================= */
-    .mobile-header-actions {
-      display: none;
-    }
-    .mobile-bottom-nav {
-      display: none;
-    }
-    .mobile-drawer-header {
-      display: none;
-    }
+    /* ================= MOBILE-FIRST RESPONSIVE STYLES (POLISHED) ================= */
+    .mobile-header-actions { display: none; }
+    .mobile-bottom-nav { display: none; }
+    .mobile-drawer-header { display: none; }
+    
     .fab-gps {
       position: absolute;
       bottom: 24px;
@@ -831,9 +797,7 @@
     }
 
     /* GPS User Marker on Map */
-    .gps-user-marker {
-      position: relative;
-    }
+    .gps-user-marker { position: relative; }
     .gps-pulse {
       width: 36px;
       height: 36px;
@@ -860,212 +824,341 @@
       100% { transform: scale(2.4); opacity: 0; }
     }
 
+    /* SMARTPHONE MOBILE VIEWPORT (<= 768px) */
     @media (max-width: 768px) {
-      body {
-        height: 100dvh;
-        overflow: hidden;
+      html, body {
+        height: 100% !important;
+        height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background-color: #090e17;
       }
+
+      /* 1. Header: Sleek, 1 row only, zero overflow */
       header {
-        padding: 8px 12px;
-        height: 52px;
+        flex: 0 0 50px !important;
+        height: 50px !important;
+        padding: 0 12px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        background: #090e17 !important;
+        border-bottom: 1px solid #1e293b !important;
+        z-index: 1000 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
       }
       .brand-section {
-        gap: 8px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-width: 0 !important;
+      }
+      .brand-logo {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 8px !important;
+        flex-shrink: 0 !important;
       }
       .brand-logo img {
-        width: 30px;
-        height: 30px;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
       }
       .brand-text h1 {
-        font-size: 13px;
-        letter-spacing: 0;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        color: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .scada-badge {
+        font-size: 8.5px !important;
+        padding: 1px 5px !important;
+        border-radius: 4px !important;
       }
       .brand-text p {
-        display: none;
+        display: none !important;
       }
       .header-actions.desktop-only {
         display: none !important;
       }
       .mobile-header-actions {
-        display: flex;
-        gap: 6px;
-        align-items: center;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
       }
+      .mobile-header-actions .btn {
+        padding: 5px 9px !important;
+        font-size: 12px !important;
+        border-radius: 6px !important;
+      }
+
+      /* 2. Workspace: Takes exactly the space between Header (50px) & Bottom Nav (58px) */
       .workspace {
-        flex-direction: column;
-        height: calc(100dvh - 52px - 58px);
-        position: relative;
+        flex: 1 1 auto !important;
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: hidden !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       #map-container {
-        height: 100%;
-        width: 100%;
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
       }
-      
-      /* Horizontal swipeable KPI bar */
+      #map {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      /* 3. Streamlined Horizontal KPI Mini-Pills (Single Row, Never Blocks the Map!) */
       .kpi-overlay {
-        top: 8px;
-        left: 8px;
-        right: 8px;
-        gap: 8px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
+        position: absolute !important;
+        top: 8px !important;
+        left: 8px !important;
+        right: 58px !important; /* Space for layers icon */
+        z-index: 500 !important;
+        display: flex !important;
+        grid-template-columns: none !important;
+        flex-direction: row !important;
+        gap: 6px !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch !important;
+        pointer-events: auto !important;
+        padding: 2px 0 !important;
       }
       .kpi-overlay::-webkit-scrollbar {
-        display: none;
+        display: none !important;
       }
       .kpi-card {
-        min-width: 135px;
-        padding: 6px 10px;
-        border-radius: 8px;
-        flex-shrink: 0;
+        flex: 0 0 auto !important;
+        min-width: auto !important;
+        padding: 5px 9px !important;
+        border-radius: 16px !important;
+        background: rgba(15, 23, 42, 0.88) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(56, 189, 248, 0.25) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45) !important;
+      }
+      .kpi-header {
+        margin-bottom: 0 !important;
+        display: flex !important;
+        align-items: center !important;
       }
       .kpi-title {
-        font-size: 10px;
+        display: none !important; /* Hide long title text on phone */
       }
       .kpi-icon {
-        font-size: 13px;
+        font-size: 13px !important;
+        line-height: 1 !important;
       }
       .kpi-value {
-        font-size: 15px;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        color: #f8fafc !important;
+        white-space: nowrap !important;
+      }
+      .kpi-value span {
+        font-size: 10px !important;
+        opacity: 0.8 !important;
       }
       .kpi-subtext {
-        display: none;
+        display: none !important;
       }
 
-      /* Map Legend on mobile: collapsible/minimal */
-      .map-legend {
-        bottom: 12px;
-        left: 10px;
-        max-width: 160px;
-        padding: 8px 10px;
-        font-size: 10px;
-        display: none;
+      /* 4. Leaflet Map Controls Positioned Intelligently */
+      .leaflet-top.leaflet-right {
+        top: 6px !important;
+        right: 8px !important;
+      }
+      .leaflet-control-layers {
+        margin-top: 0 !important;
+        background: rgba(15, 23, 42, 0.9) !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+      }
+      /* Move Leaflet Zoom Controls to Bottom-Left */
+      .leaflet-bottom.leaflet-left {
+        bottom: 12px !important;
+        left: 10px !important;
+      }
+      .leaflet-control-zoom {
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        margin: 0 !important;
+      }
+      .leaflet-control-zoom a {
+        background: rgba(15, 23, 42, 0.9) !important;
+        color: #38bdf8 !important;
+        border-bottom: 1px solid #334155 !important;
+        width: 32px !important;
+        height: 32px !important;
+        line-height: 32px !important;
       }
 
-      /* Bottom Navigation Bar */
+      /* 5. Floating GPS Button at Bottom-Right (No overlap with Zoom!) */
+      .fab-gps {
+        position: absolute !important;
+        bottom: 14px !important;
+        right: 14px !important;
+        width: 46px !important;
+        height: 46px !important;
+        border-radius: 50% !important;
+        background: #0f172a !important;
+        border: 2px solid #38bdf8 !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 20px !important;
+        color: #38bdf8 !important;
+        z-index: 600 !important;
+      }
+
+      /* 6. Fixed Bottom Navigation Bar (Solidly Visible, 100% Screen Width) */
       .mobile-bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 58px;
-        background: rgba(9, 14, 23, 0.96);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-top: 1px solid #1e293b;
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        z-index: 1090;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
+        flex: 0 0 58px !important;
+        height: 58px !important;
+        background: #090e17 !important;
+        border-top: 1px solid #1e293b !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        z-index: 2000 !important;
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+        box-sizing: border-box !important;
       }
       .nav-item {
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-size: 10.5px;
-        font-family: var(--font-sans);
-        gap: 3px;
-        cursor: pointer;
-        padding: 4px 6px;
-        flex: 1;
-        transition: color 0.15s;
-        touch-action: manipulation;
+        background: none !important;
+        border: none !important;
+        color: #94a3b8 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 10px !important;
+        font-family: var(--font-sans) !important;
+        gap: 2px !important;
+        cursor: pointer !important;
+        padding: 4px !important;
+        flex: 1 !important;
+        transition: color 0.15s !important;
+        touch-action: manipulation !important;
       }
       .nav-item.active {
-        color: #38bdf8;
-        font-weight: 700;
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
       }
       .nav-icon {
-        font-size: 18px;
-        line-height: 1;
+        font-size: 18px !important;
+        line-height: 1 !important;
       }
       .nav-item.center-action {
-        position: relative;
-        top: -8px;
+        position: relative !important;
+        top: -10px !important;
       }
       .nav-icon-circle {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-        border: 2.5px solid #090e17;
-        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        color: #ffffff;
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 50% !important;
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+        border: 3px solid #090e17 !important;
+        box-shadow: 0 4px 16px rgba(2, 132, 199, 0.6) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 21px !important;
+        color: #ffffff !important;
       }
       .nav-badge {
-        position: absolute;
-        top: -3px;
-        right: -8px;
-        background: #f43f5e;
-        color: #fff;
-        font-size: 9px;
-        font-weight: 800;
-        padding: 1px 4px;
-        border-radius: 8px;
-        min-width: 14px;
-        text-align: center;
+        position: absolute !important;
+        top: -3px !important;
+        right: -8px !important;
+        background: #f43f5e !important;
+        color: #fff !important;
+        font-size: 9px !important;
+        font-weight: 800 !important;
+        padding: 1px 4px !important;
+        border-radius: 8px !important;
+        min-width: 14px !important;
+        text-align: center !important;
       }
 
-      /* Slide-up Bottom Drawer for Sidebar */
+      /* 7. Slide-Up Bottom Drawer for Sidebar on Mobile */
       .scada-sidebar {
-        position: fixed;
-        bottom: 58px;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: 75vh;
-        max-height: 75vh;
-        background: #0c1322;
-        border-radius: 18px 18px 0 0;
-        border-top: 1px solid #334155;
-        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.75);
-        z-index: 1080;
-        transform: translateY(115%);
-        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-        display: flex;
-        flex-direction: column;
+        position: fixed !important;
+        bottom: 58px !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        height: 72vh !important;
+        max-height: 72vh !important;
+        background: #0c1322 !important;
+        border-radius: 20px 20px 0 0 !important;
+        border-top: 1px solid #334155 !important;
+        box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.85) !important;
+        z-index: 1500 !important;
+        transform: translateY(105%) !important;
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        display: flex !important;
+        flex-direction: column !important;
       }
       .scada-sidebar.mobile-open {
-        transform: translateY(0);
+        transform: translateY(0) !important;
       }
       .mobile-drawer-header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 8px 14px 4px;
-        border-bottom: 1px solid #1e293b;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 8px 14px 4px !important;
+        border-bottom: 1px solid #1e293b !important;
       }
       .mobile-drawer-handle {
-        width: 38px;
-        height: 4px;
-        background: #475569;
-        border-radius: 2px;
-        margin-bottom: 6px;
+        width: 40px !important;
+        height: 4px !important;
+        background: #475569 !important;
+        border-radius: 2px !important;
+        margin-bottom: 6px !important;
       }
 
-      /* Modals on Mobile */
-      .modal-overlay {
-        padding: 10px;
-        align-items: flex-end;
+      /* 8. Modals Bottom-Sheet on Mobile */
+      .modal-backdrop {
+        padding: 0 !important;
+        align-items: flex-end !important;
+        background: rgba(0, 0, 0, 0.7) !important;
       }
-      .modal-card {
-        width: 100%;
-        max-height: 88vh;
-        border-radius: 16px 16px 12px 12px;
+      .modal-box {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 20px 20px 0 0 !important;
+        max-height: 88vh !important;
+        overflow-y: auto !important;
+        margin: 0 !important;
+        padding: 16px 18px !important;
       }
       .input-control {
-        font-size: 16px; /* Prevents auto-zoom in iOS Safari */
+        font-size: 16px !important; /* Prevents auto-zoom in iOS Safari */
       }
     }
   </style>
@@ -1626,7 +1719,7 @@
         attributionControl: true
       }).setView([-6.565, 107.765], 14);
 
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
       // Layer 1: OpenStreetMap (Peta Jalan Jelas, 100% Gratis Tanpa API Key)
       const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -3235,5 +3328,70 @@
       window.print();
     }
   </script>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav">
+    <button class="nav-item active" id="btn-nav-map" onclick="switchMobileNav('map')">
+      <span class="nav-icon">🗺️</span>
+      <span class="nav-label">Peta</span>
+    </button>
+    <button class="nav-item" id="btn-nav-sensors" onclick="switchMobileNav('sensors')">
+      <span class="nav-icon">📡</span>
+      <span class="nav-label">Sensor</span>
+    </button>
+    <button class="nav-item center-action" id="btn-nav-measure" onclick="openInputModal(null, 'manual')">
+      <span class="nav-icon-circle">✍️</span>
+      <span class="nav-label" style="color: #38bdf8; font-weight: 700; font-size: 10px;">Ukur</span>
+    </button>
+    <button class="nav-item" id="btn-nav-pipes" onclick="switchMobileNav('pipes')">
+      <span class="nav-icon">🌊</span>
+      <span class="nav-label">Pipa</span>
+    </button>
+    <button class="nav-item" id="btn-nav-alerts" onclick="switchMobileNav('alerts')">
+      <span class="nav-icon" style="position: relative;">🚨<span class="nav-badge" id="mobile-alert-badge" style="display:none;">0</span></span>
+      <span class="nav-label">Anomali</span>
+    </button>
+  </nav>
+
+  <!-- Modal Menu Alat Mobile -->
+  <div class="modal-backdrop" id="modal-mobile-menu" onclick="if(event.target===this) closeMobileMenuModal()">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 style="font-size: 15px; font-weight: 700; color: #38bdf8;">⚙️ Menu & Pengaturan SCADA</h3>
+        <button class="modal-close" onclick="closeMobileMenuModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px;">
+        <button class="btn btn-accent" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); runSubangQuickSimulation();">
+          <span>🧪</span> <div><b>Contoh Simulasi Tekanan</b><br><small style="opacity: 0.8;">Muat 6 titik pantau transmisi Kota Subang</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); toggleNodeVisibility();">
+          <span>⭐</span> <div><b>Ganti Tampilan Titik</b><br><small style="opacity: 0.8;">Titik Ideal (45) vs Semua Simpul (314)</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); exportTelemetryBackup();">
+          <span>💾</span> <div><b>Cadangkan Data (JSON)</b><br><small style="opacity: 0.8;">Unduh salinan data pengukuran ke HP</small></div>
+        </button>
+        <label class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px; cursor: pointer; margin: 0;">
+          <span>📥</span> <div><b>Pulihkan Data (JSON)</b><br><small style="opacity: 0.8;">Muat data dari file cadangan</small></div>
+          <input type="file" accept=".json" style="display: none;" onchange="closeMobileMenuModal(); importTelemetryBackup(this.files[0]); this.value='';">
+        </label>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); openAreaManagerModal();">
+          <span>🗺️</span> <div><b>Ganti / Import Wilayah Baru</b><br><small style="opacity: 0.8;">Subang, Ciasem, Pamanukan, KML/GeoJSON</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); exportScadaCsv();">
+          <span>📊</span> <div><b>Ekspor Tabel CSV/Excel</b><br><small style="opacity: 0.8;">Unduh data debit dan tekanan pipa</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); printScadaReport();">
+          <span>🖨️</span> <div><b>Cetak Laporan Resmi</b><br><small style="opacity: 0.8;">Format siap cetak / simpan ke PDF</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px; color: #f43f5e; border-color: rgba(244,63,94,0.3);" onclick="closeMobileMenuModal(); resetTelemetryData();">
+          <span>🔄</span> <div><b>Reset Data Telemetri</b><br><small style="opacity: 0.8;">Bersihkan semua data pengukuran</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="window.open('epanet.html', '_blank')">
+          <span>📐</span> <div><b>Buka EPANET Designer</b><br><small style="opacity: 0.8;">Perencanaan teknis jaringan pipa</small></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
