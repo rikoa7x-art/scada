@@ -2486,12 +2486,18 @@
       map.flyTo([lat, lng], 17, { duration: 1 });
     }
 
-    // Tab Switcher Sidebar
+    // Tab Switcher Sidebar (Aman dipanggil dari Desktop maupun Mobile Nav)
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        const matching = document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
+        if (matching) matching.classList.add('active');
+      }
       document.querySelectorAll('.sidebar-content').forEach(c => c.style.display = 'none');
-      document.getElementById(tabId).style.display = 'block';
+      const target = document.getElementById(tabId);
+      if (target) target.style.display = 'block';
     }
 
     // ================= MODAL LOGIC =================
@@ -3433,6 +3439,217 @@
     // Cetak Laporan SCADA
     function printScadaReport() {
       window.print();
+    }
+
+    /* ================= MOBILE BOTTOM NAVIGATION & CONTROLS ================= */
+    let userLocationMarker = null;
+    let userLocationCircle = null;
+
+    // Fungsi Navigasi Tab Bawah (Peta, Sensor, Pipa, Anomali)
+    function switchMobileNav(navKey) {
+      const sidebar = document.getElementById('scada-sidebar-el');
+      const drawerTitle = document.getElementById('mobile-drawer-title');
+
+      // Perbarui tombol aktif di Bottom Nav
+      document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
+
+      if (navKey === 'map') {
+        // Mode Peta Penuh: Tutup Laci
+        if (sidebar) sidebar.classList.remove('mobile-open');
+        const mapBtn = document.getElementById('btn-nav-map');
+        if (mapBtn) mapBtn.classList.add('active');
+      } else if (navKey === 'sensors') {
+        // Buka Laci: Tab 45 Titik Sensor
+        if (sidebar) sidebar.classList.add('mobile-open');
+        if (drawerTitle) drawerTitle.textContent = '📡 Daftar 45 Titik Sensor Strategis';
+        switchTab('tab-telemetry');
+        const sensorBtn = document.getElementById('btn-nav-sensors');
+        if (sensorBtn) sensorBtn.classList.add('active');
+      } else if (navKey === 'pipes') {
+        // Buka Laci: Tab Aliran Pipa Terbesar
+        if (sidebar) sidebar.classList.add('mobile-open');
+        if (drawerTitle) drawerTitle.textContent = '🌊 Aliran Debit Pipa Terbesar';
+        switchTab('tab-pipes');
+        const pipeBtn = document.getElementById('btn-nav-pipes');
+        if (pipeBtn) pipeBtn.classList.add('active');
+      } else if (navKey === 'alerts') {
+        // Buka Laci: Tab Peringatan Anomali & Kebocoran
+        if (sidebar) sidebar.classList.add('mobile-open');
+        if (drawerTitle) drawerTitle.textContent = '🚨 Peringatan Anomali & Kebocoran';
+        switchTab('tab-alerts');
+        const alertBtn = document.getElementById('btn-nav-alerts');
+        if (alertBtn) alertBtn.classList.add('active');
+      }
+    }
+
+    // Tutup Laci Bawah di Mobile
+    function closeMobileDrawer() {
+      const sidebar = document.getElementById('scada-sidebar-el');
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
+      const mapBtn = document.getElementById('btn-nav-map');
+      if (mapBtn) mapBtn.classList.add('active');
+    }
+
+    // Deteksi Lokasi GPS Petugas & Cari Simpul Pipa Terdekat
+    function locateUser() {
+      if (!navigator.geolocation) {
+        alert('Perangkat Anda tidak mendukung sensor lokasi GPS.');
+        return;
+      }
+
+      const btnFab = document.getElementById('btn-gps-fab');
+      if (btnFab) btnFab.classList.add('loading');
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (btnFab) btnFab.classList.remove('loading');
+
+          const uLat = pos.coords.latitude;
+          const uLng = pos.coords.longitude;
+          const accuracy = pos.coords.accuracy;
+
+          if (userLocationMarker) map.removeLayer(userLocationMarker);
+          if (userLocationCircle) map.removeLayer(userLocationCircle);
+
+          userLocationCircle = L.circle([uLat, uLng], {
+            radius: Math.max(accuracy, 15),
+            color: '#38bdf8',
+            fillColor: '#38bdf8',
+            fillOpacity: 0.15,
+            weight: 1.5
+          }).addTo(map);
+
+          const gpsIcon = L.divIcon({
+            className: 'gps-user-marker',
+            html: '<div class="gps-pulse"></div><div class="gps-dot"></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          });
+
+          userLocationMarker = L.marker([uLat, uLng], { icon: gpsIcon }).addTo(map);
+
+          // Cari simpul terdekat
+          let nearestNode = null;
+          let minDistanceKm = Infinity;
+
+          if (networkData && networkData.nodes) {
+            networkData.nodes.forEach(n => {
+              const dLat = (n.lat - uLat) * 111.0;
+              const dLng = (n.lng - uLng) * 111.0 * Math.cos(uLat * Math.PI / 180);
+              const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+              if (dist < minDistanceKm) {
+                minDistanceKm = dist;
+                nearestNode = n;
+              }
+            });
+          }
+
+          const distMeters = Math.round(minDistanceKm * 1000);
+          let popupHtml = '<div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.4; min-width: 200px;">' +
+            '<b style="color: #38bdf8; font-size: 13px;">📍 Lokasi Petugas Lapangan</b><br>' +
+            '<span style="font-size: 10.5px; color: var(--text-muted);">Akurasi GPS: ±' + Math.round(accuracy) + ' meter</span>';
+
+          if (nearestNode) {
+            popupHtml += '<div style="margin: 8px 0; padding-top: 6px; border-top: 1px solid #334155;">' +
+              '<b>Simpul Pipa Terdekat:</b><br>' +
+              '<span style="color: #f59e0b; font-weight: 700; font-size: 13px;">⭐ ' + escapeHtml(nearestNode.label || nearestNode.id) + '</span> (' + distMeters + ' m)<br>' +
+              '<span style="font-size: 10.5px; color: #94a3b8;">' + escapeHtml(nearestNode.monitoringReason || nearestNode.zoneLabel || '') + '</span>' +
+              '</div>' +
+              '<button class="btn btn-manual btn-xs" style="width: 100%; justify-content: center; margin-top: 4px;" onclick="openInputModal(\'' + nearestNode.id + '\', \'manual\')">' +
+              '✍️ Ukur Tekanan di ' + escapeHtml(nearestNode.label || nearestNode.id) +
+              '</button>';
+          }
+          popupHtml += '</div>';
+
+          userLocationMarker.bindPopup(popupHtml).openPopup();
+          map.flyTo([uLat, uLng], 17);
+        },
+        (err) => {
+          if (btnFab) btnFab.classList.remove('loading');
+          alert('Gagal mendeteksi lokasi GPS: ' + err.message + '\nPastikan izin akses lokasi diaktifkan di peramban HP Anda.');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    // Stepper Penyesuaian Nilai Tekanan (+ / - bar)
+    function adjustManualPressure(delta) {
+      const input = document.getElementById('manual-pressure-val');
+      let cur = parseFloat(input.value) || 0;
+      cur = Math.max(0, Math.round((cur + delta) * 100) / 100);
+      input.value = cur.toFixed(2);
+      onManualPressureInput(cur);
+    }
+
+    // Unduh Cadangan Data Telemetri (JSON)
+    function exportTelemetryBackup() {
+      const backup = {
+        app: 'SCADA PDAM Tirta Subang',
+        version: '2.0-mobile',
+        exportedAt: new Date().toISOString(),
+        readingsCount: Object.keys(telemetryReadings).length,
+        readings: telemetryReadings,
+        history: telemetryHistory
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'telemetry_subang_' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Pulihkan Data Telemetri dari JSON
+    function importTelemetryBackup(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.readings && typeof imported.readings === 'object') {
+            telemetryReadings = { ...telemetryReadings, ...imported.readings };
+            if (Array.isArray(imported.history)) {
+              telemetryHistory = [...imported.history, ...telemetryHistory];
+            }
+            try {
+              localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+              localStorage.setItem('scada_subang_telemetry_history', JSON.stringify(telemetryHistory.slice(0, 50)));
+            } catch (err) {}
+
+            renderNetwork();
+            alert('✅ Berhasil memulihkan ' + Object.keys(imported.readings).length + ' data pengukuran telemetri!');
+          } else {
+            alert('❌ Format file JSON cadangan tidak sesuai.');
+          }
+        } catch (err) {
+          alert('❌ Gagal membaca file JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Modal Menu Mobile
+    function openMobileMenuModal() {
+      const modal = document.getElementById('modal-mobile-menu');
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeMobileMenuModal() {
+      const modal = document.getElementById('modal-mobile-menu');
+      if (modal) modal.classList.remove('active');
+    }
+
+    // Modal Legenda
+    function openLegendModal() {
+      const modal = document.getElementById('modal-legend');
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeLegendModal() {
+      const modal = document.getElementById('modal-legend');
+      if (modal) modal.classList.remove('active');
     }
   </script>
 
