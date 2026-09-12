@@ -19,6 +19,8 @@
   
   <!-- Hydraulic Engine Module -->
   <script src="scada_hydraulic_engine.js"></script>
+  <!-- Supabase Realtime Cloud SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
@@ -1175,6 +1177,7 @@
         <h1>
           PDAM TIRTA KOTA SUBANG
           <span class="scada-badge">SCADA LIVE</span>
+          <span class="scada-badge" id="cloud-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399;" title="Tersinkronisasi Realtime dengan Supabase Cloud">⚡ CLOUD SYNC</span>
         </h1>
         <p>Monitoring Telemetri Pipa, Estimasi Debit Hazen-Williams & AI Vision</p>
       </div>
@@ -1656,6 +1659,86 @@
 
   <script>
     // State Global Aplikasi SCADA Subang
+
+    // ================= SUPABASE CLOUD BACKEND & REALTIME SYNC =================
+    const SUPABASE_CONFIG = {
+      url: 'https://nbjfxzulzxxujudntdab.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iamZ4enVsenh4dWp1ZG50ZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTE2MzIsImV4cCI6MjEwNDc4NzYzMn0.LlIr9TLE3sE7X9xsohQcFrsU0OM8lisy1ymUvV-kdLo'
+    };
+
+    let supabaseClient = null;
+
+    function initSupabase() {
+      if (typeof window.supabase !== 'undefined' && SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey) {
+        try {
+          supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+          console.log('⚡ Supabase Cloud Client Initialized:', SUPABASE_CONFIG.url);
+          updateCloudBadge(true);
+        } catch (err) {
+          console.warn('Gagal inisialisasi Supabase:', err);
+          updateCloudBadge(false);
+        }
+      }
+    }
+
+    function updateCloudBadge(connected) {
+      const badge = document.getElementById('cloud-badge');
+      if (badge) {
+        if (connected) {
+          badge.style.background = 'rgba(16, 185, 129, 0.15)';
+          badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          badge.style.color = '#34d399';
+          badge.innerHTML = '⚡ CLOUD SYNC';
+        } else {
+          badge.style.background = 'rgba(245, 158, 11, 0.15)';
+          badge.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+          badge.style.color = '#fbbf24';
+          badge.innerHTML = '📱 LOKAL HP';
+        }
+      }
+    }
+
+    // Langganan Perubahan Data Real-Time dari Supabase
+    function startSupabaseRealtime() {
+      if (!supabaseClient) return;
+      try {
+        supabaseClient
+          .channel('realtime_scada_telemetry')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'scada_telemetry' }, (payload) => {
+            console.log('📡 Realtime Supabase event diterima:', payload.eventType);
+            if (payload.eventType === 'DELETE') {
+              const delId = payload.old?.node_id;
+              if (delId && telemetryReadings[delId]) {
+                delete telemetryReadings[delId];
+                localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+                renderNetwork();
+              }
+            } else if (payload.new && payload.new.node_id) {
+              const row = payload.new;
+              telemetryReadings[row.node_id] = {
+                nodeId: row.node_id,
+                nodeLabel: row.node_label || row.node_id,
+                pressure_bar: Number(row.pressure_bar),
+                pressure_m: Number(row.pressure_m || (row.pressure_bar * HEAD_PER_BAR)),
+                confidence: Number(row.confidence || 1.0),
+                officerName: row.officer_name || 'Petugas',
+                gauge_type: row.gauge_type || 'manual',
+                notes: row.notes || '',
+                timestamp: row.updated_at || new Date().toISOString()
+              };
+              localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+              renderNetwork();
+            }
+          })
+          .subscribe((status) => {
+            console.log('Status langganan Realtime Supabase:', status);
+            updateCloudBadge(status === 'SUBSCRIBED');
+          });
+      } catch (err) {
+        console.warn('Gagal mengaktifkan Realtime Supabase:', err);
+      }
+    }
+
     let map = null;
     let networkData = { nodes: [], pipes: [], pumps: [] };
     let telemetryReadings = {}; // Map: nodeId -> { pressure_bar, timestamp, ... }
@@ -1705,6 +1788,7 @@
 
     // Inisialisasi Aplikasi Saat Halaman Dimuat
     window.addEventListener('DOMContentLoaded', async () => {
+      initSupabase();
       initMap();
       await loadSubangNetwork();
       initDragAndDrop();
