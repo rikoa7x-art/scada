@@ -4340,6 +4340,17 @@
     function mergeCustomNodesIntoNetwork() {
       if (!networkData || !networkData.nodes) return;
       customNodes.forEach(cNode => {
+        // Otomatis bersihkan jika ada data lama yang masih menyimpan kode UUID mentah
+        if (cNode.nearestPipeInfo && /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(cNode.nearestPipeInfo)) {
+          const res = findNearestPipeAndNode(cNode.lat, cNode.lng);
+          if (res.nearestPipe && res.startNode && res.endNode) {
+            cNode.nearestPipeInfo = `Jalur Pipa ${res.startNode.label || 'A'} ➔ ${res.endNode.label || 'B'} (Ø${res.nearestPipe.diameter}mm ${res.nearestPipe.material || 'PVC'}, ±${res.pipeDist}m)`;
+          }
+        }
+        if (cNode.monitoringReason && /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(cNode.monitoringReason)) {
+          cNode.monitoringReason = cNode.nearestPipeInfo || 'Titik pantau manometer kustom';
+        }
+
         const enriched = {
           ...cNode,
           isCustom: true,
@@ -4565,11 +4576,16 @@
         }
       }
 
+      const startNode = nearestPipe ? nodeMap.get(nearestPipe.startNodeId) : null;
+      const endNode = nearestPipe ? nodeMap.get(nearestPipe.endNodeId) : null;
+
       return {
         nearestNode,
         nodeDist: Math.round(minNodeDistMeters),
         nearestPipe,
-        pipeDist: Math.round(minPipeDistMeters)
+        pipeDist: Math.round(minPipeDistMeters),
+        startNode,
+        endNode
       };
     }
 
@@ -4587,17 +4603,26 @@
         return;
       }
 
-      const { nearestNode, nodeDist, nearestPipe, pipeDist } = findNearestPipeAndNode(latVal, lngVal);
+      const { nearestNode, nodeDist, nearestPipe, pipeDist, startNode, endNode } = findNearestPipeAndNode(latVal, lngVal);
 
       let pipeHtml = '';
       if (nearestPipe) {
-        const sName = nearestPipe.startNodeLabel || nearestPipe.startNodeId || 'A';
-        const eName = nearestPipe.endNodeLabel || nearestPipe.endNodeId || 'B';
-        pipeHtml = `<div style="color: #38bdf8; font-weight: 600; margin-bottom: 4px;">
-          🌊 Terdeteksi di dekat pipa <b>${escapeHtml(sName)} ➔ ${escapeHtml(eName)}</b> (jarak ±${pipeDist} meter)
+        const sName = startNode ? (startNode.label || 'Simpul A') : 'Simpul Hulu';
+        const eName = endNode ? (endNode.label || 'Simpul B') : 'Simpul Hilir';
+        const sDesc = startNode?.monitoringReason || startNode?.categoryLabel || startNode?.zoneLabel || '';
+        const eDesc = endNode?.monitoringReason || endNode?.categoryLabel || endNode?.zoneLabel || '';
+        let zoneText = '';
+        if (sDesc && eDesc && sDesc === eDesc) {
+          zoneText = ` • ${sDesc}`;
+        } else if (sDesc) {
+          zoneText = ` • ${sDesc}`;
+        }
+
+        pipeHtml = `<div style="color: #38bdf8; font-weight: 700; margin-bottom: 4px; font-size: 12.5px;">
+          🌊 Terdeteksi di Jalur Pipa: <b>${escapeHtml(sName)} ➔ ${escapeHtml(eName)}</b> (jarak ±${pipeDist} meter)
         </div>
-        <div style="font-size: 11px; color: #94a3b8;">
-          Diameter: <b>${nearestPipe.diameter || 100} mm</b> (${escapeHtml(nearestPipe.material || 'PVC')})
+        <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+          Spesifikasi: <b>Ø ${nearestPipe.diameter || 100} mm</b> (${escapeHtml(nearestPipe.material || 'PVC')}) • Panjang Pipa: <b>${Math.round(nearestPipe.length || 0)} m</b>${escapeHtml(zoneText)}
         </div>`;
       } else {
         pipeHtml = '<div style="color: #94a3b8;">Tidak ada pipa terdeteksi di sekitar koordinat ini.</div>';
@@ -4605,8 +4630,12 @@
 
       let nodeHtml = '';
       if (nearestNode) {
-        nodeHtml = `<div style="margin-top: 5px; font-size: 11px; color: #cbd5e1;">
-          📍 Simpul terdekat: <b>${escapeHtml(nearestNode.label || nearestNode.id)}</b> (±${nodeDist} m, Elevasi: <b>${nearestNode.elevation} mdpl</b>)
+        const nLabel = nearestNode.label || 'Simpul';
+        const nDesc = nearestNode.monitoringReason || nearestNode.categoryLabel || nearestNode.zoneLabel || '';
+        const descText = nDesc ? ` • <i>${escapeHtml(nDesc)}</i>` : '';
+
+        nodeHtml = `<div style="margin-top: 6px; font-size: 11px; color: #cbd5e1; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px;">
+          📍 Simpul terdekat: <b>${escapeHtml(nLabel)}</b> (±${nodeDist} m, Elevasi: <b>${nearestNode.elevation} mdpl</b>)${descText}
         </div>`;
 
         // Tawarkan pengisian otomatis elevasi jika user belum mengedit manual
@@ -4677,13 +4706,13 @@
         return;
       }
 
-      // Info pipa terdekat untuk metadata
-      const { nearestPipe, pipeDist } = findNearestPipeAndNode(lat, lng);
+      // Info pipa terdekat untuk metadata (gunakan label simpul yang jelas, bukan kode UUID)
+      const { nearestPipe, pipeDist, startNode, endNode } = findNearestPipeAndNode(lat, lng);
       let pipeText = '';
       if (nearestPipe) {
-        const sName = nearestPipe.startNodeLabel || nearestPipe.startNodeId || 'A';
-        const eName = nearestPipe.endNodeLabel || nearestPipe.endNodeId || 'B';
-        pipeText = `Dekat Pipa ${sName} - ${eName} (Ø${nearestPipe.diameter}mm, ±${pipeDist}m)`;
+        const sName = startNode ? (startNode.label || 'Simpul A') : 'Simpul Hulu';
+        const eName = endNode ? (endNode.label || 'Simpul B') : 'Simpul Hilir';
+        pipeText = `Jalur Pipa ${sName} ➔ ${eName} (Ø${nearestPipe.diameter}mm ${nearestPipe.material || 'PVC'}, ±${pipeDist}m)`;
       }
 
       const nodeId = 'cnode_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 4);
