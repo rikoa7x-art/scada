@@ -433,7 +433,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 2000;
+      z-index: 99999;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s ease;
@@ -1174,7 +1174,8 @@
       .modal-backdrop {
         padding: 0 !important;
         align-items: flex-end !important;
-        background: rgba(0, 0, 0, 0.7) !important;
+        background: rgba(0, 0, 0, 0.8) !important;
+        z-index: 99999 !important;
       }
       .modal-box {
         width: 100% !important;
@@ -1182,8 +1183,27 @@
         border-radius: 20px 20px 0 0 !important;
         max-height: 88vh !important;
         overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
         margin: 0 !important;
-        padding: 16px 18px !important;
+        padding: 0 !important;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.9) !important;
+      }
+      .modal-header {
+        position: sticky !important;
+        top: 0 !important;
+        background: #111a2e !important;
+        z-index: 10 !important;
+        padding: 14px 18px !important;
+        border-bottom: 1px solid #1e293b !important;
+      }
+      .modal-body {
+        padding: 14px 18px calc(36px + env(safe-area-inset-bottom, 16px)) !important;
+        gap: 12px !important;
+      }
+      /* Sembunyikan bottom navigation bar saat modal sedang aktif agar tombol simpan tidak terhalang */
+      body.modal-open .mobile-bottom-nav,
+      body:has(.modal-backdrop.active) .mobile-bottom-nav {
+        display: none !important;
       }
       .input-control {
         font-size: 16px !important; /* Prevents auto-zoom in iOS Safari */
@@ -2610,9 +2630,21 @@
     }
 
     // ================= MODAL LOGIC =================
+    function syncModalOpenState() {
+      setTimeout(() => {
+        const activeModal = document.querySelector('.modal-backdrop.active');
+        if (activeModal) {
+          document.body.classList.add('modal-open');
+        } else {
+          document.body.classList.remove('modal-open');
+        }
+      }, 10);
+    }
+
     function openInputModal(preselectedNodeId = null, mode = 'manual') {
       const modal = document.getElementById('unified-modal');
       modal.classList.add('active');
+      syncModalOpenState();
       setModalMode(mode);
 
       // Reset form input
@@ -2630,6 +2662,7 @@
 
     function closeInputModal() {
       document.getElementById('unified-modal').classList.remove('active');
+      syncModalOpenState();
       resetAIModalState();
     }
 
@@ -3118,6 +3151,7 @@
     function openAreaManagerModal() {
       initAreaStorage();
       document.getElementById('area-modal').classList.add('active');
+      syncModalOpenState();
       switchAreaModalTab('saved');
       renderSavedAreasList();
       setupAreaDropZone();
@@ -3125,6 +3159,7 @@
 
     function closeAreaManagerModal() {
       document.getElementById('area-modal').classList.remove('active');
+      syncModalOpenState();
       resetAreaImportForm();
     }
 
@@ -3852,23 +3887,35 @@
     // Modal Menu Mobile
     function openMobileMenuModal() {
       const modal = document.getElementById('modal-mobile-menu');
-      if (modal) modal.classList.add('active');
+      if (modal) {
+        modal.classList.add('active');
+        syncModalOpenState();
+      }
     }
 
     function closeMobileMenuModal() {
       const modal = document.getElementById('modal-mobile-menu');
-      if (modal) modal.classList.remove('active');
+      if (modal) {
+        modal.classList.remove('active');
+        syncModalOpenState();
+      }
     }
 
     // Modal Legenda
     function openLegendModal() {
       const modal = document.getElementById('modal-legend');
-      if (modal) modal.classList.add('active');
+      if (modal) {
+        modal.classList.add('active');
+        syncModalOpenState();
+      }
     }
 
     function closeLegendModal() {
       const modal = document.getElementById('modal-legend');
-      if (modal) modal.classList.remove('active');
+      if (modal) {
+        modal.classList.remove('active');
+        syncModalOpenState();
+      }
     }
   </script>
 
