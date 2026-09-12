@@ -1,0 +1,19 @@
+{
+  "name": "scada-pdam-subang",
+  "version": "1.0.0",
+  "description": "SCADA Monitoring Jaringan Pipa PDAM Kota Subang - AI Vision & Hazen-Williams Hydraulic Engine",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["scada", "pdam", "water", "monitoring", "ai-vision", "hazen-williams"],
+  "author": "PDAM Tirta Kota Subang",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

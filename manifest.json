@@ -1,0 +1,24 @@
+{
+  "name": "SCADA PDAM Kota Subang",
+  "short_name": "SCADA Subang",
+  "description": "Sistem Monitoring Hidrolika & Tekanan Pipa Air Minum PDAM Kota Subang",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090e17",
+  "theme_color": "#090e17",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "logo.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon_baru.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

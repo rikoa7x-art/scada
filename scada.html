@@ -1,0 +1,3239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#090e17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Sistem Monitoring Hidrolika & Tekanan Pipa Air Minum PDAM Kota Subang">
+  <link rel="manifest" href="manifest.json">
+  <title>SCADA Monitoring Jaringan Pipa PDAM Kota Subang</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  
+  <!-- Leaflet CSS & Fonts -->
+  <link rel="stylesheet" href="leaflet/leaflet.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Hydraulic Engine Module -->
+  <script src="scada_hydraulic_engine.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #090e17;
+      --bg-card: #111a2e;
+      --bg-card-hover: #16223b;
+      --border-color: #1e293b;
+      --border-glow: #38bdf840;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background: linear-gradient(180deg, #0f172a 0%, #090e17 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.5);
+      background: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+    }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .brand-text h1 {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .scada-badge {
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: #38bdf8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-manual {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border-color: #38bdf860;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.35);
+    }
+    .btn-manual:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      box-shadow: 0 0 18px rgba(2, 132, 199, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn-ai {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      border-color: #818cf860;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+    }
+    .btn-ai:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      box-shadow: 0 0 18px rgba(99, 102, 241, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: white;
+      border-color: #34d39960;
+    }
+    .btn-accent:hover {
+      background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-dark {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-dark:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      display: flex;
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Left Map Viewport */
+    #map-container {
+      flex: 1;
+      height: 100%;
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #0b1320;
+    }
+
+    /* Right Sidebar SCADA Panel */
+    .scada-sidebar {
+      width: 420px;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 500;
+      box-shadow: -4px 0 25px rgba(0, 0, 0, 0.4);
+    }
+
+    /* KPI Cards Row (Overlay over Map) */
+    .kpi-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 440px;
+      z-index: 400;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .kpi-card {
+      background: rgba(17, 26, 46, 0.90);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .kpi-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+    }
+
+    .kpi-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+
+    .kpi-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .kpi-icon {
+      font-size: 15px;
+    }
+
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .kpi-subtext {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Map Legend Overlay */
+    .map-legend {
+      position: absolute;
+      bottom: 24px;
+      left: 16px;
+      z-index: 400;
+      background: rgba(17, 26, 46, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 11px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .legend-title {
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+      font-size: 11px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    /* Sidebar Tabs & Content */
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      background: #0d1525;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .sidebar-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 11px 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    /* Telemetry Stations List */
+    .telemetry-card {
+      background: #16223b;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .telemetry-card:hover {
+      border-color: #38bdf8;
+      background: #1c2b4a;
+    }
+
+    .telemetry-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .station-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pressure-pill {
+      font-family: var(--font-mono);
+      background: rgba(6, 182, 212, 0.2);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .station-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .station-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #1e293b;
+    }
+
+    .btn-xs {
+      font-size: 10.5px;
+      padding: 4px 8px;
+      border-radius: 5px;
+    }
+
+    /* Modal Backdrop & Dialog */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #111a2e;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      width: 92%;
+      max-width: 620px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(6, 182, 212, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: #ffffff;
+    }
+
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Modal Mode Switcher Tabs */
+    .modal-tab-bar {
+      display: flex;
+      background: #090e17;
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+      border: 1px solid var(--border-color);
+    }
+    .modal-tab-btn {
+      flex: 1;
+      padding: 9px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .modal-tab-btn.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+    }
+
+    /* Presets for Quick Pressure */
+    .preset-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .chip {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover {
+      background: #0284c7;
+      color: white;
+      border-color: #38bdf8;
+    }
+
+    /* Conversion preview badge */
+    .conversion-box {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+      margin-top: 6px;
+    }
+    .conv-item span {
+      display: block;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .conv-item b {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #38bdf8;
+    }
+
+    /* Photo Upload Area */
+    .drop-zone {
+      border: 2px dashed #334155;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.6);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .preview-container {
+      display: none;
+      position: relative;
+      margin-top: 10px;
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 220px;
+      background: #000;
+    }
+    .preview-image {
+      width: 100%;
+      height: 220px;
+      object-fit: contain;
+    }
+
+    /* AI Result Card */
+    .ai-result-card {
+      display: none;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .ai-result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .input-group label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .input-control {
+      background: #090e17;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #ffffff;
+      font-family: var(--font-sans);
+      font-size: 13px;
+    }
+    .input-control:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Pulsing Sensor Marker */
+    .scada-radar-icon {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      background: #0284c7;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #0284c7;
+    }
+    .scada-radar-icon::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border: 2px solid #38bdf8;
+      border-radius: 50%;
+      animation: scada-pulse 2s infinite ease-out;
+    }
+
+    @keyframes scada-pulse {
+      0% {
+        transform: scale(0.6);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    /* Water Flow Moving Dash Animation on Pipes */
+    @keyframes flowMoving {
+      from { stroke-dashoffset: 32; }
+      to { stroke-dashoffset: 0; }
+    }
+    .pipe-flowing-active {
+      stroke-dasharray: 8, 8 !important;
+      animation: flowMoving 1.4s linear infinite;
+    }
+
+    /* Custom Leaflet Popup SCADA Theme */
+    .leaflet-popup-content-wrapper {
+      background: #111a2e !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155;
+      border-radius: 12px !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important;
+    }
+    .leaflet-popup-tip {
+      background: #111a2e !important;
+    }
+
+    /* Custom Leaflet Layer Control SCADA Theme */
+    .leaflet-control-layers {
+      background: rgba(17, 26, 46, 0.95) !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155 !important;
+      border-radius: 10px !important;
+      padding: 8px 12px !important;
+      font-family: var(--font-sans) !important;
+      font-size: 12px !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    }
+    .leaflet-control-layers-expanded {
+      background: rgba(17, 26, 46, 0.95) !important;
+    }
+    .leaflet-control-layers label {
+      cursor: pointer;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design untuk Mobile & Tablet */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 12px;
+      }
+      .header-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .workspace {
+        flex-direction: column;
+      }
+      .scada-sidebar {
+        width: 100%;
+        height: 45vh;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+      }
+      .kpi-overlay {
+        right: 14px;
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .map-legend {
+        display: none;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        overflow: visible !important;
+      }
+      header, .header-actions, .kpi-overlay, .modal-backdrop, .leaflet-control-container, .map-legend {
+        display: none !important;
+      }
+      .workspace {
+        display: block !important;
+        height: auto !important;
+      }
+      #map-container {
+        height: 480px !important;
+        page-break-after: always;
+      }
+      .scada-sidebar {
+        width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .telemetry-card {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+    }
+
+    /* ================= RESPONSIVE MOBILE STYLES & PWA ================= */
+    .mobile-header-actions {
+      display: none;
+    }
+    .mobile-bottom-nav {
+      display: none;
+    }
+    .mobile-drawer-header {
+      display: none;
+    }
+    .fab-gps {
+      position: absolute;
+      bottom: 24px;
+      right: 18px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid #38bdf8;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #38bdf8;
+      cursor: pointer;
+      z-index: 950;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    .fab-gps:active {
+      transform: scale(0.92);
+      background: #1e293b;
+    }
+    .fab-gps.loading {
+      animation: spin 1s infinite linear;
+    }
+
+    /* GPS User Marker on Map */
+    .gps-user-marker {
+      position: relative;
+    }
+    .gps-pulse {
+      width: 36px;
+      height: 36px;
+      background: rgba(56, 189, 248, 0.35);
+      border-radius: 50%;
+      position: absolute;
+      left: -6px;
+      top: -6px;
+      animation: gpsPulseAnim 2s infinite ease-out;
+    }
+    .gps-dot {
+      width: 14px;
+      height: 14px;
+      background: #0284c7;
+      border: 2.5px solid #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      left: 5px;
+      top: 5px;
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.9);
+    }
+    @keyframes gpsPulseAnim {
+      0% { transform: scale(0.4); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        height: 100dvh;
+        overflow: hidden;
+      }
+      header {
+        padding: 8px 12px;
+        height: 52px;
+      }
+      .brand-section {
+        gap: 8px;
+      }
+      .brand-logo img {
+        width: 30px;
+        height: 30px;
+      }
+      .brand-text h1 {
+        font-size: 13px;
+        letter-spacing: 0;
+      }
+      .brand-text p {
+        display: none;
+      }
+      .header-actions.desktop-only {
+        display: none !important;
+      }
+      .mobile-header-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .workspace {
+        flex-direction: column;
+        height: calc(100dvh - 52px - 58px);
+        position: relative;
+      }
+      #map-container {
+        height: 100%;
+        width: 100%;
+      }
+      
+      /* Horizontal swipeable KPI bar */
+      .kpi-overlay {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .kpi-overlay::-webkit-scrollbar {
+        display: none;
+      }
+      .kpi-card {
+        min-width: 135px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+      .kpi-title {
+        font-size: 10px;
+      }
+      .kpi-icon {
+        font-size: 13px;
+      }
+      .kpi-value {
+        font-size: 15px;
+      }
+      .kpi-subtext {
+        display: none;
+      }
+
+      /* Map Legend on mobile: collapsible/minimal */
+      .map-legend {
+        bottom: 12px;
+        left: 10px;
+        max-width: 160px;
+        padding: 8px 10px;
+        font-size: 10px;
+        display: none;
+      }
+
+      /* Bottom Navigation Bar */
+      .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 58px;
+        background: rgba(9, 14, 23, 0.96);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid #1e293b;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1090;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      .nav-item {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 10.5px;
+        font-family: var(--font-sans);
+        gap: 3px;
+        cursor: pointer;
+        padding: 4px 6px;
+        flex: 1;
+        transition: color 0.15s;
+        touch-action: manipulation;
+      }
+      .nav-item.active {
+        color: #38bdf8;
+        font-weight: 700;
+      }
+      .nav-icon {
+        font-size: 18px;
+        line-height: 1;
+      }
+      .nav-item.center-action {
+        position: relative;
+        top: -8px;
+      }
+      .nav-icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        border: 2.5px solid #090e17;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #ffffff;
+      }
+      .nav-badge {
+        position: absolute;
+        top: -3px;
+        right: -8px;
+        background: #f43f5e;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1px 4px;
+        border-radius: 8px;
+        min-width: 14px;
+        text-align: center;
+      }
+
+      /* Slide-up Bottom Drawer for Sidebar */
+      .scada-sidebar {
+        position: fixed;
+        bottom: 58px;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 75vh;
+        max-height: 75vh;
+        background: #0c1322;
+        border-radius: 18px 18px 0 0;
+        border-top: 1px solid #334155;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.75);
+        z-index: 1080;
+        transform: translateY(115%);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+      }
+      .scada-sidebar.mobile-open {
+        transform: translateY(0);
+      }
+      .mobile-drawer-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 14px 4px;
+        border-bottom: 1px solid #1e293b;
+      }
+      .mobile-drawer-handle {
+        width: 38px;
+        height: 4px;
+        background: #475569;
+        border-radius: 2px;
+        margin-bottom: 6px;
+      }
+
+      /* Modals on Mobile */
+      .modal-overlay {
+        padding: 10px;
+        align-items: flex-end;
+      }
+      .modal-card {
+        width: 100%;
+        max-height: 88vh;
+        border-radius: 16px 16px 12px 12px;
+      }
+      .input-control {
+        font-size: 16px; /* Prevents auto-zoom in iOS Safari */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-logo">
+        <img src="logo.jpg" alt="Logo PDAM Tirta Subang SCADA">
+      </div>
+      <div class="brand-text">
+        <h1>
+          PDAM TIRTA KOTA SUBANG
+          <span class="scada-badge">SCADA LIVE</span>
+        </h1>
+        <p>Monitoring Telemetri Pipa, Estimasi Debit Hazen-Williams & AI Vision</p>
+      </div>
+    </div>
+
+    <div class="header-actions desktop-only">
+      <!-- Area Selector & Importer -->
+      <button class="btn btn-dark" onclick="openAreaManagerModal()" title="Pilih Wilayah Aktif atau Import Jalur Pipa Daerah Baru" style="border-color: #38bdf880;">
+        <span>🗺️</span> <span id="current-area-label" style="color: #38bdf8; font-weight: 700;">Subang Kota</span> ▾
+      </button>
+
+      <!-- Input Manual Button -->
+      <button class="btn btn-manual" onclick="openInputModal(null, 'manual')">
+        <span>✍️</span> Input Tekanan Manual
+      </button>
+
+      <!-- AI Vision Photo Button -->
+      <button class="btn btn-ai" onclick="openInputModal(null, 'ai')">
+        <span>📸</span> Scan Foto AI
+      </button>
+
+      <!-- Quick Simulation -->
+      <button class="btn btn-accent" onclick="runSubangQuickSimulation()" title="Muat simulasi data telemetri di titik-titik strategis Subang">
+        <span>🧪</span> Contoh Simulasi
+      </button>
+
+      <!-- Toggle Titik Pantau Ideal vs Semua -->
+      <button id="btn-toggle-nodes" class="btn btn-dark" onclick="toggleNodeVisibility()" title="Ganti antara hanya menampilkan Titik Pantau Ideal atau Semua Node">
+        <span>⭐</span> <span id="toggle-nodes-label">Titik Ideal (45)</span>
+      </button>
+
+      <!-- Export CSV -->
+      <button class="btn btn-dark" onclick="exportScadaCsv()" title="Ekspor data telemetri & debit pipa ke CSV/Excel">
+        <span>📥</span> Ekspor CSV
+      </button>
+
+      <!-- Print Report -->
+      <button class="btn btn-dark" onclick="printScadaReport()" title="Cetak laporan resmi SCADA Subang">
+        <span>🖨️</span> Cetak
+      </button>
+
+      <!-- Reset -->
+      <button class="btn btn-dark" onclick="resetTelemetryData()" title="Reset semua data pembacaan telemetri">
+        <span>🔄</span> Reset
+      </button>
+
+      <!-- Link to Legacy Designer -->
+      <button class="btn btn-dark" onclick="window.open('epanet.html', '_blank')" title="Buka aplikasi perencanaan EPANET lama">
+        <span>📐</span> EPANET
+      </button>
+    </div>
+
+    <div class="mobile-header-actions">
+      <button class="btn btn-dark btn-sm" onclick="openAreaManagerModal()" title="Pilih Wilayah" style="padding: 4px 8px; font-size: 11px;">
+        <span>🗺️</span> <span id="mobile-current-area-label" style="color: #38bdf8; font-weight: 700; max-width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Subang</span>
+      </button>
+      <button class="btn btn-dark btn-sm" id="btn-gps-header" onclick="locateUser()" title="Cari Lokasi Saya (GPS)" style="padding: 4px 8px; font-size: 13px;">
+        <span>📍</span>
+      </button>
+      <button class="btn btn-dark btn-sm" onclick="openMobileMenuModal()" title="Menu Lengkap" style="padding: 4px 8px; font-size: 13px;">
+        <span>⋮</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Container -->
+  <div class="workspace">
+    
+    <!-- Map Viewport -->
+    <div id="map-container">
+      <div id="map"></div>
+      <!-- Floating GPS Button -->
+      <button id="btn-gps-fab" class="fab-gps" onclick="locateUser()" title="Deteksi Lokasi Saya & Simpul Terdekat">
+        <span>📍</span>
+      </button>
+
+      <!-- KPI Floating Overlays -->
+      <div class="kpi-overlay">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Total Pasokan Air</span>
+            <span class="kpi-icon">💧</span>
+          </div>
+          <div class="kpi-value" id="kpi-total-flow">0.0 <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">L/s</span></div>
+          <div class="kpi-subtext" id="kpi-total-flow-m3h">0.0 m³/jam dari Reservoir R1 & R2</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Tekanan Rata-Rata</span>
+            <span class="kpi-icon">⏱️</span>
+          </div>
+          <div class="kpi-value" id="kpi-avg-pressure">0.00 <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">bar</span></div>
+          <div class="kpi-subtext" id="kpi-avg-pressure-m">0.0 m kolom air</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Sensor Manometer Aktif</span>
+            <span class="kpi-icon">📡</span>
+          </div>
+          <div class="kpi-value" id="kpi-active-sensors">0 <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">/ 45 Ideal</span></div>
+          <div class="kpi-subtext" id="kpi-active-sensors-subtext">Titik pantau strategis terukur</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Peringatan Pipa</span>
+            <span class="kpi-icon">🚨</span>
+          </div>
+          <div class="kpi-value" id="kpi-leak-alerts" style="color: #34d399">0</div>
+          <div class="kpi-subtext" id="kpi-alert-subtext">Semua jaringan beroperasi normal</div>
+        </div>
+      </div>
+
+      <!-- Map Legend -->
+      <div class="map-legend">
+        <div class="legend-title">STATUS ALIRAN PIPA (Q)</div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #0284c7; height: 5px;"></div>
+          <span>Debit Tinggi (Transmisi Utama > 20 L/s)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #10b981; height: 3px;"></div>
+          <span>Normal Optimal (Kecepatan 0.3 - 2.0 m/s)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f59e0b; height: 3px;"></div>
+          <span>Aliran Rendah (< 0.3 m/s)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #ef4444; height: 4px;"></div>
+          <span>Tekanan Drop / Indikasi Bocor (< 0.5 bar)</span>
+        </div>
+        <div class="legend-title" style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">TITIK PANTAU STRATEGIS</div>
+        <div class="legend-item">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #0ea5e9; border: 1.5px solid #fff; flex-shrink: 0;"></div>
+          <span>💧 Sumber Reservoir (R1, R2)</span>
+        </div>
+        <div class="legend-item">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; border: 1.5px solid #fff; flex-shrink: 0;"></div>
+          <span>🔀 Percabangan Transmisi Utama (Ø ≥ 150)</span>
+        </div>
+        <div class="legend-item">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #ec4899; border: 1.5px solid #fff; flex-shrink: 0;"></div>
+          <span>⛰️ Zona Elevasi Kritis (Puncak / Lembah)</span>
+        </div>
+        <div class="legend-item">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; border: 1.5px solid #fff; flex-shrink: 0;"></div>
+          <span>🏘️ Distribusi Wilayah Pelayanan</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="scada-sidebar" id="scada-sidebar-el">
+      <!-- Mobile Drawer Header -->
+      <div class="mobile-drawer-header">
+        <div class="mobile-drawer-handle"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 2px 4px 6px;">
+          <span style="font-size: 13px; font-weight: 700; color: #38bdf8;" id="mobile-drawer-title">Panel SCADA</span>
+          <button class="btn btn-dark btn-xs" onclick="closeMobileDrawer()" style="padding: 3px 8px; border-radius: 50%; font-weight: bold;">✕</button>
+        </div>
+      </div>
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-telemetry', this)">
+          <span>📡</span> Titik Telemetri
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-pipes', this)">
+          <span>🌊</span> Aliran Pipa
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-alerts', this)">
+          <span>🚨</span> Anomali (<span id="alert-tab-count">0</span>)
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-history', this)">
+          <span>📜</span> Riwayat Log
+        </button>
+      </div>
+
+      <!-- Tab Telemetri -->
+      <div class="sidebar-content" id="tab-telemetry">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted);">DAFTAR TEKANAN LAPANGAN</h3>
+          <span style="font-size: 11px; color: #38bdf8;" id="telemetry-count-label">0 Titik Aktif</span>
+        </div>
+        <div id="telemetry-list-container">
+          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 12px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+            Belum ada data tekanan manometer yang dimasukkan.<br>
+            Klik tombol <b>"Input Tekanan Manual"</b> atau <b>"Scan Foto AI"</b> di atas.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Aliran Pipa -->
+      <div class="sidebar-content" id="tab-pipes" style="display: none;">
+        <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">PIPA DENGAN DEBIT TERBESAR</h3>
+        <div id="top-pipes-list"></div>
+      </div>
+
+      <!-- Tab Anomali & Kebocoran -->
+      <div class="sidebar-content" id="tab-alerts" style="display: none;">
+        <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">PERINGATAN & DETEKSI KEBOCORAN</h3>
+        <div id="alerts-list">
+          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 30px;">Tidak ada anomali atau pipa bocor terdeteksi saat ini.</p>
+        </div>
+      </div>
+
+      <!-- Tab Riwayat Log Telemetri -->
+      <div class="sidebar-content" id="tab-history" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted);">LOG AUDIT PEMBACAAN</h3>
+          <button class="btn btn-dark btn-xs" onclick="exportScadaCsv()">Ekspor CSV</button>
+        </div>
+        <div id="history-list">
+          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 30px;">Belum ada riwayat aktivitas.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Input Terpadu (Manual & Foto AI) -->
+  <div class="modal-backdrop" id="unified-modal" onclick="if(event.target===this) closeInputModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title"><span>✍️</span> Input Data Tekanan Jaringan Pipa</h3>
+        <button class="modal-close" onclick="closeInputModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Mode Switcher Tabs -->
+        <div class="modal-tab-bar">
+          <button class="modal-tab-btn active" id="modal-tab-manual" onclick="setModalMode('manual')">
+            <span>✍️</span> Input Manual Cepat
+          </button>
+          <button class="modal-tab-btn" id="modal-tab-ai" onclick="setModalMode('ai')">
+            <span>📸</span> Scan Foto AI (Llama-3.2-11B)
+          </button>
+        </div>
+
+        <!-- Pemilihan Titik Junction dengan Filter Pencarian -->
+        <div class="input-group">
+          <label for="select-node">Pilih Titik Junction Jaringan Pipa Subang:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="node-search-box" class="input-control" placeholder="🔍 Cari nama/nomor titik (misal: 307)..." oninput="filterNodeOptions(this.value)" style="flex: 1;">
+          </div>
+          <select id="select-node" class="input-control" style="margin-top: 4px;" onchange="onNodeSelectionChanged(this.value)">
+            <option value="">-- Pilih Titik Junction di Kota Subang --</option>
+          </select>
+          <span id="selected-node-elevation-info" style="font-size: 11px; color: #38bdf8;"></span>
+        </div>
+
+        <!-- Nama Petugas Lapangan -->
+        <div class="input-group">
+          <label for="officer-name">Nama Petugas / Pelapor Lapangan:</label>
+          <input type="text" id="officer-name" class="input-control" value="Petugas Wilayah Subang Kota" placeholder="Contoh: Bpk. Dani / Tim Wilayah Subang">
+        </div>
+
+        <!-- ================= BAGIAN 1: FORM INPUT MANUAL ================= -->
+        <div id="section-manual" style="display: block;">
+          <div class="input-group">
+            <label for="manual-pressure-val">Nilai Tekanan Air (bar):</label>
+            <input type="number" step="0.01" inputmode="decimal" id="manual-pressure-val" class="input-control" placeholder="Contoh: 2.45" style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: #38bdf8; text-align: center;" oninput="onManualPressureInput(this.value)">
+            
+            <!-- Quick Stepper Row (+ / - bar) -->
+            <div style="display: flex; gap: 6px; margin: 8px 0;">
+              <button type="button" class="btn btn-dark btn-sm" style="flex: 1; justify-content: center; font-weight: 700; font-size: 13px;" onclick="adjustManualPressure(-0.5)">-0.5</button>
+              <button type="button" class="btn btn-dark btn-sm" style="flex: 1; justify-content: center; font-weight: 700; font-size: 13px;" onclick="adjustManualPressure(-0.1)">-0.1</button>
+              <button type="button" class="btn btn-dark btn-sm" style="flex: 1; justify-content: center; font-weight: 700; font-size: 13px;" onclick="adjustManualPressure(+0.1)">+0.1</button>
+              <button type="button" class="btn btn-dark btn-sm" style="flex: 1; justify-content: center; font-weight: 700; font-size: 13px;" onclick="adjustManualPressure(+0.5)">+0.5</button>
+            </div>
+            
+            <!-- Quick Chips Presets -->
+            <div class="preset-chips">
+              <span style="font-size: 11px; color: var(--text-muted); margin-right: 4px; line-height: 22px;">Preset Cepat:</span>
+              <button type="button" class="chip" onclick="setManualPressurePreset(1.0)">1.0 bar</button>
+              <button type="button" class="chip" onclick="setManualPressurePreset(1.5)">1.5 bar</button>
+              <button type="button" class="chip" onclick="setManualPressurePreset(2.0)">2.0 bar</button>
+              <button type="button" class="chip" onclick="setManualPressurePreset(2.5)">2.5 bar</button>
+              <button type="button" class="chip" onclick="setManualPressurePreset(3.0)">3.0 bar</button>
+              <button type="button" class="chip" onclick="setManualPressurePreset(3.5)">3.5 bar</button>
+            </div>
+          </div>
+
+          <!-- Konversi Otomatis Hidrolika -->
+          <div class="conversion-box">
+            <div class="conv-item">
+              <span>Tinggi Tekan (HGL)</span>
+              <b id="conv-mH2O">0.0 m</b>
+            </div>
+            <div class="conv-item">
+              <span>Satuan PSI</span>
+              <b id="conv-psi">0.0 psi</b>
+            </div>
+            <div class="conv-item">
+              <span>Total Head Titik</span>
+              <b id="conv-totalHead">0.0 mdpl</b>
+            </div>
+          </div>
+
+          <div class="input-group" style="margin-top: 10px;">
+            <label for="manual-notes">Catatan Tambahan / Lokasi Manometer:</label>
+            <input type="text" id="manual-notes" class="input-control" placeholder="Contoh: Manometer boks pipa transmisi depan Pasar Subang, cuaca cerah">
+          </div>
+
+          <button class="btn btn-manual" style="width: 100%; justify-content: center; padding: 12px; margin-top: 14px; font-size: 13px;" onclick="saveManualTelemetry()">
+            <span>💾</span> Simpan Tekanan & Hitung Debit Sekarang
+          </button>
+        </div>
+
+        <!-- ================= BAGIAN 2: FORM SCAN FOTO AI ================= -->
+        <div id="section-ai" style="display: none;">
+          <!-- Upload Zone -->
+          <div class="drop-zone" id="photo-drop-zone" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleFileSelected(this.files)">
+            <div id="drop-zone-prompt">
+              <div style="font-size: 32px; margin-bottom: 6px;">📸</div>
+              <p style="font-size: 13px; font-weight: 600; color: #ffffff;">Klik untuk Pilih Foto Manometer atau Tarik Foto ke Sini</p>
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Mendukung foto dial jarum analog & meteran digital (JPEG/PNG)</p>
+            </div>
+            <div class="preview-container" id="preview-container">
+              <img id="preview-img" class="preview-image" alt="Preview Manometer">
+            </div>
+          </div>
+
+          <!-- AI Analyze Action Button -->
+          <button class="btn btn-ai" id="btn-run-ai" style="justify-content: center; width: 100%; padding: 11px; margin-top: 10px;" onclick="runAIVisionAnalysis()" disabled>
+            <span>✨</span> Deteksi Nilai Tekanan dengan Llama-3.2-11b Vision
+          </button>
+
+          <!-- AI Result Box -->
+          <div class="ai-result-card" id="ai-result-card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">✅</span>
+                <div>
+                  <h4 style="font-size: 13px; font-weight: 700; color: #ffffff;">Hasil Pembacaan AI Vision</h4>
+                  <p style="font-size: 11px; color: #38bdf8;" id="ai-confidence-label">Tingkat Keyakinan: 95%</p>
+                </div>
+              </div>
+              <span class="scada-badge" id="ai-gauge-type-badge">ANALOG DIAL</span>
+            </div>
+
+            <div class="ai-result-grid">
+              <div class="input-group">
+                <label for="ai-pressure-input">Tekanan Terbaca (bar):</label>
+                <input type="number" step="0.01" id="ai-pressure-input" class="input-control" style="font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: #38bdf8;" oninput="onAIPressureEdit(this.value)">
+              </div>
+              <div class="input-group">
+                <label for="ai-pressure-m-input">Tinggi Tekan (mH2O):</label>
+                <input type="number" step="0.1" id="ai-pressure-m-input" class="input-control" style="font-family: var(--font-mono); font-size: 16px; color: var(--text-muted);" readonly>
+              </div>
+            </div>
+
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;" id="ai-notes-text">
+              Catatan: Jarum menunjuk angka dengan jelas pada skala bar.
+            </p>
+
+            <button class="btn btn-accent" style="width: 100%; justify-content: center; margin-top: 14px; padding: 10px;" onclick="saveAITelemetry()">
+              <span>💾</span> Terapkan ke Jaringan & Hitung Debit Sekarang
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Manajemen & Import Wilayah Baru -->
+  <div class="modal-backdrop" id="area-modal" onclick="if(event.target===this) closeAreaManagerModal()">
+    <div class="modal-box" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3><span>🗺️</span> Manajemen & Import Daerah / Wilayah Pipa</h3>
+        <button class="modal-close" onclick="closeAreaManagerModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tabs -->
+        <div class="modal-tab-bar">
+          <button class="modal-tab-btn active" id="tab-btn-saved-areas" onclick="switchAreaModalTab('saved')">
+            <span>📂</span> Wilayah Tersimpan
+          </button>
+          <button class="modal-tab-btn" id="tab-btn-import-area" onclick="switchAreaModalTab('import')">
+            <span>➕</span> Import Daerah / Pipa Baru
+          </button>
+        </div>
+
+        <!-- Section 1: Daftar Wilayah Tersimpan -->
+        <div id="section-saved-areas">
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+            Pilih wilayah pipa yang ingin Anda analisa dan pantau tekanannya di SCADA:
+          </p>
+          <div id="saved-areas-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto;">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <button class="btn btn-dark btn-xs" onclick="switchAreaModalTab('import')">
+              <span>➕</span> Tambah / Import Wilayah Baru
+            </button>
+            <button class="btn btn-accent btn-xs" onclick="loadSampleCiasemArea()" title="Muat contoh data pipa wilayah Ciasem">
+              <span>🌊</span> Muat Contoh Wilayah Ciasem (KML)
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 2: Form Import Daerah Baru -->
+        <div id="section-import-area" style="display: none;">
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+            Unggah berkas jalur pipa daerah baru dalam format <b>.kml</b> (Google Earth / QGIS), <b>.json</b> (EPANET / SCADA), atau <b>.geojson</b>:
+          </p>
+
+          <!-- Drop Zone -->
+          <div class="drop-zone" id="area-drop-zone" onclick="document.getElementById('area-file-input').click()" style="padding: 24px 16px; margin-bottom: 14px; text-align: center;">
+            <input type="file" id="area-file-input" accept=".json,.kml,.geojson" style="display: none;" onchange="handleAreaFileSelect(this.files[0])">
+            <div id="area-drop-prompt">
+              <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
+              <b style="color: #38bdf8; font-size: 13px;">Klik untuk pilih file atau tarik & lepas (drag & drop) di sini</b>
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Mendukung: .KML (Google Earth), .JSON (EPANET), .GEOJSON</p>
+            </div>
+            <div id="area-file-info" style="display: none;">
+              <b id="area-file-name" style="color: #34d399; font-size: 13px;"></b>
+              <p id="area-file-size" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"></p>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="input-group">
+              <label for="import-area-name">Nama Daerah / Wilayah:</label>
+              <input type="text" id="import-area-name" class="input-control" placeholder="Contoh: Cabang Ciasem / Pamanukan">
+            </div>
+            <div class="input-group">
+              <label for="import-default-diameter">Diameter Pipa Bawaan:</label>
+              <select id="import-default-diameter" class="input-control">
+                <option value="50">Ø 50 mm</option>
+                <option value="75">Ø 75 mm</option>
+                <option value="100" selected>Ø 100 mm (Standar Distribusi)</option>
+                <option value="150">Ø 150 mm (Transmisi Cabang)</option>
+                <option value="200">Ø 200 mm (Transmisi Utama)</option>
+                <option value="250">Ø 250 mm</option>
+                <option value="300">Ø 300 mm</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+            <div class="input-group">
+              <label for="import-material">Material Pipa:</label>
+              <input type="text" id="import-material" class="input-control" value="PVC (Hazen-Williams C = 140)" readonly style="background: rgba(0,0,0,0.2); color: var(--text-muted);">
+            </div>
+            <div class="input-group">
+              <label for="import-default-elevation">Elevasi Dasar (mdpl):</label>
+              <input type="number" id="import-default-elevation" class="input-control" value="25" title="Digunakan jika ketinggian tidak ditemukan dalam file">
+            </div>
+          </div>
+
+          <div style="margin-top: 10px;">
+            <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="import-auto-reservoir" checked>
+              <span>Otomatis tetapkan <b>Reservoir (R1)</b> sebagai sumber pasokan di titik tertinggi</span>
+            </label>
+          </div>
+
+          <button class="btn btn-accent" style="width: 100%; justify-content: center; margin-top: 16px; padding: 11px; font-weight: 700;" onclick="executeAreaImport()">
+            <span>🚀</span> Import & Mulai Analisa Wilayah Ini
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS (Lokal Offline dengan Fallback CDN) -->
+  <script src="leaflet/leaflet.js"></script>
+  <script>
+    if (typeof L === 'undefined') {
+      document.write('<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>');
+    }
+  </script>
+
+  <script>
+    // State Global Aplikasi SCADA Subang
+    let map = null;
+    let networkData = { nodes: [], pipes: [], pumps: [] };
+    let telemetryReadings = {}; // Map: nodeId -> { pressure_bar, timestamp, ... }
+    let telemetryHistory = [];
+    let pipeLayers = [];
+    let nodeLayers = [];
+    let activeImageBase64 = null;
+    let currentModalMode = 'manual'; // 'manual' | 'ai'
+    let _debounceTimer = null; // Timer debounce untuk filter pencarian
+    let _autoRefreshTimer = null; // Timer auto-refresh polling
+    let _isPopupOpen = false; // Flag: jangan re-render saat popup terbuka
+    let showAllNodes = false; // Default: hanya tampilkan titik pantau ideal (45 titik)
+
+    // Konstanta
+    const HEAD_PER_BAR = 10.197;
+    const PSI_PER_BAR = 14.5038;
+    const MAX_PHOTO_SIZE_MB = 10;
+    const AUTO_REFRESH_INTERVAL_MS = 30000; // 30 detik
+
+    // ================= UTILITAS KEAMANAN =================
+    /**
+     * Escape HTML untuk mencegah XSS saat interpolasi ke innerHTML/bindPopup
+     */
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Escape nilai CSV untuk mencegah formula injection di Excel
+     */
+    function escapeCsvField(val) {
+      let str = String(val == null ? '' : val);
+      // Escape double quotes
+      str = str.replace(/"/g, '""');
+      // Prefix formula characters
+      if (/^[=+\-@\t\r]/.test(str)) {
+        str = "'" + str;
+      }
+      return '"' + str + '"';
+    }
+
+    // Inisialisasi Aplikasi Saat Halaman Dimuat
+    window.addEventListener('DOMContentLoaded', async () => {
+      initMap();
+      await loadSubangNetwork();
+      initDragAndDrop();
+      startAutoRefresh();
+    });
+
+    // Inisialisasi Peta Leaflet Berpusat di Kota Subang
+    function initMap() {
+      // Pusat Kota Subang: ~ -6.565, 107.765
+      map = L.map('map', {
+        zoomControl: false,
+        attributionControl: true
+      }).setView([-6.565, 107.765], 14);
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      // Layer 1: OpenStreetMap (Peta Jalan Jelas, 100% Gratis Tanpa API Key)
+      const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      });
+
+      // Layer 2: Esri World Imagery (Foto Satelit Udara Nyata Kota Subang)
+      const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Tiles © Esri'
+      });
+
+      // Layer 3: Esri World Street Map (Peta Jalan Kontras)
+      const esriStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: '© Esri Street'
+      });
+
+      // Default aktifkan OpenStreetMap
+      osmLayer.addTo(map);
+
+      // Tambahkan Kontrol Pemilih Basemap (Layer Switcher) di Kanan Atas
+      const baseMaps = {
+        "🗺️ Peta Jalan (OpenStreetMap)": osmLayer,
+        "🛰️ Citra Satelit (Esri Satellite)": esriSatellite,
+        "🏙️ Peta Jalan Kota (Esri Street)": esriStreet
+      };
+      L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+      // Lacak popup terbuka untuk mencegah re-render saat operator membaca info
+      map.on('popupopen', () => { _isPopupOpen = true; });
+      map.on('popupclose', () => { _isPopupOpen = false; });
+    }
+
+    // ================= DRAG & DROP FOTO =================
+    function initDragAndDrop() {
+      const dropZone = document.getElementById('photo-drop-zone');
+      if (!dropZone) return;
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+      });
+
+      dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      });
+
+      dropZone.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          handleFileSelected(files);
+        }
+      });
+    }
+
+    // ================= AUTO-REFRESH POLLING =================
+    function startAutoRefresh() {
+      if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+      _autoRefreshTimer = setInterval(async () => {
+        try {
+          const res = await fetch('/api/telemetry');
+          if (res.ok) {
+            const tData = await res.json();
+            if (tData.readings && tData.lastUpdated) {
+              // Hanya re-render jika ada perubahan
+              const serverCount = Object.keys(tData.readings).length;
+              const localCount = Object.keys(telemetryReadings).length;
+              if (serverCount !== localCount || tData.lastUpdated !== window._lastTelemetryUpdate) {
+                // Jangan re-render jika popup sedang terbuka (agar tidak tertutup)
+                if (_isPopupOpen) {
+                  console.log('🔄 Auto-refresh: data baru tersedia, menunggu popup ditutup...');
+                  return;
+                }
+                telemetryReadings = tData.readings;
+                telemetryHistory = tData.history || [];
+                window._lastTelemetryUpdate = tData.lastUpdated;
+                renderNetwork();
+                console.log(`🔄 Auto-refresh: ${serverCount} titik telemetri dimuat`);
+              }
+            }
+          }
+        } catch (e) {
+          // Silent fail - mungkin berjalan standalone tanpa server
+        }
+      }, AUTO_REFRESH_INTERVAL_MS);
+    }
+
+    // Memuat Data Jaringan Pipa Kota Subang (Auto-Load)
+    async function loadSubangNetwork() {
+      // Tampilkan loading indicator
+      const mapEl = document.getElementById('map');
+      const loadingDiv = document.createElement('div');
+      loadingDiv.id = 'loading-overlay';
+      loadingDiv.style.cssText = 'position:absolute;inset:0;z-index:999;background:rgba(9,14,23,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#38bdf8;font-size:14px;font-family:var(--font-sans);';
+      loadingDiv.innerHTML = '<div class="spinner" style="width:32px;height:32px;border-width:3px;margin-bottom:12px;"></div>Memuat 314 titik & 321 pipa jaringan Kota Subang...';
+      mapEl.parentElement.appendChild(loadingDiv);
+
+      try {
+        console.log('Memuat data jaringan pipa Subang...');
+        let data = null;
+
+        // Coba dari API server lokal jika server.js aktif
+        try {
+          const res = await fetch('/api/subang-network');
+          if (res.ok) data = await res.json();
+        } catch (e) {
+          console.log('Tidak terhubung ke server.js, mencoba fetch lokal epanet_subang.json...');
+        }
+
+        // Fallback fetch berkas lokal
+        if (!data) {
+          const res = await fetch('epanet_subang.json');
+          data = await res.json();
+        }
+
+        networkData = data;
+        defaultSubangNetwork = data;
+        console.log(`✅ Berhasil memuat ${networkData.nodes.length} nodes dan ${networkData.pipes.length} pipa Kota Subang.`);
+
+        // Muat data telemetri yang tersimpan di server
+        try {
+          const tRes = await fetch('/api/telemetry');
+          if (tRes.ok) {
+            const tData = await tRes.json();
+            if (tData.readings) {
+              telemetryReadings = tData.readings;
+              telemetryHistory = tData.history || [];
+              window._lastTelemetryUpdate = tData.lastUpdated;
+              console.log(`📡 Berhasil memuat ${Object.keys(telemetryReadings).length} titik telemetri tersimpan.`);
+            }
+          }
+        } catch (e) {
+          console.log('Tidak ada data telemetri tersimpan di server.');
+        }
+
+        populateNodeDropdown(networkData.nodes);
+        renderNetwork();
+      } catch (err) {
+        console.error('Gagal memuat epanet_subang.json:', err);
+        alert('Gagal memuat epanet_subang.json. Pastikan berkas berada di folder yang sama.');
+      } finally {
+        // Hapus loading overlay
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.remove();
+      }
+    }
+
+    // Isi Opsi Dropdown Titik Node Junction Subang (Terkelompok per Zona Geografis)
+    function populateNodeDropdown(nodes, filterText = '') {
+      const select = document.getElementById('select-node');
+      const curVal = select.value;
+      select.innerHTML = '<option value="">-- Pilih Titik Pantau Tekanan di Kota Subang --</option>';
+
+      // Filter jika ada teks pencarian
+      const f = filterText.toLowerCase().trim();
+      const filtered = nodes.filter(n => {
+        if (!f) return true;
+        const label = (n.label || '').toLowerCase();
+        const id = (n.id || '').toLowerCase();
+        const reason = (n.monitoringReason || '').toLowerCase();
+        const cat = (n.categoryLabel || '').toLowerCase();
+        const zone = (n.zoneLabel || '').toLowerCase();
+        return label.includes(f) || id.includes(f) || reason.includes(f) || cat.includes(f) || zone.includes(f);
+      });
+
+      // Kelompokkan berdasarkan Zona Wilayah
+      const zoneMap = new Map();
+      const nonMonitored = [];
+
+      filtered.forEach(n => {
+        if (n.isMonitoringPoint) {
+          const zKey = n.zoneLabel || n.categoryLabel || 'Titik Pantau Strategis';
+          if (!zoneMap.has(zKey)) zoneMap.set(zKey, []);
+          zoneMap.get(zKey).push(n);
+        } else {
+          nonMonitored.push(n);
+        }
+      });
+
+      // Urutkan grup zona secara berurutan (Zona 1 s/d Zona 6)
+      Array.from(zoneMap.keys()).sort().forEach(zKey => {
+        const groupNodes = zoneMap.get(zKey);
+        if (groupNodes.length === 0) return;
+
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = `📍 ${zKey} (${groupNodes.length} Titik)`;
+
+        // Urutkan numerik/alfabetis di dalam grup
+        groupNodes.sort((a, b) => (a.label || '').localeCompare(b.label || '', undefined, { numeric: true }));
+
+        groupNodes.forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n.id;
+          const hasTele = telemetryReadings[n.id];
+          const icon = hasTele ? '📡' : (n.type === 'reservoir' ? '💧' : '⭐');
+          const reason = n.monitoringReason ? ` — ${n.monitoringReason}` : ` (${n.elevation} m)`;
+          const teleVal = hasTele ? ` [${hasTele.pressure_bar} bar]` : '';
+          opt.textContent = `${icon} ${n.label || n.id}${reason}${teleVal}`;
+          optgroup.appendChild(opt);
+        });
+
+        select.appendChild(optgroup);
+      });
+
+      // Kelompokkan simpul biasa non-strategis di bagian bawah
+      if (nonMonitored.length > 0) {
+        const otherGroup = document.createElement('optgroup');
+        otherGroup.label = `⚪ Simpul Perantara Lainnya (${nonMonitored.length} Titik)`;
+        nonMonitored.sort((a, b) => (a.label || '').localeCompare(b.label || '', undefined, { numeric: true }));
+        nonMonitored.forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n.id;
+          const hasTele = telemetryReadings[n.id];
+          const icon = hasTele ? '📡' : '•';
+          const teleVal = hasTele ? ` [${hasTele.pressure_bar} bar]` : '';
+          opt.textContent = `${icon} ${n.label || n.id} (Elev: ${n.elevation} m)${teleVal}`;
+          otherGroup.appendChild(opt);
+        });
+        select.appendChild(otherGroup);
+      }
+
+      if (curVal) select.value = curVal;
+    }
+
+    // Filter Dropdown Berdasarkan Input Text (dengan debounce 200ms)
+    function filterNodeOptions(text) {
+      clearTimeout(_debounceTimer);
+      _debounceTimer = setTimeout(() => {
+        populateNodeDropdown(networkData.nodes, text);
+      }, 200);
+    }
+
+    // Saat Pilihan Titik Dropdown Berubah
+    function onNodeSelectionChanged(nodeId) {
+      const infoSpan = document.getElementById('selected-node-elevation-info');
+      const node = networkData.nodes.find(n => n.id === nodeId);
+      if (node) {
+        infoSpan.textContent = `Elevasi tanah titik ${node.label}: ${node.elevation} mdpl`;
+        // Jika sudah ada telemetri sebelumnya, isikan nilai terakhir
+        if (telemetryReadings[nodeId]) {
+          document.getElementById('manual-pressure-val').value = telemetryReadings[nodeId].pressure_bar;
+          onManualPressureInput(telemetryReadings[nodeId].pressure_bar);
+        } else {
+          // Bersihkan input agar tidak terbawa dari node sebelumnya
+          document.getElementById('manual-pressure-val').value = '';
+          onManualPressureInput(0);
+        }
+      } else {
+        infoSpan.textContent = '';
+        document.getElementById('manual-pressure-val').value = '';
+        onManualPressureInput(0);
+      }
+    }
+
+    // Render Jaringan Pipa & Node di Peta Subang
+    function renderNetwork() {
+      // Bersihkan layer sebelumnya
+      pipeLayers.forEach(l => map.removeLayer(l));
+      nodeLayers.forEach(l => map.removeLayer(l));
+      pipeLayers = [];
+      nodeLayers = [];
+
+      // Jalankan Engine Hidrolik SCADA
+      const solved = window.ScadaHydraulicEngine.solveScadaNetwork(
+        networkData.nodes,
+        networkData.pipes,
+        telemetryReadings
+      );
+
+      // Buat nodeMap untuk lookup O(1) di rendering pipa
+      const nodeMap = new Map();
+      solved.nodes.forEach(n => nodeMap.set(n.id, n));
+
+      // Update Tampilan KPI Card
+      updateKpis(solved.summary);
+
+      // 1. Gambar Seluruh 321 Pipa Subang
+      solved.pipes.forEach(p => {
+        let latlngs = [];
+        if (p.routeCoordinates && p.routeCoordinates.length > 0) {
+          latlngs = p.routeCoordinates;
+        } else {
+          const sNode = nodeMap.get(p.startNodeId);
+          const eNode = nodeMap.get(p.endNodeId);
+          if (sNode && eNode) latlngs = [[sNode.lat, sNode.lng], [eNode.lat, eNode.lng]];
+        }
+
+        if (latlngs.length < 2) return;
+
+        // Warna & ketebalan pipa berdasarkan debit dan status hidrolik
+        let color = p.status ? p.status.color : '#3b82f6';
+        let weight = Math.max(3, Math.min(7, (p.diameter || 100) / 40));
+        let opacity = 0.88;
+
+        // Jika debit tinggi, buat lebih tebal & kontras
+        if (p.discharge_Lps > 20) {
+          color = '#0284c7';
+          weight += 2;
+        }
+
+        // Animated flow dash jika pipa aktif mengalirkan air
+        const hasFlow = (p.discharge_Lps || 0) > 0.3;
+
+        const polyline = L.polyline(latlngs, {
+          color: color,
+          weight: weight,
+          opacity: opacity,
+          className: hasFlow ? 'pipe-flowing-active' : ''
+        }).addTo(map);
+
+        // Tooltip & Popup Informasi SCADA Pipa (escaped)
+        const startLabel = escapeHtml(nodeMap.get(p.startNodeId)?.label || 'A');
+        const endLabel = escapeHtml(nodeMap.get(p.endNodeId)?.label || 'B');
+        const matLabel = escapeHtml(p.material || 'PVC');
+        const statusLabel = escapeHtml(p.status?.label || 'Normal');
+        
+        polyline.bindPopup(`
+          <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.5; min-width: 220px;">
+            <b style="color: #38bdf8; font-size: 13px;">🌊 Pipa ${startLabel} ➔ ${endLabel}</b><br>
+            <div style="margin: 6px 0; border-top: 1px solid #334155; padding-top: 6px;">
+              <b>Diameter:</b> ${p.diameter} mm (${matLabel})<br>
+              <b>Panjang Pipa:</b> ${p.length?.toFixed(1)} m<br>
+              <b>Debit Air (Q):</b> <span style="color: #38bdf8; font-weight: 700; font-size: 15px;">${p.discharge_Lps?.toFixed(2)} L/s</span> (${p.discharge_m3h?.toFixed(1)} m³/jam)<br>
+              <b>Kecepatan (v):</b> <b>${p.velocity_mps?.toFixed(3)} m/s</b><br>
+              <b>Head Loss (hf):</b> ${p.headloss_m?.toFixed(2)} m<br>
+              <b>Status Aliran:</b> <span style="color: ${p.status?.color || '#38bdf8'}; font-weight: 600;">${statusLabel}</span>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.startNodeId}', 'manual')">✍️ Ukur ${startLabel}</button>
+              <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.endNodeId}', 'manual')">✍️ Ukur ${endLabel}</button>
+            </div>
+          </div>
+        `);
+
+        pipeLayers.push(polyline);
+      });
+
+      // 2. Gambar Node (Reservoir & Junctions)
+      const allBounds = [];
+      solved.nodes.forEach(n => {
+        allBounds.push([n.lat, n.lng]);
+
+        if (n.type === 'reservoir') {
+          // Reservoir Marker (R1 & R2)
+          const resMarker = L.circleMarker([n.lat, n.lng], {
+            radius: 11,
+            fillColor: '#0ea5e9',
+            color: '#ffffff',
+            weight: 3,
+            fillOpacity: 1
+          }).addTo(map);
+
+          resMarker.bindPopup(`
+            <b style="color: #38bdf8; font-size: 14px;">💧 Reservoir ${escapeHtml(n.label)}</b><br>
+            <b>Elevasi:</b> ${n.elevation} mdpl (Gravitasi)<br>
+            <b>Head Total:</b> ${n.totalHead || n.elevation} m<br>
+            <span style="color: #34d399; font-weight: 600;">Sumber Pasokan Utama Subang</span>
+          `);
+          nodeLayers.push(resMarker);
+
+        } else if (n.hasTelemetry) {
+          // Junction yang Memiliki Telemetri Tekanan dari Petugas (Pulsing Radar Icon)
+          const radarIcon = L.divIcon({
+            className: 'scada-radar-icon',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          });
+
+          const teleMarker = L.marker([n.lat, n.lng], { icon: radarIcon }).addTo(map);
+          const safeLabel = escapeHtml(n.label);
+          const safeNotes = escapeHtml(n.telemetryNotes || 'Terverifikasi');
+          teleMarker.bindPopup(`
+            <div style="font-family: var(--font-sans); font-size: 12px; min-width: 220px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <b style="color: #38bdf8; font-size: 14px;">📡 Sensor ${safeLabel}</b>
+                <span class="scada-badge">LIVE SENSOR</span>
+              </div>
+              <div style="margin: 8px 0; border-top: 1px solid #334155; padding-top: 6px;">
+                <b>Tekanan Aktual:</b> <span style="color: #38bdf8; font-weight: 800; font-size: 16px;">${n.measuredPressure} bar</span> (${(n.measuredPressure * HEAD_PER_BAR).toFixed(1)} m)<br>
+                <b>Elevasi Tanah:</b> ${n.elevation} mdpl<br>
+                <b>Head Total:</b> ${(n.totalHead || 0).toFixed(1)} m<br>
+                <b>Waktu Update:</b> ${new Date(n.telemetryTimestamp).toLocaleTimeString('id-ID')}<br>
+                <div style="color: var(--text-muted); font-size: 11px; margin-top: 4px;">Catatan: ${safeNotes}</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
+                <button class="btn btn-manual" style="padding: 6px 10px; font-size: 11px; justify-content: center;" onclick="openInputModal('${n.id}', 'manual')">
+                  <span>✍️</span> Perbarui Tekanan
+                </button>
+                <button class="btn btn-dark" style="padding: 5px 8px; font-size: 10.5px; justify-content: center; color: #f43f5e; border-color: #f43f5e40;" onclick="removeNodeTelemetry('${n.id}')">
+                  <span>🗑️</span> Hapus Telemetri Titik Ini
+                </button>
+              </div>
+            </div>
+          `);
+          nodeLayers.push(teleMarker);
+
+        } else if (n.isMonitoringPoint) {
+          // Titik Pantau Tekanan Ideal (Strategic Pressure Points)
+          let mColor = '#f59e0b'; // Percabangan utama
+          let mBadge = '🔀 TRANSMISI UTAMA';
+          let mBadgeStyle = 'background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4)';
+          
+          if (n.category === 'elevasi_tinggi') {
+            mColor = '#ec4899';
+            mBadge = '⛰️ ZONA TINGGI (RAWAN AIR MATI)';
+            mBadgeStyle = 'background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4)';
+          } else if (n.category === 'elevasi_rendah') {
+            mColor = '#06b6d4';
+            mBadge = '🌊 ZONA LEMBAH (RAWAN PECAH)';
+            mBadgeStyle = 'background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.4)';
+          } else if (n.category === 'titik_kritis_dma') {
+            mColor = '#10b981';
+            mBadge = '🏘️ DISTRIBUSI WILAYAH';
+            mBadgeStyle = 'background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4)';
+          }
+
+          const mMarker = L.circleMarker([n.lat, n.lng], {
+            radius: 7,
+            fillColor: mColor,
+            color: '#ffffff',
+            weight: 2,
+            fillOpacity: 0.95
+          }).addTo(map);
+
+          mMarker.bindTooltip(`<b>${escapeHtml(n.label)}</b> • ${escapeHtml(n.monitoringReason || 'Titik Pantau')}`, {
+            direction: 'top',
+            offset: [0, -8]
+          });
+
+          mMarker.bindPopup(`
+            <div style="font-family: var(--font-sans); font-size: 12px; min-width: 230px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <b style="color: #38bdf8; font-size: 14px;">⭐ Titik ${escapeHtml(n.label)}</b>
+                <span style="font-size: 10px; color: var(--text-muted);">${n.elevation} mdpl</span>
+              </div>
+              <div style="margin-bottom: 6px;">
+                <span style="${mBadgeStyle}; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 700;">
+                  ${mBadge}
+                </span>
+                <div style="font-size: 11px; color: #cbd5e1; margin-top: 5px;">ℹ️ ${escapeHtml(n.monitoringReason || '')}</div>
+              </div>
+              <div style="margin: 6px 0; border-top: 1px solid #334155; padding-top: 6px;">
+                <b>Estimasi Tekanan:</b> <span style="color: #38bdf8; font-weight: 700; font-size: 14px;">${n.pressure?.toFixed(2) || '0.00'} bar</span><br>
+                <b>Head Total:</b> ${(n.totalHead || n.elevation).toFixed(1)} m
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                <button class="btn btn-manual" style="padding: 6px 10px; font-size: 11px; width: 100%; justify-content: center;" onclick="openInputModal('${n.id}', 'manual')">
+                  <span>✍️</span> Ukur di Titik Ini (Manual)
+                </button>
+                <button class="btn btn-ai" style="padding: 6px 10px; font-size: 11px; width: 100%; justify-content: center;" onclick="openInputModal('${n.id}', 'ai')">
+                  <span>📸</span> Scan Foto AI
+                </button>
+              </div>
+            </div>
+          `);
+          nodeLayers.push(mMarker);
+
+        } else if (showAllNodes) {
+          // Junction Perantara Biasa (Hanya ditampilkan jika mode "Semua Node" aktif)
+          const dot = L.circleMarker([n.lat, n.lng], {
+            radius: 3,
+            fillColor: '#64748b',
+            color: '#334155',
+            weight: 1,
+            fillOpacity: 0.4
+          }).addTo(map);
+
+          dot.bindPopup(`
+            <div style="font-family: var(--font-sans); font-size: 12px; min-width: 200px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <b style="color: #94a3b8; font-size: 13px;">📍 Simpul ${escapeHtml(n.label)}</b>
+                <span style="font-size: 10px; color: var(--text-muted);">${n.elevation} mdpl</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 4px;">Simpul perantara pipa (non-strategis)</div>
+              <div style="margin: 6px 0; border-top: 1px solid #334155; padding-top: 6px;">
+                <b>Estimasi Tekanan:</b> <span style="color: #38bdf8; font-weight: 700;">${n.pressure?.toFixed(2) || '0.00'} bar</span><br>
+                <b>Head Total:</b> ${(n.totalHead || n.elevation).toFixed(1)} m
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                <button class="btn btn-manual" style="padding: 6px 10px; font-size: 11px; width: 100%; justify-content: center;" onclick="openInputModal('${n.id}', 'manual')">
+                  <span>✍️</span> Ukur di Titik Ini
+                </button>
+              </div>
+            </div>
+          `);
+          nodeLayers.push(dot);
+        }
+      });
+
+      // Fit bounds jika baru pertama kali dimuat
+      if (allBounds.length > 0 && !window._hasFittedMap) {
+        map.fitBounds(allBounds, { padding: [40, 40] });
+        window._hasFittedMap = true;
+      }
+
+      // Update Daftar Sidebar
+      renderTelemetryList(solved.nodes);
+      renderTopPipes(solved.pipes);
+      renderAlerts(solved.pipes);
+      renderHistoryList();
+    }
+
+    // Toggle Tampilan Titik Pantau Ideal vs Semua Simpul Jaringan
+    function toggleNodeVisibility() {
+      showAllNodes = !showAllNodes;
+      const label = document.getElementById('toggle-nodes-label');
+      const btn = document.getElementById('btn-toggle-nodes');
+      if (label && btn) {
+        if (showAllNodes) {
+          label.innerHTML = `Semua Simpul (${networkData?.nodes?.length || 314})`;
+          btn.style.borderColor = '#f59e0b';
+        } else {
+          const count = networkData?.nodes?.filter(n => n.isMonitoringPoint)?.length || 45;
+          label.innerHTML = `Titik Ideal (${count})`;
+          btn.style.borderColor = '';
+        }
+      }
+      renderNetwork();
+    }
+
+    // Update Angka KPI Header
+    function updateKpis(summary) {
+      document.getElementById('kpi-total-flow').innerHTML = `${summary.totalDischargeLps.toFixed(1)} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">L/s</span>`;
+      document.getElementById('kpi-total-flow-m3h').textContent = `${summary.totalDischarge_m3h.toFixed(1)} m³/jam dari Reservoir R1 & R2`;
+      document.getElementById('kpi-avg-pressure').innerHTML = `${summary.avgPressureBar.toFixed(2)} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">bar</span>`;
+      document.getElementById('kpi-avg-pressure-m').textContent = `${(summary.avgPressureBar * HEAD_PER_BAR).toFixed(1)} m kolom air`;
+      
+      const totalStrategic = networkData.nodes.filter(n => n.isMonitoringPoint).length;
+      document.getElementById('kpi-active-sensors').innerHTML = `${summary.activeSensorsCount} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">/ ${totalStrategic || 45} Ideal</span>`;
+      
+      const alertEl = document.getElementById('kpi-leak-alerts');
+      const subtextEl = document.getElementById('kpi-alert-subtext');
+      if (summary.leakWarningsCount > 0) {
+        alertEl.textContent = summary.leakWarningsCount;
+        alertEl.style.color = '#f43f5e';
+        subtextEl.textContent = 'Pipa mengalami tekanan drop di bawah batas aman';
+        document.getElementById('alert-tab-count').textContent = summary.leakWarningsCount;
+      } else {
+        alertEl.textContent = '0';
+        alertEl.style.color = '#34d399';
+        subtextEl.textContent = 'Semua jaringan beroperasi normal';
+        document.getElementById('alert-tab-count').textContent = '0';
+      }
+    }
+
+    // Render Daftar Telemetri Aktif di Sidebar
+    function renderTelemetryList(nodes) {
+      const container = document.getElementById('telemetry-list-container');
+      const activeNodes = nodes.filter(n => n.hasTelemetry);
+      document.getElementById('telemetry-count-label').textContent = `${activeNodes.length} Titik Aktif`;
+
+      if (activeNodes.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 12px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+            Belum ada data tekanan manometer yang dimasukkan.<br>
+            Klik tombol <b>"Input Tekanan Manual"</b> atau <b>"Scan Foto AI"</b> di atas.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activeNodes.map(n => `
+        <div class="telemetry-card" onclick="zoomToNode('${n.id}', ${n.lat}, ${n.lng})">
+          <div class="telemetry-card-header">
+            <span class="station-name">📍 ${escapeHtml(n.label)}</span>
+            <span class="pressure-pill">${n.measuredPressure} bar</span>
+          </div>
+          <div class="station-meta">
+            <span>Elevasi: <b>${n.elevation} mdpl</b> | Head: <b>${(n.totalHead||0).toFixed(1)} m</b></span>
+            <span>Update: <b>${new Date(n.telemetryTimestamp).toLocaleTimeString('id-ID')}</b></span>
+            <span style="color: #38bdf8;">${escapeHtml(n.telemetryNotes || 'Telemetri Aktif')}</span>
+          </div>
+          <div class="station-actions" onclick="event.stopPropagation()">
+            <button class="btn btn-manual btn-xs" onclick="openInputModal('${n.id}', 'manual')">✍️ Edit</button>
+            <button class="btn btn-dark btn-xs" style="color: #f43f5e;" onclick="removeNodeTelemetry('${n.id}')">🗑️ Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render Top Pipa dengan Debit Terbesar
+    function renderTopPipes(pipes) {
+      const container = document.getElementById('top-pipes-list');
+      const sorted = [...pipes].sort((a, b) => (b.discharge_Lps || 0) - (a.discharge_Lps || 0)).slice(0, 20);
+
+      container.innerHTML = sorted.map(p => `
+        <div class="telemetry-card" style="padding: 10px 12px; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <b style="font-size: 12px; color: #ffffff;">Pipa Ø ${p.diameter} mm (${escapeHtml(p.material)})</b>
+            <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #38bdf8;">${p.discharge_Lps?.toFixed(2)} L/s</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+            <span>Panjang: ${p.length?.toFixed(0)} m</span>
+            <span>Kecepatan: <b>${p.velocity_mps?.toFixed(2)} m/s</b></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render Pipa Anomali / Peringatan
+    function renderAlerts(pipes) {
+      const container = document.getElementById('alerts-list');
+      const alerts = pipes.filter(p => p.status && p.status.severity !== 'normal' && p.status.severity !== 'idle');
+
+      if (alerts.length === 0) {
+        container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 30px;">Tidak ada anomali atau pipa bocor terdeteksi saat ini.</p>`;
+        return;
+      }
+
+      container.innerHTML = alerts.map(p => `
+        <div class="telemetry-card" style="border-left: 3px solid ${p.status.color}; padding: 10px 12px; margin-bottom: 8px;">
+          <b style="font-size: 12px; color: ${p.status.color};">${escapeHtml(p.status.label)}</b>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+            Pipa Ø ${p.diameter} mm (${p.length?.toFixed(0)} m) | Kecepatan: ${p.velocity_mps?.toFixed(2)} m/s
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render Riwayat Log
+    function renderHistoryList() {
+      const container = document.getElementById('history-list');
+      if (!telemetryHistory || telemetryHistory.length === 0) {
+        container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 30px;">Belum ada riwayat aktivitas.</p>`;
+        return;
+      }
+
+      container.innerHTML = telemetryHistory.map(h => `
+        <div class="telemetry-card" style="padding: 8px 12px; margin-bottom: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px;">
+            <b style="color: #38bdf8;">Titik ${escapeHtml(h.nodeLabel || h.nodeId)}</b>
+            <span style="color: #34d399; font-weight: 700;">${h.pressure_bar} bar</span>
+          </div>
+          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
+            ${new Date(h.timestamp).toLocaleString('id-ID')} - Oleh: ${escapeHtml(h.officerName || 'Petugas')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Zoom ke Node Tertentu
+    function zoomToNode(id, lat, lng) {
+      map.flyTo([lat, lng], 17, { duration: 1 });
+    }
+
+    // Tab Switcher Sidebar
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.sidebar-content').forEach(c => c.style.display = 'none');
+      document.getElementById(tabId).style.display = 'block';
+    }
+
+    // ================= MODAL LOGIC =================
+    function openInputModal(preselectedNodeId = null, mode = 'manual') {
+      const modal = document.getElementById('unified-modal');
+      modal.classList.add('active');
+      setModalMode(mode);
+
+      // Reset form input
+      document.getElementById('node-search-box').value = '';
+      populateNodeDropdown(networkData.nodes);
+
+      if (preselectedNodeId) {
+        document.getElementById('select-node').value = preselectedNodeId;
+        onNodeSelectionChanged(preselectedNodeId);
+      } else {
+        document.getElementById('select-node').value = '';
+        document.getElementById('selected-node-elevation-info').textContent = '';
+      }
+    }
+
+    function closeInputModal() {
+      document.getElementById('unified-modal').classList.remove('active');
+      resetAIModalState();
+    }
+
+    function setModalMode(mode) {
+      currentModalMode = mode;
+      const tabManual = document.getElementById('modal-tab-manual');
+      const tabAi = document.getElementById('modal-tab-ai');
+      const secManual = document.getElementById('section-manual');
+      const secAi = document.getElementById('section-ai');
+      const title = document.getElementById('modal-title');
+
+      if (mode === 'manual') {
+        tabManual.classList.add('active');
+        tabAi.classList.remove('active');
+        secManual.style.display = 'block';
+        secAi.style.display = 'none';
+        title.innerHTML = '<span>✍️</span> Input Tekanan Manual Lapangan';
+      } else {
+        tabAi.classList.add('active');
+        tabManual.classList.remove('active');
+        secManual.style.display = 'none';
+        secAi.style.display = 'block';
+        title.innerHTML = '<span>🤖</span> Baca Foto Manometer dengan AI Vision';
+      }
+    }
+
+    // Hitung Real-Time Konversi Tekanan Manual
+    function onManualPressureInput(val) {
+      const bar = parseFloat(val) || 0;
+      const mH2O = bar * HEAD_PER_BAR;
+      const psi = bar * PSI_PER_BAR;
+
+      document.getElementById('conv-mH2O').textContent = `${mH2O.toFixed(1)} m`;
+      document.getElementById('conv-psi').textContent = `${psi.toFixed(1)} psi`;
+
+      const selId = document.getElementById('select-node').value;
+      const node = networkData.nodes.find(n => n.id === selId);
+      const elev = node ? node.elevation : 0;
+      document.getElementById('conv-totalHead').textContent = `${(elev + mH2O).toFixed(1)} mdpl`;
+    }
+
+    // Set Preset Tekanan Cepat
+    function setManualPressurePreset(val) {
+      document.getElementById('manual-pressure-val').value = val;
+      onManualPressureInput(val);
+    }
+
+    // Simpan Tekanan Manual
+    async function saveManualTelemetry() {
+      const nodeId = document.getElementById('select-node').value;
+      const pressureVal = parseFloat(document.getElementById('manual-pressure-val').value);
+
+      if (!nodeId) {
+        alert('Silakan pilih Titik Jaringan Pipa (Junction) terlebih dahulu.');
+        return;
+      }
+
+      if (isNaN(pressureVal) || pressureVal < 0) {
+        alert('Masukkan angka tekanan yang valid (misal: 2.4 bar).');
+        return;
+      }
+
+      const nodeObj = networkData.nodes.find(n => n.id === nodeId);
+      const officer = document.getElementById('officer-name').value || 'Petugas Lapangan';
+      const notes = document.getElementById('manual-notes').value || 'Input Manual Petugas Lapangan';
+
+      const readingData = {
+        nodeId: nodeId,
+        nodeLabel: nodeObj ? nodeObj.label : nodeId,
+        pressure_bar: pressureVal,
+        pressure_m: Math.round(pressureVal * HEAD_PER_BAR * 100) / 100,
+        officerName: officer,
+        gauge_type: 'manual',
+        notes: notes,
+        timestamp: new Date().toISOString()
+      };
+
+      await commitTelemetry(readingData);
+    }
+
+    // ================= AI VISION LOGIC =================
+    function resetAIModalState() {
+      activeImageBase64 = null;
+      document.getElementById('file-input').value = '';
+      document.getElementById('preview-container').style.display = 'none';
+      document.getElementById('drop-zone-prompt').style.display = 'block';
+      document.getElementById('ai-result-card').style.display = 'none';
+      document.getElementById('btn-run-ai').disabled = true;
+      document.getElementById('btn-run-ai').innerHTML = '<span>✨</span> Deteksi Nilai Tekanan dengan Llama-3.2-11b Vision';
+    }
+
+    function handleFileSelected(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+
+      // Validasi tipe file
+      if (!file.type.startsWith('image/')) {
+        alert('Hanya file gambar (JPEG, PNG, WebP) yang diperbolehkan.');
+        return;
+      }
+
+      // Validasi ukuran file
+      if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+        alert(`Ukuran foto terlalu besar (${(file.size/1024/1024).toFixed(1)} MB). Maksimal ${MAX_PHOTO_SIZE_MB} MB.`);
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        activeImageBase64 = e.target.result;
+        document.getElementById('preview-img').src = activeImageBase64;
+        document.getElementById('drop-zone-prompt').style.display = 'none';
+        document.getElementById('preview-container').style.display = 'block';
+        document.getElementById('btn-run-ai').disabled = false;
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    // Sync mH2O ketika operator mengedit tekanan AI secara manual
+    function onAIPressureEdit(val) {
+      const bar = parseFloat(val) || 0;
+      document.getElementById('ai-pressure-m-input').value = (bar * HEAD_PER_BAR).toFixed(1);
+    }
+
+    async function runAIVisionAnalysis() {
+      if (!activeImageBase64) return;
+      const btn = document.getElementById('btn-run-ai');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> AI Vision sedang membaca jarum manometer...';
+
+      try {
+        let result = null;
+
+        // Kirim melalui backend server.js (proxy aman, API key di server)
+        try {
+          const res = await fetch('/api/read-gauge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: activeImageBase64 })
+          });
+          if (res.ok) {
+            const json = await res.json();
+            result = json.data;
+          } else {
+            const errJson = await res.json().catch(() => ({}));
+            if (errJson.error) {
+              throw new Error(errJson.error);
+            }
+          }
+        } catch (e) {
+          console.log('Server proxy error:', e.message);
+          throw e; // Tidak ada fallback client-side (API key tidak boleh di client)
+        }
+
+        if (!result) {
+          throw new Error('Gagal mendapatkan respon dari AI Vision API. Pastikan server.js berjalan dan API key terisi di .env');
+        }
+
+        // Tampilkan Hasil di Modal
+        document.getElementById('ai-pressure-input').value = result.pressure_bar;
+        document.getElementById('ai-pressure-m-input').value = result.pressure_m;
+        document.getElementById('ai-confidence-label').textContent = `Tingkat Keyakinan: ${(result.confidence * 100).toFixed(0)}%`;
+        document.getElementById('ai-gauge-type-badge').textContent = (result.gauge_type || 'ANALOG').toUpperCase();
+        document.getElementById('ai-notes-text').textContent = `Catatan AI: ${result.notes}`;
+
+        document.getElementById('ai-result-card').style.display = 'block';
+        btn.innerHTML = '<span>✅</span> Pembacaan AI Selesai!';
+
+      } catch (err) {
+        console.error('Error membaca manometer dengan AI:', err);
+        alert('Error AI Vision: ' + err.message + '\n\nAnda dapat memasukkan angka tekanan secara manual dengan tab "Input Manual".');
+        // Fix: JANGAN isi data fiktif 2.0 bar - biarkan operator masuk manual
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚠️</span> Gagal - Coba Lagi atau Input Manual';
+      }
+    }
+
+    async function saveAITelemetry() {
+      const nodeId = document.getElementById('select-node').value;
+      const pressureVal = parseFloat(document.getElementById('ai-pressure-input').value);
+
+      if (!nodeId) {
+        alert('Silakan pilih Titik Jaringan Pipa (Junction) terlebih dahulu.');
+        return;
+      }
+
+      if (isNaN(pressureVal) || pressureVal < 0) {
+        alert('Nilai tekanan harus berupa angka valid (misal: 2.4 bar).');
+        return;
+      }
+
+      const nodeObj = networkData.nodes.find(n => n.id === nodeId);
+      const officer = document.getElementById('officer-name').value || 'Petugas Lapangan';
+
+      const readingData = {
+        nodeId: nodeId,
+        nodeLabel: nodeObj ? nodeObj.label : nodeId,
+        pressure_bar: pressureVal,
+        pressure_m: Math.round(pressureVal * HEAD_PER_BAR * 100) / 100,
+        confidence: parseFloat(document.getElementById('ai-confidence-label').textContent.match(/[\d.]+/)?.[0] || 90) / 100,
+        officerName: officer,
+        gauge_type: 'photo_ai',
+        notes: document.getElementById('ai-notes-text').textContent,
+        timestamp: new Date().toISOString()
+      };
+
+      await commitTelemetry(readingData);
+    }
+
+    // Commit Telemetri ke State & Server
+    async function commitTelemetry(readingData) {
+      telemetryReadings[readingData.nodeId] = readingData;
+      telemetryHistory.unshift(readingData);
+
+      try {
+        await fetch('/api/telemetry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(readingData)
+        });
+      } catch (e) {
+        console.log('Tersimpan di sesi lokal browser.');
+      }
+
+      renderNetwork();
+      closeInputModal();
+
+      const nodeObj = networkData.nodes.find(n => n.id === readingData.nodeId);
+      if (nodeObj) {
+        zoomToNode(nodeObj.id, nodeObj.lat, nodeObj.lng);
+      }
+    }
+
+    // Hapus Telemetri pada Titik Tertentu
+    async function removeNodeTelemetry(nodeId) {
+      const nodeObj = networkData.nodes.find(n => n.id === nodeId);
+      const label = nodeObj ? nodeObj.label : nodeId;
+      if (!confirm(`Hapus data telemetri untuk titik ${label}?`)) return;
+
+      delete telemetryReadings[nodeId];
+
+      try {
+        await fetch(`/api/telemetry?nodeId=${encodeURIComponent(nodeId)}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {
+        console.warn('Gagal menghapus dari server:', e.message);
+      }
+
+      renderNetwork();
+    }
+
+    // Quick Simulation: 6 Titik Transmisi Subang
+    async function runSubangQuickSimulation() {
+      const samplePoints = [
+        { label: 'J307', pressure: 2.85, notes: 'Pipa Utama PVC 150mm Jl. Otista' },
+        { label: 'J308', pressure: 2.40, notes: 'Percabangan Distribusi Tengah' },
+        { label: 'J309', pressure: 2.15, notes: 'Depan Kantor Pelayanan' },
+        { label: 'J310', pressure: 1.85, notes: 'Kawasan Perumahan Subang' },
+        { label: 'J311', pressure: 1.60, notes: 'Ujung Jaringan Distribusi Hilir' },
+        { label: 'J32', pressure: 2.95, notes: 'Header Distribusi Hulu (pengganti J306)' }
+      ];
+
+      let successCount = 0;
+
+      for (const sp of samplePoints) {
+        const found = networkData.nodes.find(n => n.label === sp.label);
+        if (found) {
+          const readingData = {
+            nodeId: found.id,
+            nodeLabel: found.label,
+            pressure_bar: sp.pressure,
+            pressure_m: Math.round(sp.pressure * HEAD_PER_BAR * 100) / 100,
+            confidence: 0.96,
+            officerName: 'Tim Monitoring Subang (Simulasi)',
+            gauge_type: 'manual',
+            notes: sp.notes,
+            timestamp: new Date().toISOString()
+          };
+
+          telemetryReadings[found.id] = readingData;
+          telemetryHistory.unshift(readingData);
+
+          // Persist ke server
+          try {
+            await fetch('/api/telemetry', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(readingData)
+            });
+          } catch (e) { /* OK jika standalone */ }
+
+          successCount++;
+        }
+      }
+
+      renderNetwork();
+      alert(`✅ Berhasil memuat data telemetri simulasi pada ${successCount} titik manometer Kota Subang!\n\nDebit air (Q) di setiap pipa telah terhitung otomatis dan ditampilkan pada peta.`);
+    }
+
+    // Reset Semua Data Telemetri
+    async function resetTelemetryData() {
+      if (!confirm('Reset semua data pembacaan telemetri lapangan?')) return;
+      telemetryReadings = {};
+      telemetryHistory = [];
+      try {
+        // Gunakan parameter action=reset_all yang aman
+        await fetch('/api/telemetry?action=reset_all', { method: 'DELETE' });
+      } catch (e) {}
+      renderNetwork();
+    }
+
+    // Ekspor Data SCADA ke Format CSV/Excel
+    function exportScadaCsv() {
+      const solved = window.ScadaHydraulicEngine.solveScadaNetwork(
+        networkData.nodes,
+        networkData.pipes,
+        telemetryReadings
+      );
+
+      let csv = 'DATA SCADA JARINGAN PIPA PDAM KOTA SUBANG\n';
+      csv += `Tanggal Ekspor: ${new Date().toLocaleString('id-ID')}\n`;
+      csv += `Total Pasokan Air: ${solved.summary.totalDischargeLps} L/s (${solved.summary.totalDischarge_m3h} m3/jam)\n`;
+      csv += `Tekanan Rata-Rata: ${solved.summary.avgPressureBar} bar\n\n`;
+
+      csv += '--- DATA TITIK SENSOR TELEMETRI AKTIF ---\n';
+      csv += 'Node ID,Label,Elevasi (m),Tekanan (bar),Tinggi Tekan (m),Petugas,Waktu,Catatan\n';
+      solved.nodes.filter(n => n.hasTelemetry).forEach(n => {
+        // Fix: tambahkan kolom officerName yang hilang & escape semua field
+        const reading = telemetryReadings[n.id] || {};
+        csv += `${escapeCsvField(n.id)},${escapeCsvField(n.label)},${n.elevation},${n.measuredPressure},${(n.measuredPressure*HEAD_PER_BAR).toFixed(2)},${escapeCsvField(reading.officerName || '')},${escapeCsvField(n.telemetryTimestamp||'')},${escapeCsvField(n.telemetryNotes||'')}\n`;
+      });
+
+      csv += '\n--- DATA ALIRAN PIPA (321 PIPA SUBANG) ---\n';
+      csv += 'Pipa ID,Dari Node,Ke Node,Diameter (mm),Panjang (m),Material,Debit (L/s),Debit (m3/jam),Kecepatan (m/s),Headloss (m),Status\n';
+      solved.pipes.forEach(p => {
+        const s = solved.nodes.find(n => n.id === p.startNodeId)?.label || 'A';
+        const e = solved.nodes.find(n => n.id === p.endNodeId)?.label || 'B';
+        csv += `${escapeCsvField(p.id)},${escapeCsvField(s)},${escapeCsvField(e)},${p.diameter},${p.length?.toFixed(1)},${escapeCsvField(p.material)},${p.discharge_Lps?.toFixed(3)},${p.discharge_m3h?.toFixed(2)},${p.velocity_mps?.toFixed(3)},${p.headloss_m?.toFixed(3)},${escapeCsvField(p.status?.label || 'Normal')}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SCADA_SUBANG_TELEMETRI_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ================= MANAJEMEN & IMPORT WILAYAH JARINGAN PIPA =================
+    let currentAreaId = 'subang_kota';
+    let defaultSubangNetwork = null; // Backup network Subang asli
+    let customAreas = {}; // Map: areaId -> { id, name, network, importedAt }
+    let pendingImportContent = null;
+    let pendingImportFileName = '';
+    let pendingImportExt = '';
+
+    // Inisialisasi storage wilayah dari localStorage
+    function initAreaStorage() {
+      try {
+        const saved = localStorage.getItem('scada_custom_areas');
+        if (saved) {
+          customAreas = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.warn('Gagal membaca storage wilayah:', e);
+      }
+    }
+
+    function saveCustomAreasToStorage() {
+      try {
+        localStorage.setItem('scada_custom_areas', JSON.stringify(customAreas));
+      } catch (e) {
+        console.warn('Gagal menyimpan wilayah ke storage:', e);
+      }
+    }
+
+    function openAreaManagerModal() {
+      initAreaStorage();
+      document.getElementById('area-modal').classList.add('active');
+      switchAreaModalTab('saved');
+      renderSavedAreasList();
+      setupAreaDropZone();
+    }
+
+    function closeAreaManagerModal() {
+      document.getElementById('area-modal').classList.remove('active');
+      resetAreaImportForm();
+    }
+
+    function switchAreaModalTab(tab) {
+      const btnSaved = document.getElementById('tab-btn-saved-areas');
+      const btnImport = document.getElementById('tab-btn-import-area');
+      const secSaved = document.getElementById('section-saved-areas');
+      const secImport = document.getElementById('section-import-area');
+
+      if (tab === 'saved') {
+        btnSaved.classList.add('active');
+        btnImport.classList.remove('active');
+        secSaved.style.display = 'block';
+        secImport.style.display = 'none';
+        renderSavedAreasList();
+      } else {
+        btnImport.classList.add('active');
+        btnSaved.classList.remove('active');
+        secImport.style.display = 'block';
+        secSaved.style.display = 'none';
+      }
+    }
+
+    function renderSavedAreasList() {
+      const container = document.getElementById('saved-areas-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      // 1. Wilayah Utama: Subang Kota
+      const subangLength = (defaultSubangNetwork?.pipes || networkData.pipes || []).reduce((acc, p) => acc + (p.length || 0), 0) / 1000;
+      const subangNodes = (defaultSubangNetwork?.nodes || networkData.nodes || []).length;
+      const subangPipes = (defaultSubangNetwork?.pipes || networkData.pipes || []).length;
+
+      const isSubangActive = currentAreaId === 'subang_kota';
+      const subangCard = document.createElement('div');
+      subangCard.style.cssText = `background: var(--bg-card); border: 1px solid ${isSubangActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;`;
+      subangCard.innerHTML = `
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <b style="color: #ffffff; font-size: 13px;">🏙️ Subang Kota (Jaringan Utama)</b>
+            ${isSubangActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+            ${subangNodes} Simpul • ${subangPipes} Pipa • ${subangLength.toFixed(1)} km (PVC C=140)
+          </p>
+        </div>
+        <div>
+          ${isSubangActive ?
+            '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
+            `<button class="btn btn-accent btn-xs" onclick="selectArea('subang_kota')">🚀 Gunakan Wilayah Ini</button>`
+          }
+        </div>
+      `;
+      container.appendChild(subangCard);
+
+      // 2. Wilayah-wilayah Custom yang di-import
+      const customKeys = Object.keys(customAreas);
+      customKeys.forEach(key => {
+        const area = customAreas[key];
+        const isActive = currentAreaId === key;
+        const card = document.createElement('div');
+        card.style.cssText = `background: var(--bg-card); border: 1px solid ${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;`;
+        
+        const lenKm = (area.network.pipes || []).reduce((acc, p) => acc + (p.length || 0), 0) / 1000;
+        const nNodes = (area.network.nodes || []).length;
+        const nPipes = (area.network.pipes || []).length;
+
+        card.innerHTML = `
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <b style="color: #ffffff; font-size: 13px;">🗺️ ${escapeHtml(area.name)}</b>
+              ${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+              ${nNodes} Simpul • ${nPipes} Pipa • ${lenKm.toFixed(1)} km (PVC)
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            ${isActive ?
+              '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
+              `<button class="btn btn-accent btn-xs" onclick="selectArea('${key}')">🚀 Gunakan</button>`
+            }
+            <button class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: #f43f5e40;" onclick="deleteCustomArea('${key}')" title="Hapus wilayah ini">🗑️</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function selectArea(areaId) {
+      if (areaId === 'subang_kota') {
+        if (!defaultSubangNetwork) {
+          loadSubangNetwork();
+        } else {
+          currentAreaId = 'subang_kota';
+          applyAreaNetwork(defaultSubangNetwork, 'Subang Kota');
+        }
+      } else if (customAreas[areaId]) {
+        currentAreaId = areaId;
+        applyAreaNetwork(customAreas[areaId].network, customAreas[areaId].name);
+      }
+      closeAreaManagerModal();
+    }
+
+    function deleteCustomArea(areaId) {
+      if (!confirm(`Hapus wilayah "${customAreas[areaId]?.name}" dari daftar?`)) return;
+      delete customAreas[areaId];
+      saveCustomAreasToStorage();
+      if (currentAreaId === areaId) {
+        selectArea('subang_kota');
+      } else {
+        renderSavedAreasList();
+      }
+    }
+
+    function setupAreaDropZone() {
+      const dropZone = document.getElementById('area-drop-zone');
+      if (!dropZone || dropZone._hasSetup) return;
+      dropZone._hasSetup = true;
+
+      ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('dragover');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('dragover');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files[0];
+        if (file) handleAreaFileSelect(file);
+      });
+    }
+
+    function handleAreaFileSelect(file) {
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!['kml', 'json', 'geojson'].includes(ext)) {
+        alert('Format file tidak didukung! Harap unggah berkas .KML, .JSON, atau .GEOJSON.');
+        return;
+      }
+
+      pendingImportExt = ext;
+      pendingImportFileName = file.name;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        pendingImportContent = e.target.result;
+        document.getElementById('area-drop-prompt').style.display = 'none';
+        document.getElementById('area-file-info').style.display = 'block';
+        document.getElementById('area-file-name').textContent = `📄 ${file.name}`;
+        document.getElementById('area-file-size').textContent = `${(file.size / 1024).toFixed(1)} KB • Format: ${ext.toUpperCase()}`;
+
+        // Auto-fill nama area dari nama file jika input kosong
+        const nameInput = document.getElementById('import-area-name');
+        if (!nameInput.value) {
+          let cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_|-]+/g, ' ');
+          cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+          nameInput.value = cleanName;
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetAreaImportForm() {
+      pendingImportContent = null;
+      pendingImportFileName = '';
+      pendingImportExt = '';
+      const prompt = document.getElementById('area-drop-prompt');
+      const info = document.getElementById('area-file-info');
+      const input = document.getElementById('area-file-input');
+      const nameInput = document.getElementById('import-area-name');
+      if (prompt) prompt.style.display = 'block';
+      if (info) info.style.display = 'none';
+      if (input) input.value = '';
+      if (nameInput) nameInput.value = '';
+    }
+
+    // Perhitungan Jarak Geodesik (Haversine)
+    function geoHaversineM(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // Parser Berkas KML ke Struktur Jaringan SCADA (Nodes & Pipes)
+    function parseKmlToNetwork(kmlText, areaName, defaultDiameter, defaultElev, autoReservoir) {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(kmlText, 'text/xml');
+      const placemarks = xml.querySelectorAll('Placemark');
+
+      const nodes = [];
+      const pipes = [];
+      const nodeKeyMap = new Map();
+
+      function getOrCreateNode(lat, lng, elev = defaultElev, labelPrefix = 'J') {
+        const key = lat.toFixed(5) + ',' + lng.toFixed(5);
+        if (nodeKeyMap.has(key)) return nodeKeyMap.get(key);
+        const id = 'NODE-' + (nodes.length + 1) + '-' + Math.random().toString(36).substring(2, 7);
+        const node = {
+          id,
+          lat,
+          lng,
+          elevation: Number(elev) || defaultElev,
+          type: 'junction',
+          label: labelPrefix + (nodes.length + 1),
+          demand: 0,
+          accessories: [],
+          pressure: 0,
+          headloss: 0
+        };
+        nodes.push(node);
+        nodeKeyMap.set(key, node);
+        return node;
+      }
+
+      placemarks.forEach((pm, idx) => {
+        const nameEl = pm.querySelector('name');
+        const name = nameEl ? nameEl.textContent.trim() : ('Pipa ' + (idx + 1));
+
+        // Check Point
+        const pointCoord = pm.querySelector('Point coordinates');
+        if (pointCoord) {
+          const parts = pointCoord.textContent.trim().split(',').map(Number);
+          if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            const n = getOrCreateNode(parts[1], parts[0], parts[2] || defaultElev, 'J');
+            if (name && !name.toLowerCase().includes('untitled')) n.label = name;
+          }
+        }
+
+        // Check LineString
+        const lineCoord = pm.querySelector('LineString coordinates');
+        if (lineCoord) {
+          const coords = lineCoord.textContent.trim().split(/\s+/).map(str => {
+            const parts = str.split(',').map(Number);
+            return [parts[1], parts[0], parts[2] || defaultElev];
+          }).filter(c => !isNaN(c[0]) && !isNaN(c[1]));
+
+          if (coords.length >= 2) {
+            const start = coords[0];
+            const end = coords[coords.length - 1];
+            const startNode = getOrCreateNode(start[0], start[1], start[2]);
+            const endNode = getOrCreateNode(end[0], end[1], end[2]);
+
+            let length = 0;
+            for (let i = 0; i < coords.length - 1; i++) {
+              length += geoHaversineM(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]);
+            }
+            length = Math.max(10, Math.round(length * 10) / 10);
+            const straightLength = Math.round(geoHaversineM(start[0], start[1], end[0], end[1]) * 10) / 10;
+
+            let diam = defaultDiameter;
+            const diamMatch = name.match(/(?:dia|diameter|d|ø)?\s*(\d{2,3})\s*(?:mm)?/i);
+            if (diamMatch && Number(diamMatch[1]) >= 50 && Number(diamMatch[1]) <= 600) {
+              diam = Number(diamMatch[1]);
+            }
+
+            pipes.push({
+              id: 'PIPE-' + (pipes.length + 1) + '-' + Math.random().toString(36).substring(2, 7),
+              startNodeId: startNode.id,
+              endNodeId: endNode.id,
+              length,
+              straightLength,
+              diameter: diam,
+              roughness: 140,
+              material: 'PVC',
+              routeCoordinates: coords.map(c => [c[0], c[1]])
+            });
+          }
+        }
+      });
+
+      // Tetapkan Reservoir sumber
+      if (autoReservoir && nodes.length > 0) {
+        let resNode = nodes.find(n => n.type === 'reservoir');
+        if (!resNode) {
+          nodes.sort((a, b) => b.elevation - a.elevation);
+          nodes[0].type = 'reservoir';
+          nodes[0].label = 'R1';
+          nodes[0].elevation = Math.max(nodes[0].elevation, (nodes[1] ? nodes[1].elevation + 15 : 50));
+        }
+      }
+
+      return { projectName: areaName, nodes, pipes };
+    }
+
+    // Parser Berkas JSON / GeoJSON
+    function parseJsonToNetwork(jsonText, areaName, defaultDiameter, defaultElev, autoReservoir) {
+      const parsed = JSON.parse(jsonText);
+
+      // Skenario A: Format SCADA / EPANET native ({ nodes, pipes })
+      if (Array.isArray(parsed.nodes) && Array.isArray(parsed.pipes)) {
+        parsed.pipes.forEach(p => {
+          p.material = p.material || 'PVC';
+          p.roughness = p.roughness || 140;
+          p.diameter = p.diameter || defaultDiameter;
+        });
+        parsed.projectName = areaName || parsed.projectName || 'Wilayah Baru';
+        return parsed;
+      }
+
+      // Skenario B: GeoJSON FeatureCollection
+      if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
+        const nodes = [];
+        const pipes = [];
+        const nodeKeyMap = new Map();
+
+        function getOrCreateNode(lat, lng, elev = defaultElev) {
+          const key = lat.toFixed(5) + ',' + lng.toFixed(5);
+          if (nodeKeyMap.has(key)) return nodeKeyMap.get(key);
+          const id = 'NODE-' + (nodes.length + 1) + '-' + Math.random().toString(36).substring(2, 7);
+          const node = {
+            id, lat, lng, elevation: elev, type: 'junction',
+            label: 'J' + (nodes.length + 1), demand: 0, accessories: [], pressure: 0, headloss: 0
+          };
+          nodes.push(node);
+          nodeKeyMap.set(key, node);
+          return node;
+        }
+
+        parsed.features.forEach((feat, idx) => {
+          const geom = feat.geometry;
+          if (!geom) return;
+
+          if (geom.type === 'LineString' && Array.isArray(geom.coordinates) && geom.coordinates.length >= 2) {
+            const coords = geom.coordinates.map(c => [c[1], c[0], c[2] || defaultElev]);
+            const startNode = getOrCreateNode(coords[0][0], coords[0][1], coords[0][2]);
+            const endNode = getOrCreateNode(coords[coords.length-1][0], coords[coords.length-1][1], coords[coords.length-1][2]);
+
+            let length = 0;
+            for (let i = 0; i < coords.length - 1; i++) {
+              length += geoHaversineM(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]);
+            }
+            length = Math.max(10, Math.round(length * 10) / 10);
+
+            pipes.push({
+              id: 'PIPE-' + (pipes.length + 1),
+              startNodeId: startNode.id,
+              endNodeId: endNode.id,
+              length,
+              straightLength: length,
+              diameter: defaultDiameter,
+              roughness: 140,
+              material: 'PVC',
+              routeCoordinates: coords.map(c => [c[0], c[1]])
+            });
+          } else if (geom.type === 'Point' && Array.isArray(geom.coordinates)) {
+            getOrCreateNode(geom.coordinates[1], geom.coordinates[0], geom.coordinates[2] || defaultElev);
+          }
+        });
+
+        if (autoReservoir && nodes.length > 0 && !nodes.some(n => n.type === 'reservoir')) {
+          nodes.sort((a, b) => b.elevation - a.elevation);
+          nodes[0].type = 'reservoir';
+          nodes[0].label = 'R1';
+          nodes[0].elevation = Math.max(nodes[0].elevation, (nodes[1] ? nodes[1].elevation + 15 : 50));
+        }
+
+        return { projectName: areaName, nodes, pipes };
+      }
+
+      throw new Error('Format JSON tidak dikenali. Pastikan file memiliki array "nodes" dan "pipes", atau merupakan GeoJSON valid.');
+    }
+
+    // Otomatis Klasifikasi Titik Pantau Tekanan Ideal untuk Wilayah Baru
+    function classifyStrategicPoints(nodes, pipes) {
+      const pipeMap = {};
+      pipes.forEach(p => {
+        (pipeMap[p.startNodeId] = pipeMap[p.startNodeId] || []).push(p);
+        (pipeMap[p.endNodeId] = pipeMap[p.endNodeId] || []).push(p);
+      });
+
+      const junctions = nodes.filter(n => n.type === 'junction');
+      const sortedElev = [...junctions].sort((a, b) => b.elevation - a.elevation);
+      const topElev = sortedElev.slice(0, Math.max(1, Math.floor(junctions.length * 0.05)));
+      const lowElev = sortedElev.slice(-Math.max(1, Math.floor(junctions.length * 0.05)));
+
+      nodes.forEach(n => {
+        if (n.type === 'reservoir') {
+          n.isMonitoringPoint = true;
+          n.category = 'sumber';
+          n.categoryLabel = '💧 Sumber Reservoir';
+          n.monitoringReason = `Sumber Pasokan Utama (${n.elevation} mdpl)`;
+          return;
+        }
+
+        const connected = pipeMap[n.id] || [];
+        const maxDiam = Math.max(...connected.map(p => p.diameter || 0), 0);
+        const deg = connected.length;
+
+        if (deg >= 3) {
+          n.isMonitoringPoint = true;
+          n.category = 'percabangan_utama';
+          n.categoryLabel = '🔀 Percabangan Transmisi Utama';
+          n.monitoringReason = `Persimpangan Pipa Ø${maxDiam}mm (${deg} jalur)`;
+        } else if (topElev.some(te => te.id === n.id)) {
+          n.isMonitoringPoint = true;
+          n.category = 'elevasi_tinggi';
+          n.categoryLabel = '⛰️ Elevasi Tertinggi (Puncak)';
+          n.monitoringReason = `Zona Rawan Air Mati (${n.elevation} mdpl)`;
+        } else if (lowElev.some(le => le.id === n.id)) {
+          n.isMonitoringPoint = true;
+          n.category = 'elevasi_rendah';
+          n.categoryLabel = '🌊 Elevasi Terendah (Lembah)';
+          n.monitoringReason = `Zona Rawan Tekanan Tinggi (${n.elevation} mdpl)`;
+        } else if (deg === 1 && maxDiam >= 100) {
+          n.isMonitoringPoint = true;
+          n.category = 'titik_kritis_dma';
+          n.categoryLabel = '🏘️ Ujung Wilayah Pelayanan';
+          n.monitoringReason = `Titik Pantau Ujung Distribusi Ø${maxDiam}mm`;
+        } else {
+          n.isMonitoringPoint = false;
+          n.category = 'junction_biasa';
+          n.categoryLabel = '📍 Junction Biasa';
+          n.monitoringReason = 'Simpul perantara pipa';
+        }
+      });
+    }
+
+    // Eksekusi Import Wilayah Baru
+    function executeAreaImport() {
+      if (!pendingImportContent) {
+        alert('Silakan pilih atau unggah berkas jalur pipa (.kml, .json, .geojson) terlebih dahulu.');
+        return;
+      }
+
+      const areaName = document.getElementById('import-area-name').value.trim() || 'Wilayah Baru';
+      const defaultDiam = parseInt(document.getElementById('import-default-diameter').value) || 100;
+      const defaultElev = parseFloat(document.getElementById('import-default-elevation').value) || 25;
+      const autoRes = document.getElementById('import-auto-reservoir').checked;
+
+      try {
+        let network = null;
+        if (pendingImportExt === 'kml') {
+          network = parseKmlToNetwork(pendingImportContent, areaName, defaultDiam, defaultElev, autoRes);
+        } else {
+          network = parseJsonToNetwork(pendingImportContent, areaName, defaultDiam, defaultElev, autoRes);
+        }
+
+        if (!network || !network.nodes || network.nodes.length === 0 || !network.pipes || network.pipes.length === 0) {
+          throw new Error('Tidak ada data pipa atau simpul yang berhasil diekstrak dari berkas ini.');
+        }
+
+        // Klasifikasi titik pantau strategis
+        classifyStrategicPoints(network.nodes, network.pipes);
+
+        // Simpan ke daftar custom areas
+        const areaId = 'area_' + Date.now();
+        customAreas[areaId] = {
+          id: areaId,
+          name: areaName,
+          network: network,
+          importedAt: new Date().toISOString()
+        };
+        saveCustomAreasToStorage();
+
+        // Terapkan wilayah baru ke layar SCADA
+        currentAreaId = areaId;
+        applyAreaNetwork(network, areaName);
+
+        closeAreaManagerModal();
+        alert(`✅ Berhasil mengimpor wilayah "${areaName}"!\n\n• Jumlah Simpul: ${network.nodes.length}\n• Jumlah Pipa: ${network.pipes.length}\n• Titik Pantau Ideal: ${network.nodes.filter(n => n.isMonitoringPoint).length}`);
+
+      } catch (err) {
+        console.error('Gagal mengimpor wilayah pipa:', err);
+        alert('Gagal mengimpor file: ' + err.message);
+      }
+    }
+
+    // Terapkan Jaringan Wilayah ke SCADA
+    function applyAreaNetwork(network, areaName) {
+      networkData = network;
+
+      // Reset titik telemetri aktif agar tidak konflik dengan wilayah sebelumnya
+      telemetryReadings = {};
+      telemetryHistory = [];
+
+      // Update Label di Tombol Header
+      const label = document.getElementById('current-area-label');
+      if (label) label.textContent = areaName;
+
+      // Reset auto-fit agar Leaflet mengarah ke koordinat wilayah baru
+      window._hasFittedMap = false;
+
+      // Perbarui Opsi Dropdown & Tampilan Peta
+      populateNodeDropdown(networkData.nodes);
+      renderNetwork();
+    }
+
+    // Muat Contoh Wilayah Ciasem
+    async function loadSampleCiasemArea() {
+      try {
+        const res = await fetch('sample_ciasem.kml');
+        if (!res.ok) throw new Error('File sample_ciasem.kml tidak ditemukan di server.');
+        const kmlText = await res.text();
+        const network = parseKmlToNetwork(kmlText, 'Cabang Ciasem (Inpres)', 100, 15, true);
+        classifyStrategicPoints(network.nodes, network.pipes);
+
+        const areaId = 'area_sample_ciasem';
+        customAreas[areaId] = {
+          id: areaId,
+          name: 'Cabang Ciasem (Inpres)',
+          network: network,
+          importedAt: new Date().toISOString()
+        };
+        saveCustomAreasToStorage();
+
+        currentAreaId = areaId;
+        applyAreaNetwork(network, 'Cabang Ciasem');
+        closeAreaManagerModal();
+      } catch (e) {
+        alert('Gagal memuat contoh Ciasem: ' + e.message);
+      }
+    }
+
+    // Cetak Laporan SCADA
+    function printScadaReport() {
+      window.print();
+    }
+  </script>
+</body>
+</html>
