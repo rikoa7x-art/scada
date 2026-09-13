@@ -685,6 +685,14 @@
       stroke-dasharray: 8, 8 !important;
       animation: flowMoving 1.4s linear infinite;
     }
+    @keyframes leakPulse {
+      0% { stroke-opacity: 1; }
+      50% { stroke-opacity: 0.35; }
+      100% { stroke-opacity: 1; }
+    }
+    .pipe-leak-warning {
+      animation: leakPulse 1.2s ease-in-out infinite;
+    }
 
     /* Custom Leaflet Popup SCADA Theme */
     .leaflet-popup-content-wrapper {
@@ -1414,9 +1422,9 @@
         </div>
         <div id="telemetry-list-container">
           <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 12px;">
-            <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+            <div style="font-size: 32px; margin-bottom: 8px;">📊</div>
             Belum ada data tekanan manometer yang dimasukkan.<br>
-            Klik tombol <b>"Input Tekanan Manual"</b> atau <b>"Scan Foto AI"</b> di atas.
+            Klik tombol <b>"+ Input Tekanan Manometer"</b> di atas.
           </div>
         </div>
       </div>
@@ -1429,7 +1437,24 @@
 
       <!-- Tab Anomali & Kebocoran -->
       <div class="sidebar-content" id="tab-alerts" style="display: none;">
-        <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">PERINGATAN & DETEKSI KEBOCORAN</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin: 0;">PERINGATAN & DETEKSI KEBOCORAN</h3>
+          <span id="alerts-count-badge" class="scada-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 10px;">0 Pipa</span>
+        </div>
+
+        <!-- Filter Kategori Anomali -->
+        <div style="display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap;">
+          <button type="button" class="chip active" id="btn-filter-alert-leak" onclick="setAlertFilter('leak')" style="font-size: 10.5px; padding: 4px 8px; color: #f87171; border-color: rgba(239, 68, 68, 0.5);">
+            🔴 Kebocoran (<span id="count-alert-leak">0</span>)
+          </button>
+          <button type="button" class="chip" id="btn-filter-alert-velocity" onclick="setAlertFilter('velocity')" style="font-size: 10.5px; padding: 4px 8px; color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">
+            ⚠️ Aliran Lambat (<span id="count-alert-velocity">0</span>)
+          </button>
+          <button type="button" class="chip" id="btn-filter-alert-all" onclick="setAlertFilter('all')" style="font-size: 10.5px; padding: 4px 8px;">
+            Semua (<span id="count-alert-all">0</span>)
+          </button>
+        </div>
+
         <div id="alerts-list">
           <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 30px;">Tidak ada anomali atau pipa bocor terdeteksi saat ini.</p>
         </div>
@@ -1951,6 +1976,8 @@
     let telemetryHistory = [];
     let pipeLayers = [];
     let nodeLayers = [];
+    let pipeLayersMap = new Map();
+    let _pipeHighlightTimer = null;
     let _debounceTimer = null; // Timer debounce untuk filter pencarian
     let _autoRefreshTimer = null; // Timer auto-refresh polling
     let _isPopupOpen = false; // Flag: jangan re-render saat popup terbuka
@@ -2241,6 +2268,7 @@
       nodeLayers.forEach(l => map.removeLayer(l));
       pipeLayers = [];
       nodeLayers = [];
+      pipeLayersMap.clear();
 
       // Jalankan Engine Hidrolik SCADA
       const solved = window.ScadaHydraulicEngine.solveScadaNetwork(
@@ -2282,12 +2310,17 @@
 
         // Animated flow dash jika pipa aktif mengalirkan air
         const hasFlow = (p.discharge_Lps || 0) > 0.3;
+        const isLeak = p.status?.code === 'LEAK_WARNING';
+
+        let pipeClasses = [];
+        if (hasFlow) pipeClasses.push('pipe-flowing-active');
+        if (isLeak) pipeClasses.push('pipe-leak-warning');
 
         const polyline = L.polyline(latlngs, {
           color: color,
-          weight: weight,
+          weight: isLeak ? weight + 1.5 : weight,
           opacity: opacity,
-          className: hasFlow ? 'pipe-flowing-active' : ''
+          className: pipeClasses.join(' ')
         }).addTo(map);
 
         // Tooltip & Popup Informasi SCADA Pipa (escaped)
@@ -2295,6 +2328,15 @@
         const endLabel = escapeHtml(nodeMap.get(p.endNodeId)?.label || 'B');
         const matLabel = escapeHtml(p.material || 'PVC');
         const statusLabel = escapeHtml(p.status?.label || 'Normal');
+
+        // Tooltip saat mouse diarahkan ke pipa di peta
+        polyline.bindTooltip(`
+          <div style="font-family: var(--font-sans); font-size: 11px; line-height: 1.4;">
+            <b>🌊 Ruas ${startLabel} ➔ ${endLabel}</b><br>
+            <span>Ø ${p.diameter} mm (${matLabel})</span> • <b style="color: ${p.status?.color || '#38bdf8'};">${statusLabel}</b><br>
+            <span>Q: <b>${p.discharge_Lps?.toFixed(1)} L/s</b> | v: <b>${p.velocity_mps?.toFixed(2)} m/s</b></span>
+          </div>
+        `, { sticky: true });
         
         polyline.bindPopup(`
           <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.5; min-width: 220px;">
@@ -2308,13 +2350,20 @@
               <b>Status Aliran:</b> <span style="color: ${p.status?.color || '#38bdf8'}; font-weight: 600;">${statusLabel}</span>
             </div>
             <div style="display: flex; gap: 6px; margin-top: 8px;">
-              <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.startNodeId}', 'manual')">✍️ Ukur ${startLabel}</button>
-              <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.endNodeId}', 'manual')">✍️ Ukur ${endLabel}</button>
+              <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.startNodeId}')">✍️ Ukur ${startLabel}</button>
+              <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.endNodeId}')">✍️ Ukur ${endLabel}</button>
             </div>
           </div>
         `);
 
         pipeLayers.push(polyline);
+        pipeLayersMap.set(p.id, {
+          polyline: polyline,
+          latlngs: latlngs,
+          pipe: p,
+          startLabel: startLabel,
+          endLabel: endLabel
+        });
       });
 
       // 2. Gambar Node (Reservoir & Junctions)
@@ -2628,24 +2677,153 @@
       `).join('');
     }
 
+    // ================= ALERTS & ANOMALI MANAGEMENT =================
+    let cachedAlertPipes = [];
+    let currentAlertFilter = 'leak'; // Default tampilkan indikasi kebocoran terlebih dahulu!
+
+    function setAlertFilter(filter) {
+      currentAlertFilter = filter;
+      document.querySelectorAll('#tab-alerts .chip').forEach(c => c.classList.remove('active'));
+      const btn = document.getElementById(`btn-filter-alert-${filter}`);
+      if (btn) btn.classList.add('active');
+      renderAlertListItems();
+    }
+
     // Render Pipa Anomali / Peringatan
     function renderAlerts(pipes) {
-      const container = document.getElementById('alerts-list');
-      const alerts = pipes.filter(p => p.status && p.status.severity !== 'normal' && p.status.severity !== 'idle');
+      cachedAlertPipes = pipes.filter(p => p.status && p.status.severity !== 'normal' && p.status.severity !== 'idle');
 
-      if (alerts.length === 0) {
-        container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 30px;">Tidak ada anomali atau pipa bocor terdeteksi saat ini.</p>`;
+      const leakCount = cachedAlertPipes.filter(p => p.status.code === 'LEAK_WARNING').length;
+      const velocityCount = cachedAlertPipes.filter(p => p.status.code === 'LOW_VELOCITY' || p.status.code === 'HIGH_VELOCITY').length;
+
+      const badge = document.getElementById('alerts-count-badge');
+      if (badge) badge.textContent = `${leakCount} Bocor / ${cachedAlertPipes.length} Total`;
+
+      const countLeakEl = document.getElementById('count-alert-leak');
+      if (countLeakEl) countLeakEl.textContent = leakCount;
+      const countVelEl = document.getElementById('count-alert-velocity');
+      if (countVelEl) countVelEl.textContent = velocityCount;
+      const countAllEl = document.getElementById('count-alert-all');
+      if (countAllEl) countAllEl.textContent = cachedAlertPipes.length;
+
+      // Update mobile nav badge jika ada kebocoran
+      const mobAlertBadge = document.getElementById('mobile-alert-badge');
+      if (mobAlertBadge) {
+        if (leakCount > 0) {
+          mobAlertBadge.textContent = leakCount;
+          mobAlertBadge.style.display = 'inline-block';
+        } else {
+          mobAlertBadge.style.display = 'none';
+        }
+      }
+
+      renderAlertListItems();
+    }
+
+    function renderAlertListItems() {
+      const container = document.getElementById('alerts-list');
+      if (!container) return;
+
+      let filtered = cachedAlertPipes;
+      if (currentAlertFilter === 'leak') {
+        filtered = cachedAlertPipes.filter(p => p.status.code === 'LEAK_WARNING');
+      } else if (currentAlertFilter === 'velocity') {
+        filtered = cachedAlertPipes.filter(p => p.status.code === 'LOW_VELOCITY' || p.status.code === 'HIGH_VELOCITY');
+      }
+
+      if (filtered.length === 0) {
+        const emptyMsg = currentAlertFilter === 'leak' 
+          ? 'Tidak ada indikasi kebocoran pipa terdeteksi saat ini.' 
+          : 'Tidak ada anomali pipa dalam filter ini.';
+        container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 30px;">${emptyMsg}</p>`;
         return;
       }
 
-      container.innerHTML = alerts.map(p => `
-        <div class="telemetry-card" style="border-left: 3px solid ${p.status.color}; padding: 10px 12px; margin-bottom: 8px;">
-          <b style="font-size: 12px; color: ${p.status.color};">${escapeHtml(p.status.label)}</b>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
-            Pipa Ø ${p.diameter} mm (${p.length?.toFixed(0)} m) | Kecepatan: ${p.velocity_mps?.toFixed(2)} m/s
+      const nodeMap = new Map();
+      networkData.nodes.forEach(n => nodeMap.set(n.id, n));
+
+      container.innerHTML = filtered.map(p => {
+        const sNode = nodeMap.get(p.startNodeId);
+        const eNode = nodeMap.get(p.endNodeId);
+        const sLabel = escapeHtml(sNode ? sNode.label : 'Simpul');
+        const eLabel = escapeHtml(eNode ? eNode.label : 'Simpul');
+
+        return `
+          <div class="telemetry-card alert-pipe-card" onclick="zoomToPipe('${p.id}')" 
+            style="border-left: 4px solid ${p.status.color}; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;" 
+            onmouseover="this.style.background='var(--bg-card-hover)'; this.style.borderColor='${p.status.color}'" 
+            onmouseout="this.style.background=''; this.style.borderColor='var(--border-color)'"
+            title="Klik untuk langsung menemukan pipa ini di peta">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <b style="font-size: 12px; color: ${p.status.color};">${escapeHtml(p.status.label)}</b>
+                <div style="font-size: 13px; font-weight: 700; color: #ffffff; margin-top: 3px;">
+                  🌊 Ruas: ${sLabel} ➔ ${eLabel}
+                </div>
+              </div>
+              <span class="scada-badge" style="background: rgba(15, 23, 42, 0.85); color: #38bdf8; font-size: 11px; font-weight: 700; border: 1px solid #38bdf840; padding: 2px 7px;">
+                Ø ${p.diameter} mm
+              </span>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span>Panjang: <b>${p.length?.toFixed(0)} m</b> | v: <b>${p.velocity_mps?.toFixed(2)} m/s</b></span>
+              <span style="color: #38bdf8; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 3px;">
+                📍 Zoom di Peta ➔
+              </span>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+    }
+
+    // Zoom & Sorot Pipa Terpilih di Peta
+    function zoomToPipe(pipeId) {
+      const item = pipeLayersMap.get(pipeId);
+      if (!item) return;
+
+      // Di smartphone, tutup laci drawer bawah agar peta langsung terlihat
+      closeMobileDrawer();
+      const mapBtn = document.getElementById('btn-nav-map');
+      if (mapBtn) mapBtn.classList.add('active');
+
+      // Zoom dan fokuskan kamera peta ke bentang pipa
+      const bounds = L.latLngBounds(item.latlngs);
+      map.fitBounds(bounds, { maxZoom: 17, padding: [60, 60], duration: 1 });
+
+      // Highlight animasi berkedip pada pipa
+      highlightPipe(item.polyline, item.pipe.status?.color || '#ef4444');
+
+      // Buka popup info pipa
+      setTimeout(() => {
+        item.polyline.openPopup();
+      }, 700);
+    }
+
+    // Efek Animasi Kedip Sorot Pipa
+    function highlightPipe(polyline, color) {
+      if (_pipeHighlightTimer) clearInterval(_pipeHighlightTimer);
+      const origWeight = polyline.options.weight || 4;
+      const origColor = polyline.options.color || '#3b82f6';
+
+      polyline.bringToFront();
+      let flash = true;
+      let count = 0;
+
+      _pipeHighlightTimer = setInterval(() => {
+        count++;
+        flash = !flash;
+        polyline.setStyle({
+          weight: flash ? origWeight + 5 : origWeight,
+          color: flash ? '#ffffff' : color
+        });
+        if (count >= 8) {
+          clearInterval(_pipeHighlightTimer);
+          polyline.setStyle({ weight: origWeight, color: origColor });
+          _pipeHighlightTimer = null;
+        }
+      }, 220);
     }
 
     // Render Riwayat Log
