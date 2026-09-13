@@ -370,14 +370,16 @@ const server = http.createServer(async (req, res) => {
     // API ROUTE 1: Scan Foto Manometer dengan AI Vision
     // ----------------------------------------------------
     if (pathname === '/api/read-gauge' && req.method === 'POST') {
-      if (!NVIDIA_API_KEY) {
-        res.writeHead(503, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'NVIDIA_API_KEY belum diatur di server. Tambahkan ke file .env' }));
-        return;
-      }
-
       const rawBody = await getRequestBody(req);
       const payload = parseJsonBody(rawBody);
+
+      const effectiveApiKey = (payload.apiKey && typeof payload.apiKey === 'string' && payload.apiKey.trim()) || NVIDIA_API_KEY;
+
+      if (!effectiveApiKey) {
+        res.writeHead(503, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'NVIDIA_API_KEY belum diatur. Masukkan API key di form aplikasi atau di file .env' }));
+        return;
+      }
 
       if (!payload.imageBase64) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -387,7 +389,7 @@ const server = http.createServer(async (req, res) => {
 
       console.log('🤖 Mengirim foto ke NVIDIA Llama-3.2-11b-vision-instruct...');
       const startTime = Date.now();
-      const aiResult = await analyzePressureGauge(payload.imageBase64, NVIDIA_API_KEY);
+      const aiResult = await analyzePressureGauge(payload.imageBase64, effectiveApiKey);
       const elapsedMs = Date.now() - startTime;
       console.log(`✅ Sukses membaca tekanan: ${aiResult.pressure_bar} bar (${elapsedMs} ms)`);
 

@@ -19,6 +19,8 @@
   
   <!-- Hydraulic Engine Module -->
   <script src="scada_hydraulic_engine.js"></script>
+  <!-- AI Vision Reader Module -->
+  <script src="ai_vision_reader.js"></script>
   <!-- Supabase Realtime Cloud SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1544,6 +1546,31 @@
 
         <!-- ================= BAGIAN 2: FORM SCAN FOTO AI ================= -->
         <div id="section-ai" style="display: none;">
+
+          <!-- Input NVIDIA API Key (Manual / LocalStorage) -->
+          <div class="input-group" style="margin-bottom: 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="nvidia-api-key-input" style="font-size: 11px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 5px;">
+                <span>🔑</span> NVIDIA NIM API Key:
+              </label>
+              <span id="key-saved-badge" style="font-size: 10px; color: #10b981; font-weight: 600; display: none;">✓ Tersimpan di Browser</span>
+            </div>
+            <div style="position: relative; display: flex; align-items: center; margin-top: 6px;">
+              <input type="password" id="nvidia-api-key-input" class="input-control" 
+                placeholder="nvapi-xxxx... (kosongkan jika server lokal memakai .env)"
+                style="font-size: 12px; font-family: var(--font-mono); padding-right: 38px;"
+                oninput="saveNvidiaApiKey(this.value)">
+              <button type="button" onclick="toggleApiKeyVisibility()" 
+                style="position: absolute; right: 8px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 4px;"
+                title="Lihat / Sembunyikan API Key">
+                👁️
+              </button>
+            </div>
+            <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+              💡 <em>Tersimpan otomatis di memori browser HP/PC Anda (LocalStorage). Jika memakai server lokal dengan file <code>.env</code>, kolom ini boleh dikosongkan.</em>
+            </p>
+          </div>
+
           <!-- Upload Zone -->
           <div class="drop-zone" id="photo-drop-zone" onclick="document.getElementById('file-input').click()">
             <input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleFileSelected(this.files)">
@@ -2066,6 +2093,7 @@
     window.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
       initMap();
+      loadSavedNvidiaApiKey();
       await loadSubangNetwork();
       initDragAndDrop();
       startAutoRefresh();
@@ -2855,6 +2883,7 @@
         secManual.style.display = 'none';
         secAi.style.display = 'block';
         title.innerHTML = '<span>🤖</span> Baca Foto Manometer dengan AI Vision';
+        loadSavedNvidiaApiKey();
       }
     }
 
@@ -2913,6 +2942,39 @@
     }
 
     // ================= AI VISION LOGIC =================
+    function getNvidiaApiKey() {
+      const input = document.getElementById('nvidia-api-key-input');
+      return (input && input.value ? input.value : localStorage.getItem('scada_nvidia_api_key') || '').trim();
+    }
+
+    function saveNvidiaApiKey(val) {
+      const trimmed = (val || '').trim();
+      const badge = document.getElementById('key-saved-badge');
+      if (trimmed) {
+        localStorage.setItem('scada_nvidia_api_key', trimmed);
+        if (badge) badge.style.display = 'inline';
+      } else {
+        localStorage.removeItem('scada_nvidia_api_key');
+        if (badge) badge.style.display = 'none';
+      }
+    }
+
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('nvidia-api-key-input');
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function loadSavedNvidiaApiKey() {
+      const savedKey = localStorage.getItem('scada_nvidia_api_key');
+      const input = document.getElementById('nvidia-api-key-input');
+      const badge = document.getElementById('key-saved-badge');
+      if (input && savedKey) {
+        input.value = savedKey;
+        if (badge) badge.style.display = 'inline';
+      }
+    }
+
     function resetAIModalState() {
       activeImageBase64 = null;
       document.getElementById('file-input').value = '';
@@ -2964,15 +3026,20 @@
       btn.disabled = true;
       btn.innerHTML = '<div class="spinner"></div> AI Vision sedang membaca jarum manometer...';
 
+      const userKey = getNvidiaApiKey();
+
       try {
         let result = null;
 
-        // Kirim melalui backend server.js (proxy aman, API key di server)
+        // Opsi A: Kirim melalui backend server.js (proxy aman bebas CORS)
         try {
           const res = await fetch('/api/read-gauge', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageBase64: activeImageBase64 })
+            body: JSON.stringify({ 
+              imageBase64: activeImageBase64,
+              apiKey: userKey || undefined
+            })
           });
           if (res.ok) {
             const json = await res.json();
@@ -2983,13 +3050,21 @@
               throw new Error(errJson.error);
             }
           }
-        } catch (e) {
-          console.log('Server proxy error:', e.message);
-          throw e; // Tidak ada fallback client-side (API key tidak boleh di client)
+        } catch (serverErr) {
+          console.log('Server proxy fetch note:', serverErr.message);
+          // Opsi B: Fallback client-side jika server.js tidak tersedia (misal GitHub Pages) dan user memasukkan API Key
+          if (userKey && typeof window.AIVisionReader !== 'undefined' && typeof window.AIVisionReader.analyzePressureGauge === 'function') {
+            console.log('Mencoba analisis client-side via AIVisionReader...');
+            result = await window.AIVisionReader.analyzePressureGauge(activeImageBase64, userKey);
+          } else if (!userKey && serverErr.message && serverErr.message.includes('NVIDIA_API_KEY')) {
+            throw new Error('NVIDIA API Key belum diisi. Silakan ketik API Key Anda di kolom input di atas atau isi di file .env');
+          } else {
+            throw serverErr;
+          }
         }
 
         if (!result) {
-          throw new Error('Gagal mendapatkan respon dari AI Vision API. Pastikan server.js berjalan dan API key terisi di .env');
+          throw new Error('Gagal mendapatkan respon dari AI Vision API. Pastikan API key terisi di kolom input atau file .env');
         }
 
         // Tampilkan Hasil di Modal
@@ -3005,7 +3080,6 @@
       } catch (err) {
         console.error('Error membaca manometer dengan AI:', err);
         alert('Error AI Vision: ' + err.message + '\n\nAnda dapat memasukkan angka tekanan secara manual dengan tab "Input Manual".');
-        // Fix: JANGAN isi data fiktif 2.0 bar - biarkan operator masuk manual
         btn.disabled = false;
         btn.innerHTML = '<span>⚠️</span> Gagal - Coba Lagi atau Input Manual';
       }
