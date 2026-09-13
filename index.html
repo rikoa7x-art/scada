@@ -2299,7 +2299,11 @@
 
         networkData = data;
         defaultSubangNetwork = data;
-        console.log(`✅ Berhasil memuat ${networkData.nodes.length} nodes dan ${networkData.pipes.length} pipa Kota Subang.`);
+        
+        // Paksa klasifikasi ulang titik pantau agar jumlahnya lebih banyak dan ideal
+        classifyStrategicPoints(networkData.nodes, networkData.pipes);
+
+        console.log(`📡 Berhasil memuat ${networkData.nodes.length} nodes dan ${networkData.pipes.length} pipa Kota Subang.`);
 
         // Simpan spesifikasi asli bawaan seluruh pipa
         if (defaultPipesMap.size === 0 && networkData.pipes) {
@@ -3984,8 +3988,8 @@
 
       const junctions = nodes.filter(n => n.type === 'junction');
       const sortedElev = [...junctions].sort((a, b) => b.elevation - a.elevation);
-      const topElev = sortedElev.slice(0, Math.max(1, Math.floor(junctions.length * 0.05)));
-      const lowElev = sortedElev.slice(-Math.max(1, Math.floor(junctions.length * 0.05)));
+      const topElev = sortedElev.slice(0, Math.max(1, Math.floor(junctions.length * 0.15)));
+      const lowElev = sortedElev.slice(-Math.max(1, Math.floor(junctions.length * 0.15)));
 
       nodes.forEach(n => {
         if (n.type === 'reservoir') {
@@ -4005,6 +4009,11 @@
           n.category = 'percabangan_utama';
           n.categoryLabel = '🔀 Percabangan Transmisi Utama';
           n.monitoringReason = `Persimpangan Pipa Ø${maxDiam}mm (${deg} jalur)`;
+        } else if (maxDiam >= 200) {
+          n.isMonitoringPoint = true;
+          n.category = 'pipa_besar_utama';
+          n.categoryLabel = '🌊 Jalur Pipa Besar (Transmisi)';
+          n.monitoringReason = `Pipa Utama Ø${maxDiam}mm`;
         } else if (topElev.some(te => te.id === n.id)) {
           n.isMonitoringPoint = true;
           n.category = 'elevasi_tinggi';
@@ -4013,12 +4022,12 @@
         } else if (lowElev.some(le => le.id === n.id)) {
           n.isMonitoringPoint = true;
           n.category = 'elevasi_rendah';
-          n.categoryLabel = '🌊 Elevasi Terendah (Lembah)';
+          n.categoryLabel = '📉 Elevasi Terendah (Lembah)';
           n.monitoringReason = `Zona Rawan Tekanan Tinggi (${n.elevation} mdpl)`;
-        } else if (deg === 1 && maxDiam >= 100) {
+        } else if (deg === 1) {
           n.isMonitoringPoint = true;
           n.category = 'titik_kritis_dma';
-          n.categoryLabel = '🏘️ Ujung Wilayah Pelayanan';
+          n.categoryLabel = '🛑 Ujung Wilayah Pelayanan';
           n.monitoringReason = `Titik Pantau Ujung Distribusi Ø${maxDiam}mm`;
         } else {
           n.isMonitoringPoint = false;
