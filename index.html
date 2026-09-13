@@ -694,6 +694,23 @@
       animation: leakPulse 1.2s ease-in-out infinite;
     }
 
+    /* Tombol Pilihan Diameter Pipa Preset */
+    .pipe-diam-btn {
+      padding: 6px 4px !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      text-align: center !important;
+      justify-content: center !important;
+      border: 1px solid #334155 !important;
+      transition: all 0.2s ease !important;
+    }
+    .pipe-diam-btn.active {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4) !important;
+    }
+
     /* Custom Leaflet Popup SCADA Theme */
     .leaflet-popup-content-wrapper {
       background: #111a2e !important;
@@ -1431,7 +1448,29 @@
 
       <!-- Tab Aliran Pipa -->
       <div class="sidebar-content" id="tab-pipes" style="display: none;">
-        <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px;">PIPA DENGAN DEBIT TERBESAR</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted); margin: 0;">JARINGAN PIPA SUBANG</h3>
+          <span id="pipes-modified-badge" class="scada-badge" style="display: none; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10px;">0 Diubah</span>
+        </div>
+
+        <!-- Input Pencarian Pipa -->
+        <div style="margin-bottom: 8px;">
+          <input type="text" id="pipe-search-input" class="input-control" placeholder="🔍 Cari titik / ruas pipa (mis: J307)..." style="padding: 6px 10px; font-size: 11.5px;" oninput="onPipeSearchInput(this.value)">
+        </div>
+
+        <!-- Filter Kategori Tampilan Pipa -->
+        <div style="display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap;">
+          <button type="button" class="chip active" id="btn-filter-pipe-top" onclick="setPipeFilter('top')" style="font-size: 10.5px; padding: 4px 8px;">
+            🌊 Debit Terbesar
+          </button>
+          <button type="button" class="chip" id="btn-filter-pipe-modified" onclick="setPipeFilter('modified')" style="font-size: 10.5px; padding: 4px 8px; color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+            ⚡ Pipa Diubah (<span id="count-pipe-modified">0</span>)
+          </button>
+          <button type="button" class="chip" id="btn-filter-pipe-all" onclick="setPipeFilter('all')" style="font-size: 10.5px; padding: 4px 8px;">
+            📋 Semua Pipa (<span id="count-pipe-all">321</span>)
+          </button>
+        </div>
+
         <div id="top-pipes-list"></div>
       </div>
 
@@ -1620,6 +1659,115 @@
           </button>
           <button type="button" class="btn btn-accent" style="flex: 2; justify-content: center; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-color: #8b5cf6;" onclick="saveCustomJunction()">
             <span>💾</span> Simpan Titik Junction Baru
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Ubah Spesifikasi & Diameter Pipa -->
+  <div class="modal-backdrop" id="modal-edit-pipe" onclick="if(event.target===this) closeEditPipeModal()">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 style="color: #38bdf8;"><span>🔧</span> Pengaturan Diameter & Spesifikasi Pipa</h3>
+        <button class="modal-close" onclick="closeEditPipeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="edit-pipe-id">
+        <input type="hidden" id="edit-pipe-orig-diameter">
+        <input type="hidden" id="edit-pipe-orig-material">
+        <input type="hidden" id="edit-pipe-orig-roughness">
+
+        <!-- Info Ruas Pipa -->
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 13px; font-weight: 700; color: #ffffff;" id="edit-pipe-ruas-label">
+              🌊 Ruas Pipa: - ➔ -
+            </div>
+            <span id="edit-pipe-id-badge" class="scada-badge" style="font-size: 10px; color: var(--text-muted);">
+              ID: -
+            </span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px; display: flex; gap: 14px; flex-wrap: wrap;">
+            <span>Panjang: <b id="edit-pipe-length-display" style="color: #f8fafc;">- m</b></span>
+            <span>Diameter Bawaan: <b id="edit-pipe-orig-diameter-display" style="color: #f8fafc;">- mm</b></span>
+            <span>Material Bawaan: <b id="edit-pipe-orig-material-display" style="color: #f8fafc;">-</b></span>
+          </div>
+        </div>
+
+        <!-- Pilihan Diameter Pipa Standar PDAM -->
+        <div class="input-group">
+          <label>Pilih Diameter Nominal Pipa (mm):</label>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px;">
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(50)" id="btn-diam-50">Ø 50 (2")</button>
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(75)" id="btn-diam-75">Ø 75 (3")</button>
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(100)" id="btn-diam-100">Ø 100 (4")</button>
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(150)" id="btn-diam-150">Ø 150 (6")</button>
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(200)" id="btn-diam-200">Ø 200 (8")</button>
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(250)" id="btn-diam-250">Ø 250 (10")</button>
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(300)" id="btn-diam-300">Ø 300 (12")</button>
+            <button type="button" class="btn btn-dark btn-xs pipe-diam-btn" onclick="selectPipeDiameterPreset(400)" id="btn-diam-400">Ø 400 (16")</button>
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="flex: 1;">
+              <input type="number" id="edit-pipe-diameter-input" class="input-control" placeholder="Diameter (mm)" min="10" max="2000" step="1" oninput="onCustomDiameterInput(this.value)" style="font-weight: 700; font-size: 14px; color: #38bdf8;">
+            </div>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">mm</span>
+          </div>
+          <small style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Pilih tombol cepat diameter standar PDAM atau ketik angka custom langsung.</small>
+        </div>
+
+        <!-- Pilihan Material Pipa & Nilai Kekasaran C -->
+        <div class="input-group">
+          <label for="edit-pipe-material-select">Material Pipa & Kekasaran (C-Factor Hazen-Williams):</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="edit-pipe-material-select" class="input-control" style="flex: 2;" onchange="onPipeMaterialChange(this.value)">
+              <option value="PVC">PVC (Polivinil Klorida) - C=140</option>
+              <option value="HDPE">HDPE (Polietilena) - C=140</option>
+              <option value="DCI">DCI (Ductile Cast Iron) - C=120</option>
+              <option value="Steel">Baja / Steel - C=110</option>
+              <option value="Cast Iron">Besi Cor Lama - C=100</option>
+              <option value="Galvanized">Galvanis (GIP) - C=100</option>
+            </select>
+            <input type="number" id="edit-pipe-c-input" class="input-control" style="flex: 1; text-align: center;" min="50" max="160" title="Koefisien Kekasaran C" oninput="updatePipeEditPreview()">
+          </div>
+        </div>
+
+        <!-- Live Preview Perhitungan Hidrolik Real-Time -->
+        <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <b style="font-size: 12px; color: #38bdf8;">📊 PREVIEW SIMULASI HIDROLIK REAL-TIME</b>
+            <span id="preview-pipe-status-badge" class="scada-badge" style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981;">Normal</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11.5px;">
+            <div>
+              <span style="color: var(--text-muted);">Debit Aliran (Q):</span><br>
+              <b id="preview-pipe-discharge" style="font-size: 14px; color: #ffffff;">0.00 L/s</b>
+            </div>
+            <div>
+              <span style="color: var(--text-muted);">Kecepatan Aliran (v):</span><br>
+              <b id="preview-pipe-velocity" style="font-size: 14px; color: #ffffff;">0.00 m/s</b>
+            </div>
+          </div>
+
+          <div style="margin-top: 6px; font-size: 11px; color: var(--text-muted); border-top: 1px dashed rgba(56, 189, 248, 0.2); padding-top: 6px;" id="preview-pipe-comparison">
+            Perbandingan: Ø 150 mm ➔ Ø 200 mm
+          </div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-dark" style="flex: 1; justify-content: center;" onclick="closeEditPipeModal()">
+            Batal
+          </button>
+          <button type="button" class="btn btn-dark" id="btn-reset-single-pipe" style="flex: 1.3; justify-content: center; color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);" onclick="resetCurrentPipeToOriginal()">
+            <span>🔄</span> Ukuran Asli
+          </button>
+          <button type="button" class="btn btn-accent" style="flex: 2; justify-content: center; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #38bdf8;" onclick="savePipeEdit()">
+            <span>💾</span> Simpan & Terapkan
           </button>
         </div>
       </div>
@@ -1984,6 +2132,11 @@
     let showAllNodes = false; // Default: hanya tampilkan titik pantau ideal (45 titik)
     let customNodes = []; // Node junction custom yang ditambahkan pengguna
     let isMapPickingMode = false; // Mode klik peta untuk menentukan titik junction baru
+    let pipeOverrides = {}; // Map: pipeId -> { diameter, material, roughness, originalDiameter, updatedAt }
+    let defaultPipesMap = new Map(); // Simpan spek asli pipa untuk reset
+    let cachedAllPipes = []; // Cache list pipa untuk pencarian/filter di sidebar
+    let currentPipeFilter = 'top'; // 'top', 'modified', 'all'
+    let pipeSearchQuery = '';
 
     // Konstanta
     const HEAD_PER_BAR = 10.197;
@@ -2135,8 +2288,22 @@
         defaultSubangNetwork = data;
         console.log(`✅ Berhasil memuat ${networkData.nodes.length} nodes dan ${networkData.pipes.length} pipa Kota Subang.`);
 
+        // Simpan spesifikasi asli bawaan seluruh pipa
+        if (defaultPipesMap.size === 0 && networkData.pipes) {
+          networkData.pipes.forEach(p => {
+            defaultPipesMap.set(p.id, {
+              diameter: p.diameter,
+              material: p.material || 'PVC',
+              roughness: p.roughness || 140
+            });
+          });
+        }
+
         // Muat titik junction kustom yang ditambahkan pengguna
         await loadCustomNodes();
+
+        // Muat override spesifikasi & diameter pipa
+        await loadPipeOverrides();
 
         // Muat data telemetri tersimpan (Supabase Cloud -> Server Lokal -> LocalStorage)
         await loadTelemetryData();
@@ -2329,20 +2496,29 @@
         const matLabel = escapeHtml(p.material || 'PVC');
         const statusLabel = escapeHtml(p.status?.label || 'Normal');
 
+        const isModified = !!p.isModified;
+        const origD = p.originalDiameter || defaultPipesMap.get(p.id)?.diameter || p.diameter;
+        const modifiedBadge = isModified 
+          ? `<span style="display: inline-block; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px;">⚡ Disesuaikan (Asli: Ø${origD}mm)</span>`
+          : '';
+
         // Tooltip saat mouse diarahkan ke pipa di peta
         polyline.bindTooltip(`
           <div style="font-family: var(--font-sans); font-size: 11px; line-height: 1.4;">
-            <b>🌊 Ruas ${startLabel} ➔ ${endLabel}</b><br>
+            <b>🌊 Ruas ${startLabel} ➔ ${endLabel}</b> ${isModified ? '⚡' : ''}<br>
             <span>Ø ${p.diameter} mm (${matLabel})</span> • <b style="color: ${p.status?.color || '#38bdf8'};">${statusLabel}</b><br>
             <span>Q: <b>${p.discharge_Lps?.toFixed(1)} L/s</b> | v: <b>${p.velocity_mps?.toFixed(2)} m/s</b></span>
           </div>
         `, { sticky: true });
         
         polyline.bindPopup(`
-          <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.5; min-width: 220px;">
-            <b style="color: #38bdf8; font-size: 13px;">🌊 Pipa ${startLabel} ➔ ${endLabel}</b><br>
+          <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.5; min-width: 230px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px;">
+              <b style="color: #38bdf8; font-size: 13px;">🌊 Pipa ${startLabel} ➔ ${endLabel}</b>
+              ${modifiedBadge}
+            </div>
             <div style="margin: 6px 0; border-top: 1px solid #334155; padding-top: 6px;">
-              <b>Diameter:</b> ${p.diameter} mm (${matLabel})<br>
+              <b>Diameter:</b> <span style="color: #38bdf8; font-weight: 700;">Ø ${p.diameter} mm</span> (${matLabel})<br>
               <b>Panjang Pipa:</b> ${p.length?.toFixed(1)} m<br>
               <b>Debit Air (Q):</b> <span style="color: #38bdf8; font-weight: 700; font-size: 15px;">${p.discharge_Lps?.toFixed(2)} L/s</span> (${p.discharge_m3h?.toFixed(1)} m³/jam)<br>
               <b>Kecepatan (v):</b> <b>${p.velocity_mps?.toFixed(3)} m/s</b><br>
@@ -2352,6 +2528,9 @@
             <div style="display: flex; gap: 6px; margin-top: 8px;">
               <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.startNodeId}')">✍️ Ukur ${startLabel}</button>
               <button class="btn btn-manual btn-xs" style="flex: 1; justify-content: center;" onclick="openInputModal('${p.endNodeId}')">✍️ Ukur ${endLabel}</button>
+            </div>
+            <div style="margin-top: 6px;">
+              <button class="btn btn-accent btn-xs" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #38bdf8;" onclick="openEditPipeModal('${p.id}')">🔧 Ubah Diameter & Spesifikasi</button>
             </div>
           </div>
         `);
@@ -2658,23 +2837,138 @@
       `).join('');
     }
 
-    // Render Top Pipa dengan Debit Terbesar
+    // Render Tab Daftar Pipa & Filter
     function renderTopPipes(pipes) {
-      const container = document.getElementById('top-pipes-list');
-      const sorted = [...pipes].sort((a, b) => (b.discharge_Lps || 0) - (a.discharge_Lps || 0)).slice(0, 20);
+      cachedAllPipes = pipes || [];
+      renderPipeListItems();
+    }
 
-      container.innerHTML = sorted.map(p => `
-        <div class="telemetry-card" style="padding: 10px 12px; margin-bottom: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <b style="font-size: 12px; color: #ffffff;">Pipa Ø ${p.diameter} mm (${escapeHtml(p.material)})</b>
-            <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #38bdf8;">${p.discharge_Lps?.toFixed(2)} L/s</span>
+    function setPipeFilter(filter) {
+      currentPipeFilter = filter;
+      document.querySelectorAll('#tab-pipes .chip').forEach(c => c.classList.remove('active'));
+      const btn = document.getElementById(`btn-filter-pipe-${filter}`);
+      if (btn) btn.classList.add('active');
+      renderPipeListItems();
+    }
+
+    function onPipeSearchInput(query) {
+      pipeSearchQuery = (query || '').trim().toLowerCase();
+      renderPipeListItems();
+    }
+
+    function renderPipeListItems() {
+      const container = document.getElementById('top-pipes-list');
+      if (!container) return;
+
+      const modifiedCount = cachedAllPipes.filter(p => p.isModified).length;
+      const countModEl = document.getElementById('count-pipe-modified');
+      if (countModEl) countModEl.textContent = modifiedCount;
+
+      const countAllEl = document.getElementById('count-pipe-all');
+      if (countAllEl) countAllEl.textContent = cachedAllPipes.length;
+
+      const badge = document.getElementById('pipes-modified-badge');
+      if (badge) {
+        badge.style.display = modifiedCount > 0 ? 'inline-block' : 'none';
+        badge.textContent = `${modifiedCount} Diubah`;
+      }
+
+      let filtered = [...cachedAllPipes];
+
+      // Terapkan filter kategori
+      if (currentPipeFilter === 'top') {
+        filtered = filtered.sort((a, b) => (b.discharge_Lps || 0) - (a.discharge_Lps || 0)).slice(0, 25);
+      } else if (currentPipeFilter === 'modified') {
+        filtered = filtered.filter(p => p.isModified);
+      } else {
+        // 'all'
+        filtered = filtered.slice(0, 100);
+      }
+
+      // Terapkan filter pencarian teks jika ada
+      if (pipeSearchQuery) {
+        filtered = cachedAllPipes.filter(p => {
+          const sLabel = (networkData.nodes.find(n => n.id === p.startNodeId)?.label || '').toLowerCase();
+          const eLabel = (networkData.nodes.find(n => n.id === p.endNodeId)?.label || '').toLowerCase();
+          const id = (p.id || '').toLowerCase();
+          const diam = String(p.diameter || '');
+          const mat = (p.material || '').toLowerCase();
+          return sLabel.includes(pipeSearchQuery) || eLabel.includes(pipeSearchQuery) || id.includes(pipeSearchQuery) || diam.includes(pipeSearchQuery) || mat.includes(pipeSearchQuery);
+        });
+      }
+
+      if (filtered.length === 0) {
+        if (currentPipeFilter === 'modified') {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 24px 12px; color: var(--text-muted); font-size: 12px;">
+              <div style="font-size: 28px; margin-bottom: 6px;">✨</div>
+              Belum ada pipa yang diubah.<br>
+              Klik pipa di peta atau daftar untuk menyesuaikan diameter nominalnya.
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 24px 12px; color: var(--text-muted); font-size: 12px;">
+              Tidak ditemukan pipa yang cocok dengan pencarian "<b>${escapeHtml(pipeSearchQuery)}</b>".
+            </div>
+          `;
+        }
+        return;
+      }
+
+      let headerHtml = '';
+      if (currentPipeFilter === 'modified' && modifiedCount > 0) {
+        headerHtml = `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px;">
+            <span style="font-size: 11px; color: #34d399; font-weight: 600;">⚡ ${modifiedCount} pipa telah disesuaikan</span>
+            <button class="btn btn-dark btn-xs" style="color: #f87171; border-color: rgba(239, 68, 68, 0.4); padding: 3px 8px;" onclick="resetAllPipesToOriginal()">
+              🔄 Reset Semua Pipa
+            </button>
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
-            <span>Panjang: ${p.length?.toFixed(0)} m</span>
-            <span>Kecepatan: <b>${p.velocity_mps?.toFixed(2)} m/s</b></span>
+        `;
+      }
+
+      const listHtml = filtered.map(p => {
+        const sLabel = escapeHtml(networkData.nodes.find(n => n.id === p.startNodeId)?.label || 'A');
+        const eLabel = escapeHtml(networkData.nodes.find(n => n.id === p.endNodeId)?.label || 'B');
+        const mat = escapeHtml(p.material || 'PVC');
+        const statusColor = p.status?.color || '#38bdf8';
+        const isModified = !!p.isModified;
+        const origD = p.originalDiameter || defaultPipesMap.get(p.id)?.diameter || p.diameter;
+
+        return `
+          <div class="telemetry-card" style="padding: 10px 12px; margin-bottom: 8px; border-left: 3px solid ${isModified ? '#10b981' : statusColor}; cursor: pointer;" onclick="zoomToPipe('${p.id}')">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+              <div>
+                <b style="font-size: 12.5px; color: #ffffff;">🌊 Ruas ${sLabel} ➔ ${eLabel}</b>
+                ${isModified ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 5px;">⚡ Diubah (Asli: Ø${origD}mm)</span>` : ''}
+              </div>
+              <span class="scada-badge" style="font-size: 11px; font-weight: 700; background: rgba(15, 23, 42, 0.9); color: #38bdf8; border: 1px solid #38bdf840; padding: 2px 6px;">
+                Ø ${p.diameter} mm
+              </span>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+              <span>Q: <b style="color: #38bdf8;">${p.discharge_Lps?.toFixed(2)} L/s</b> (${p.discharge_m3h?.toFixed(1)} m³/j)</span>
+              <span>v: <b>${p.velocity_mps?.toFixed(2)} m/s</b></span>
+            </div>
+
+            <div style="font-size: 10.5px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 5px;">
+              <span>P: ${p.length?.toFixed(0)}m (${mat})</span>
+              <div style="display: flex; gap: 4px;">
+                <button type="button" class="btn btn-dark btn-xs" style="padding: 2px 7px; font-size: 10.5px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);" onclick="event.stopPropagation(); zoomToPipe('${p.id}')">
+                  📍 Peta
+                </button>
+                <button type="button" class="btn btn-accent btn-xs" style="padding: 2px 8px; font-size: 10.5px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #38bdf8;" onclick="event.stopPropagation(); openEditPipeModal('${p.id}')">
+                  🔧 Ubah
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      container.innerHTML = headerHtml + listHtml;
     }
 
     // ================= ALERTS & ANOMALI MANAGEMENT =================
@@ -3230,11 +3524,12 @@
       });
 
       csv += '\n--- DATA ALIRAN PIPA (321 PIPA SUBANG) ---\n';
-      csv += 'Pipa ID,Dari Node,Ke Node,Diameter (mm),Panjang (m),Material,Debit (L/s),Debit (m3/jam),Kecepatan (m/s),Headloss (m),Status\n';
+      csv += 'Pipa ID,Dari Node,Ke Node,Diameter (mm),Panjang (m),Material,Debit (L/s),Debit (m3/jam),Kecepatan (m/s),Headloss (m),Status,Spesifikasi\n';
       solved.pipes.forEach(p => {
         const s = solved.nodes.find(n => n.id === p.startNodeId)?.label || 'A';
         const e = solved.nodes.find(n => n.id === p.endNodeId)?.label || 'B';
-        csv += `${escapeCsvField(p.id)},${escapeCsvField(s)},${escapeCsvField(e)},${p.diameter},${p.length?.toFixed(1)},${escapeCsvField(p.material)},${p.discharge_Lps?.toFixed(3)},${p.discharge_m3h?.toFixed(2)},${p.velocity_mps?.toFixed(3)},${p.headloss_m?.toFixed(3)},${escapeCsvField(p.status?.label || 'Normal')}\n`;
+        const modText = p.isModified ? `Disesuaikan (Asli: Ø${p.originalDiameter || p.diameter}mm)` : 'Bawaan Standar';
+        csv += `${escapeCsvField(p.id)},${escapeCsvField(s)},${escapeCsvField(e)},${p.diameter},${p.length?.toFixed(1)},${escapeCsvField(p.material)},${p.discharge_Lps?.toFixed(3)},${p.discharge_m3h?.toFixed(2)},${p.velocity_mps?.toFixed(3)},${p.headloss_m?.toFixed(3)},${escapeCsvField(p.status?.label || 'Normal')},${escapeCsvField(modText)}\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -3773,6 +4068,20 @@
         mergeCustomNodesIntoNetwork();
       }
 
+      // Pastikan spesifikasi default terdaftar dan terapkan override pipa
+      if (networkData.pipes) {
+        networkData.pipes.forEach(p => {
+          if (!defaultPipesMap.has(p.id)) {
+            defaultPipesMap.set(p.id, {
+              diameter: p.diameter,
+              material: p.material || 'PVC',
+              roughness: p.roughness || 140
+            });
+          }
+        });
+        applyPipeOverrides();
+      }
+
       // Reset titik telemetri aktif agar tidak konflik dengan wilayah sebelumnya
       telemetryReadings = {};
       telemetryHistory = [];
@@ -4051,6 +4360,290 @@
         modal.classList.remove('active');
         syncModalOpenState();
       }
+    }
+
+    // ================= FITUR EDIT DIAMETER & SPESIFIKASI PIPA =================
+    /**
+     * Memuat override diameter pipa: Server Lokal -> LocalStorage
+     */
+    async function loadPipeOverrides() {
+      let serverOverrides = null;
+      try {
+        const res = await fetch('/api/pipe-overrides');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data === 'object') {
+            serverOverrides = data;
+          }
+        }
+      } catch (e) {}
+
+      let localOverrides = null;
+      try {
+        const raw = localStorage.getItem('scada_pipe_overrides');
+        if (raw) {
+          localOverrides = JSON.parse(raw);
+        }
+      } catch (e) {}
+
+      pipeOverrides = Object.assign({}, serverOverrides || {}, localOverrides || {});
+      savePipeOverridesToStorage();
+      applyPipeOverrides();
+    }
+
+    function savePipeOverridesToStorage() {
+      try {
+        localStorage.setItem('scada_pipe_overrides', JSON.stringify(pipeOverrides));
+      } catch (e) {
+        console.warn('Gagal menyimpan pipe overrides ke localStorage:', e);
+      }
+    }
+
+    async function syncPipeOverrideToServer(pipeId, overrideData) {
+      try {
+        await fetch('/api/pipe-overrides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(overrideData)
+        });
+      } catch (e) {}
+    }
+
+    async function deletePipeOverrideFromServer(pipeId) {
+      try {
+        await fetch(`/api/pipe-overrides?pipeId=${encodeURIComponent(pipeId)}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {}
+    }
+
+    function applyPipeOverrides() {
+      if (!networkData || !networkData.pipes) return;
+      networkData.pipes.forEach(p => {
+        const orig = defaultPipesMap.get(p.id);
+        const ov = pipeOverrides[p.id];
+        if (ov) {
+          p.diameter = Number(ov.diameter) || p.diameter;
+          p.material = ov.material || p.material;
+          p.roughness = Number(ov.roughness) || p.roughness;
+          p.isModified = true;
+          p.originalDiameter = orig ? orig.diameter : (ov.originalDiameter || p.diameter);
+        } else if (orig) {
+          p.diameter = orig.diameter;
+          p.material = orig.material;
+          p.roughness = orig.roughness;
+          p.isModified = false;
+        }
+      });
+    }
+
+    /**
+     * Membuka modal pengaturan spesifikasi & diameter pipa
+     */
+    function openEditPipeModal(pipeId) {
+      if (!networkData || !networkData.pipes) return;
+      const pipe = networkData.pipes.find(p => p.id === pipeId);
+      if (!pipe) {
+        alert('Pipa tidak ditemukan dalam jaringan!');
+        return;
+      }
+
+      const modal = document.getElementById('modal-edit-pipe');
+      if (!modal) return;
+
+      const sNode = networkData.nodes.find(n => n.id === pipe.startNodeId);
+      const eNode = networkData.nodes.find(n => n.id === pipe.endNodeId);
+      const sLabel = sNode?.label || 'Node A';
+      const eLabel = eNode?.label || 'Node B';
+
+      const orig = defaultPipesMap.get(pipe.id) || {
+        diameter: pipe.diameter,
+        material: pipe.material || 'PVC',
+        roughness: pipe.roughness || 140
+      };
+
+      document.getElementById('edit-pipe-id').value = pipe.id;
+      document.getElementById('edit-pipe-orig-diameter').value = orig.diameter;
+      document.getElementById('edit-pipe-orig-material').value = orig.material;
+      document.getElementById('edit-pipe-orig-roughness').value = orig.roughness;
+
+      document.getElementById('edit-pipe-ruas-label').innerHTML = `🌊 Ruas Pipa: <b>${escapeHtml(sLabel)}</b> ➔ <b>${escapeHtml(eLabel)}</b>`;
+      document.getElementById('edit-pipe-id-badge').textContent = `ID: ${pipe.id.slice(0, 8)}...`;
+      document.getElementById('edit-pipe-length-display').textContent = `${pipe.length?.toFixed(1) || 0} m`;
+      document.getElementById('edit-pipe-orig-diameter-display').textContent = `Ø ${orig.diameter} mm`;
+      document.getElementById('edit-pipe-orig-material-display').textContent = `${orig.material} (C=${orig.roughness})`;
+
+      const curDiam = pipe.diameter || 100;
+      document.getElementById('edit-pipe-diameter-input').value = curDiam;
+      highlightDiameterPresetButton(curDiam);
+
+      const matSelect = document.getElementById('edit-pipe-material-select');
+      matSelect.value = pipe.material || 'PVC';
+      document.getElementById('edit-pipe-c-input').value = pipe.roughness || 140;
+
+      const btnReset = document.getElementById('btn-reset-single-pipe');
+      if (btnReset) {
+        btnReset.style.display = pipe.isModified ? 'inline-flex' : 'none';
+      }
+
+      updatePipeEditPreview();
+
+      modal.classList.add('active');
+      syncModalOpenState();
+    }
+
+    function closeEditPipeModal() {
+      const modal = document.getElementById('modal-edit-pipe');
+      if (modal) {
+        modal.classList.remove('active');
+        syncModalOpenState();
+      }
+    }
+
+    function highlightDiameterPresetButton(diam) {
+      document.querySelectorAll('.pipe-diam-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-diam-${diam}`);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function selectPipeDiameterPreset(diam) {
+      document.getElementById('edit-pipe-diameter-input').value = diam;
+      highlightDiameterPresetButton(diam);
+      updatePipeEditPreview();
+    }
+
+    function onCustomDiameterInput(val) {
+      const num = parseInt(val, 10);
+      highlightDiameterPresetButton(num);
+      updatePipeEditPreview();
+    }
+
+    function onPipeMaterialChange(mat) {
+      const cMap = {
+        'PVC': 140,
+        'HDPE': 140,
+        'DCI': 120,
+        'Steel': 110,
+        'Cast Iron': 100,
+        'Galvanized': 100
+      };
+      const c = cMap[mat] || 140;
+      document.getElementById('edit-pipe-c-input').value = c;
+      updatePipeEditPreview();
+    }
+
+    function updatePipeEditPreview() {
+      const pipeId = document.getElementById('edit-pipe-id').value;
+      const pipe = networkData?.pipes?.find(p => p.id === pipeId);
+      if (!pipe) return;
+
+      const newD = parseFloat(document.getElementById('edit-pipe-diameter-input').value) || 0;
+      const newC = parseFloat(document.getElementById('edit-pipe-c-input').value) || 140;
+      const origD = parseFloat(document.getElementById('edit-pipe-orig-diameter').value) || pipe.diameter;
+      const origC = parseFloat(document.getElementById('edit-pipe-orig-roughness').value) || 140;
+
+      const sNode = networkData.nodes.find(n => n.id === pipe.startNodeId);
+      const eNode = networkData.nodes.find(n => n.id === pipe.endNodeId);
+
+      const h1 = sNode?.totalHead || (sNode?.elevation + (telemetryReadings[sNode?.id]?.pressure_bar || 0) * HEAD_PER_BAR) || sNode?.elevation || 0;
+      const h2 = eNode?.totalHead || (eNode?.elevation + (telemetryReadings[eNode?.id]?.pressure_bar || 0) * HEAD_PER_BAR) || eNode?.elevation || 0;
+
+      const calc = window.ScadaHydraulicEngine.calculatePipeDischarge(h1, h2, pipe.length, newD, newC);
+      const origCalc = window.ScadaHydraulicEngine.calculatePipeDischarge(h1, h2, pipe.length, origD, origC);
+      const status = window.ScadaHydraulicEngine.evaluatePipeStatus(calc.velocity_mps);
+
+      const disEl = document.getElementById('preview-pipe-discharge');
+      if (disEl) disEl.textContent = `${calc.discharge_Lps.toFixed(2)} L/s (${calc.discharge_m3h.toFixed(1)} m³/j)`;
+
+      const velEl = document.getElementById('preview-pipe-velocity');
+      if (velEl) velEl.textContent = `${calc.velocity_mps.toFixed(2)} m/s`;
+
+      const badgeEl = document.getElementById('preview-pipe-status-badge');
+      if (badgeEl) {
+        badgeEl.textContent = status.label.split(' ')[0] || 'Normal';
+        badgeEl.style.color = status.color || '#10b981';
+        badgeEl.style.borderColor = status.color || '#10b981';
+      }
+
+      const compEl = document.getElementById('preview-pipe-comparison');
+      if (compEl) {
+        compEl.innerHTML = `Perbandingan Kecepatan Aliran: Bawaan Ø ${origD} mm (<b>${origCalc.velocity_mps.toFixed(2)} m/s</b>) ➔ Baru Ø ${newD} mm (<b>${calc.velocity_mps.toFixed(2)} m/s</b>)`;
+      }
+    }
+
+    async function savePipeEdit() {
+      const pipeId = document.getElementById('edit-pipe-id').value;
+      const newD = parseFloat(document.getElementById('edit-pipe-diameter-input').value);
+      const newMat = document.getElementById('edit-pipe-material-select').value || 'PVC';
+      const newC = parseFloat(document.getElementById('edit-pipe-c-input').value) || 140;
+      const origD = parseFloat(document.getElementById('edit-pipe-orig-diameter').value);
+      const origMat = document.getElementById('edit-pipe-orig-material').value;
+      const origC = parseFloat(document.getElementById('edit-pipe-orig-roughness').value);
+
+      if (!pipeId || isNaN(newD) || newD <= 0) {
+        alert('Mohon masukkan angka diameter pipa yang valid (lebih besar dari 0 mm)!');
+        return;
+      }
+
+      // Jika sama persis dengan spesifikasi asli, hapus override
+      if (newD === origD && newMat === origMat && newC === origC) {
+        delete pipeOverrides[pipeId];
+        savePipeOverridesToStorage();
+        await deletePipeOverrideFromServer(pipeId);
+      } else {
+        const overrideData = {
+          pipeId: pipeId,
+          diameter: newD,
+          material: newMat,
+          roughness: newC,
+          originalDiameter: origD,
+          updatedAt: new Date().toISOString()
+        };
+        pipeOverrides[pipeId] = overrideData;
+        savePipeOverridesToStorage();
+        await syncPipeOverrideToServer(pipeId, overrideData);
+      }
+
+      applyPipeOverrides();
+      renderNetwork();
+      closeEditPipeModal();
+
+      // Zoom ke pipa yang baru diubah agar pengguna langsung melihat perubahannya
+      zoomToPipe(pipeId);
+    }
+
+    async function resetCurrentPipeToOriginal() {
+      const pipeId = document.getElementById('edit-pipe-id').value;
+      if (!pipeId) return;
+
+      delete pipeOverrides[pipeId];
+      savePipeOverridesToStorage();
+      await deletePipeOverrideFromServer(pipeId);
+
+      applyPipeOverrides();
+      renderNetwork();
+      closeEditPipeModal();
+      zoomToPipe(pipeId);
+    }
+
+    async function resetAllPipesToOriginal() {
+      const count = Object.keys(pipeOverrides).length;
+      if (count === 0) {
+        alert('Tidak ada pipa yang dimodifikasi saat ini.');
+        return;
+      }
+
+      const ok = confirm(`Apakah Anda yakin ingin mengembalikan ${count} pipa yang telah diubah ke spesifikasi & diameter asli bawaan Subang?`);
+      if (!ok) return;
+
+      pipeOverrides = {};
+      savePipeOverridesToStorage();
+      try {
+        await fetch('/api/pipe-overrides?action=reset_all', { method: 'DELETE' });
+      } catch (e) {}
+
+      applyPipeOverrides();
+      renderNetwork();
     }
 
     // ================= FITUR PENAMBAHAN TITIK JUNCTION KUSTOM =================
@@ -4803,6 +5396,9 @@
         </label>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); openAreaManagerModal();">
           <span>🗺️</span> <div><b>Ganti / Import Wilayah Baru</b><br><small style="opacity: 0.8;">Subang, Ciasem, Pamanukan, KML/GeoJSON</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px; border-color: rgba(56, 189, 248, 0.4);" onclick="closeMobileMenuModal(); openMobileDrawer('pipes');">
+          <span>🔧</span> <div><b>Kelola Spesifikasi & Diameter Pipa</b><br><small style="opacity: 0.8;">Cari pipa, sesuaikan diameter, atau reset pipa</small></div>
         </button>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); exportScadaCsv();">
           <span>📊</span> <div><b>Ekspor Tabel CSV/Excel</b><br><small style="opacity: 0.8;">Unduh data debit dan tekanan pipa</small></div>

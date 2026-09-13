@@ -19,6 +19,7 @@ const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '';
 const TELEMETRY_FILE = path.join(__dirname, 'telemetry_subang.json');
 const CUSTOM_NODES_FILE = path.join(__dirname, 'custom_nodes_subang.json');
 const SUBANG_NETWORK_FILE = path.join(__dirname, 'epanet_subang.json');
+const PIPE_OVERRIDES_FILE = path.join(__dirname, 'pipe_overrides_subang.json');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://nbjfxzulzxxujudntdab.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iamZ4enVsenh4dWp1ZG50ZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTE2MzIsImV4cCI6MjEwNDc4NzYzMn0.LlIr9TLE3sE7X9xsohQcFrsU0OM8lisy1ymUvV-kdLo';
 
@@ -228,6 +229,11 @@ if (!fs.existsSync(CUSTOM_NODES_FILE)) {
   fs.writeFileSync(CUSTOM_NODES_FILE, JSON.stringify([], null, 2), 'utf8');
 }
 
+// Inisialisasi Database Override Pipa jika belum ada
+if (!fs.existsSync(PIPE_OVERRIDES_FILE)) {
+  fs.writeFileSync(PIPE_OVERRIDES_FILE, JSON.stringify({}, null, 2), 'utf8');
+}
+
 async function readCustomNodesSafe() {
   try {
     const content = await fsPromises.readFile(CUSTOM_NODES_FILE, 'utf8');
@@ -243,6 +249,23 @@ async function writeCustomNodesSafe(nodes) {
   const tempFile = CUSTOM_NODES_FILE + '.tmp';
   await fsPromises.writeFile(tempFile, JSON.stringify(nodes, null, 2), 'utf8');
   await fsPromises.rename(tempFile, CUSTOM_NODES_FILE);
+}
+
+async function readPipeOverridesSafe() {
+  try {
+    const content = await fsPromises.readFile(PIPE_OVERRIDES_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch (err) {
+    if (err.code === 'ENOENT') return {};
+    console.error('Error membaca file pipe overrides:', err.message);
+    return {};
+  }
+}
+
+async function writePipeOverridesSafe(overrides) {
+  const tempFile = PIPE_OVERRIDES_FILE + '.tmp';
+  await fsPromises.writeFile(tempFile, JSON.stringify(overrides, null, 2), 'utf8');
+  await fsPromises.rename(tempFile, PIPE_OVERRIDES_FILE);
 }
 
 // Simple file lock untuk mencegah race condition penulisan
@@ -614,6 +637,72 @@ const server = http.createServer(async (req, res) => {
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, message: `Titik kustom ${nodeId} berhasil dihapus` }));
+        return;
+      }
+    }
+
+    // ----------------------------------------------------
+    // API ROUTE 5: Override Spesifikasi / Diameter Pipa (GET, POST, DELETE)
+    // ----------------------------------------------------
+    if (pathname === '/api/pipe-overrides') {
+      if (req.method === 'GET') {
+        const overrides = await readPipeOverridesSafe();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(overrides));
+        return;
+      }
+
+      if (req.method === 'POST') {
+        const rawBody = await getRequestBody(req);
+        const data = parseJsonBody(rawBody);
+
+        if (!data.pipeId || !data.diameter) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'pipeId dan diameter wajib disertakan' }));
+          return;
+        }
+
+        const overrides = await readPipeOverridesSafe();
+        overrides[data.pipeId] = {
+          pipeId: data.pipeId,
+          diameter: Number(data.diameter),
+          material: data.material || 'PVC',
+          roughness: Number(data.roughness) || 140,
+          originalDiameter: Number(data.originalDiameter) || undefined,
+          updatedAt: new Date().toISOString()
+        };
+
+        await writePipeOverridesSafe(overrides);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, override: overrides[data.pipeId] }));
+        return;
+      }
+
+      if (req.method === 'DELETE') {
+        const pipeId = reqUrl.searchParams.get('pipeId') || reqUrl.searchParams.get('id');
+        const action = reqUrl.searchParams.get('action');
+
+        if (action === 'reset_all') {
+          await writePipeOverridesSafe({});
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, message: 'Seluruh modifikasi pipa berhasil di-reset ke default' }));
+          return;
+        }
+
+        if (!pipeId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Parameter pipeId atau action=reset_all wajib disertakan' }));
+          return;
+        }
+
+        const overrides = await readPipeOverridesSafe();
+        if (overrides[pipeId]) {
+          delete overrides[pipeId];
+          await writePipeOverridesSafe(overrides);
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: `Override pipa ${pipeId} berhasil dihapus` }));
         return;
       }
     }
