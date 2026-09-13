@@ -87,7 +87,7 @@ Perhitungan hidrolika dilakukan menggunakan prinsip kekekalan energi dan persama
 
 | Warna Pipa | Status Aliran | Keterangan Operasional |
 | :--- | :--- | :--- |
-| **🔵 Biru Tua Tebal** | **Debit Tinggi (> 20 L/s)** | Pipa transmisi utama dari Reservoir R1/R2 mengalirkan debit besar ke pusat kota. |
+| **🔵 Biru Tua Tebal** | **Debit Tinggi (> 20 L/s)** | Pipa distribusi utama dari Reservoir R1/R2 mengalirkan debit besar ke pusat kota. |
 | **🟢 Hijau** | **Optimal (0.3 – 2.0 m/s)** | Kecepatan aliran ideal sesuai standar teknis PDAM & SNI air minum. |
 | **🟡 Kuning** | **Aliran Rendah (< 0.3 m/s)** | Aliran lambat / stagnan, waspadai potensi pengendapan partikel di pipa hilir. |
 | **🔴 Merah** | **Indikasi Kebocoran (< 0.5 bar)** | Tekanan drop di bawah batas aman pelayanan, terdeteksi potensi pipa pecah/kebocoran. |
@@ -97,7 +97,7 @@ Perhitungan hidrolika dilakukan menggunakan prinsip kekekalan energi dan persama
 ## 6. Fitur Tombol "Contoh Simulasi Lapangan"
 Untuk mendemonstrasikan sistem secara instan kepada pimpinan atau tim teknis:
 * Cukup klik tombol **"🧪 Contoh Simulasi Lapangan"** pada bagian atas layar.
-* Sistem akan langsung memasukkan data telemetri realistis di 6 titik transmisi strategis Kota Subang (`J32`, `J307`, `J308`, `J309`, `J310`, `J311`).
+* Sistem akan langsung memasukkan data telemetri realistis di 6 titik distribusi strategis Kota Subang (`J32`, `J307`, `J308`, `J309`, `J310`, `J311`).
 * Anda akan melihat bagaimana debit pasokan air (L/s) dari Reservoir R1 dan R2 langsung terhitung dan terdistribusi ke seluruh pipa Kota Subang.
 
 ---
@@ -105,7 +105,7 @@ Untuk mendemonstrasikan sistem secara instan kepada pimpinan atau tim teknis:
 ## 7. Titik Pantau Tekanan Ideal (Strategic Pressure Points)
 Untuk mencegah tampilan peta yang penuh sesak dengan ratusan simpul perantara (*intermediate vertices*), sistem secara cerdas menyaring dan menetapkan **44 Titik Pantau Strategis**:
 1. **💧 Sumber Reservoir (2 Titik)**: R1 (154 mdpl) dan R2 (155 mdpl) sebagai sumber utama energi gravitasi kota.
-2. **🔀 Percabangan Transmisi Utama (32 Titik)**: Persimpangan pipa besar ($\varnothing \ge 150\text{ mm}$ atau $\ge 200\text{ mm}$) dengan $\ge 3$ arah pipa (titik bagi aliran antar-wilayah).
+2. **🔀 Percabangan Distribusi Utama (32 Titik)**: Persimpangan pipa besar ($\varnothing \ge 150\text{ mm}$ atau $\ge 200\text{ mm}$) dengan $\ge 3$ arah pipa (titik bagi aliran antar-wilayah).
 3. **⛰️ Zona Elevasi Kritis - Puncak & Lembah (4 Titik)**:
    - **Puncak Tertinggi** (J62, J63 - $154\text{ mdpl}$): Kawasan paling rawan air mati akibat defisit tekanan.
    - **Lembah Terendah** (J36, J37, J318 - $50 - 57\text{ mdpl}$): Kawasan paling rawan tekanan berlebih (*overpressure*) dan pipa pecah.
@@ -135,3 +135,4 @@ Aplikasi kini mendukung analisa jaringan pipa untuk **daerah / cabang pelayanan 
 * Sistem otomatis mendeteksi dan mengklasifikasikan **Titik Pantau Tekanan Strategis** di wilayah baru tersebut.
 * Sistem langsung menjalankan perhitungan hidrolik Hazen-Williams untuk estimasi tekanan dan aliran air.
 * Anda dapat dengan mudah beralih kembali ke Subang Kota atau wilayah lain kapan saja melalui menu **"📂 Wilayah Tersimpan"**.
+

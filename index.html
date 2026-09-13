@@ -1385,7 +1385,7 @@
         <div class="legend-title">STATUS ALIRAN PIPA (Q)</div>
         <div class="legend-item">
           <div class="legend-color" style="background: #0284c7; height: 5px;"></div>
-          <span>Debit Tinggi (Transmisi Utama > 20 L/s)</span>
+          <span>Debit Tinggi (Distribusi Utama > 20 L/s)</span>
         </div>
         <div class="legend-item">
           <div class="legend-color" style="background: #10b981; height: 3px;"></div>
@@ -1406,7 +1406,7 @@
         </div>
         <div class="legend-item">
           <div style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; border: 1.5px solid #fff; flex-shrink: 0;"></div>
-          <span>🔀 Percabangan Transmisi Utama (Ø ≥ 150)</span>
+          <span>🔀 Percabangan Distribusi Utama (Ø ≥ 150)</span>
         </div>
         <div class="legend-item">
           <div style="width: 10px; height: 10px; border-radius: 50%; background: #ec4899; border: 1.5px solid #fff; flex-shrink: 0;"></div>
@@ -1595,7 +1595,7 @@
 
         <div class="input-group" style="margin-top: 10px;">
           <label for="manual-notes">Catatan Tambahan / Lokasi Manometer:</label>
-          <input type="text" id="manual-notes" class="input-control" placeholder="Contoh: Manometer boks pipa transmisi depan Pasar Subang, cuaca cerah">
+          <input type="text" id="manual-notes" class="input-control" placeholder="Contoh: Manometer boks pipa distribusi depan Pasar Subang, cuaca cerah">
         </div>
 
         <button class="btn btn-manual" style="width: 100%; justify-content: center; padding: 12px; margin-top: 14px; font-size: 13px;" onclick="saveManualTelemetry()">
@@ -1662,7 +1662,7 @@
         <!-- Catatan / Keterangan Lokasi -->
         <div class="input-group">
           <label for="new-node-notes">Keterangan Lokasi Manometer:</label>
-          <input type="text" id="new-node-notes" class="input-control" placeholder="Contoh: Boks manometer pipa transmisi 150mm depan Toko ABC">
+          <input type="text" id="new-node-notes" class="input-control" placeholder="Contoh: Boks manometer pipa distribusi 150mm depan Toko ABC">
         </div>
 
         <!-- Tombol Aksi -->
@@ -1856,8 +1856,8 @@
                 <option value="50">Ø 50 mm</option>
                 <option value="75">Ø 75 mm</option>
                 <option value="100" selected>Ø 100 mm (Standar Distribusi)</option>
-                <option value="150">Ø 150 mm (Transmisi Cabang)</option>
-                <option value="200">Ø 200 mm (Transmisi Utama)</option>
+                <option value="150">Ø 150 mm (Distribusi Cabang)</option>
+                <option value="200">Ø 200 mm (Distribusi Utama)</option>
                 <option value="250">Ø 250 mm</option>
                 <option value="300">Ø 300 mm</option>
               </select>
@@ -2681,7 +2681,7 @@
         } else if (n.isMonitoringPoint) {
           // Titik Pantau Tekanan Ideal (Strategic Pressure Points)
           let mColor = '#f59e0b'; // Percabangan utama
-          let mBadge = '🔀 TRANSMISI UTAMA';
+          let mBadge = '🔀 DISTRIBUSI UTAMA';
           let mBadgeStyle = 'background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4)';
           
           if (n.category === 'elevasi_tinggi') {
@@ -3394,7 +3394,7 @@
       renderNetwork();
     }
 
-    // Quick Simulation: 6 Titik Transmisi Subang
+    // Quick Simulation: 6 Titik Distribusi Subang
     async function runSubangQuickSimulation() {
       const samplePoints = [
         { label: 'J307', pressure: 2.85, notes: 'Pipa Utama PVC 150mm Jl. Otista' },
@@ -4007,12 +4007,12 @@
         if (deg >= 3) {
           n.isMonitoringPoint = true;
           n.category = 'percabangan_utama';
-          n.categoryLabel = '🔀 Percabangan Transmisi Utama';
+          n.categoryLabel = '🔀 Percabangan Distribusi Utama';
           n.monitoringReason = `Persimpangan Pipa Ø${maxDiam}mm (${deg} jalur)`;
         } else if (maxDiam >= 200) {
           n.isMonitoringPoint = true;
           n.category = 'pipa_besar_utama';
-          n.categoryLabel = '🌊 Jalur Pipa Besar (Transmisi)';
+          n.categoryLabel = '🌊 Jalur Pipa Besar (Distribusi)';
           n.monitoringReason = `Pipa Utama Ø${maxDiam}mm`;
         } else if (topElev.some(te => te.id === n.id)) {
           n.isMonitoringPoint = true;
@@ -5457,7 +5457,7 @@
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
             <div style="width: 24px; height: 6px; border-radius: 3px; background: #0284c7; flex-shrink: 0;"></div>
-            <span><b>Debit Tinggi (> 20 L/s)</b> — Pipa Transmisi Utama</span>
+            <span><b>Debit Tinggi (> 20 L/s)</b> — Pipa Distribusi Utama</span>
           </div>
           <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
             <div style="width: 24px; height: 4px; border-radius: 2px; background: #10b981; flex-shrink: 0;"></div>
@@ -5483,7 +5483,7 @@
           </div>
           <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
             <div style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; border: 2px solid #fff; flex-shrink: 0;"></div>
-            <span><b>🔀 Percabangan Transmisi</b> — Pipa Ø ≥ 150mm</span>
+            <span><b>🔀 Percabangan Distribusi</b> — Pipa Ø ≥ 150mm</span>
           </div>
           <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
             <div style="width: 12px; height: 12px; border-radius: 50%; background: #ec4899; border: 2px solid #fff; flex-shrink: 0;"></div>
@@ -5504,3 +5504,4 @@
 
 </body>
 </html>
+
