@@ -3048,23 +3048,23 @@
             const errJson = await res.json().catch(() => ({}));
             if (errJson.error) {
               throw new Error(errJson.error);
+            } else if (res.status === 404) {
+              throw new Error('Server backend SCADA tidak aktif di halaman ini (HTTP 404). Jalankan "start_scada.bat" untuk mengaktifkan AI Vision lokal.');
+            } else {
+              throw new Error(`Server mengembalikan error (HTTP ${res.status}).`);
             }
           }
         } catch (serverErr) {
           console.log('Server proxy fetch note:', serverErr.message);
-          // Opsi B: Fallback client-side jika server.js tidak tersedia (misal GitHub Pages) dan user memasukkan API Key
-          if (userKey && typeof window.AIVisionReader !== 'undefined' && typeof window.AIVisionReader.analyzePressureGauge === 'function') {
-            console.log('Mencoba analisis client-side via AIVisionReader...');
-            result = await window.AIVisionReader.analyzePressureGauge(activeImageBase64, userKey);
-          } else if (!userKey && serverErr.message && serverErr.message.includes('NVIDIA_API_KEY')) {
-            throw new Error('NVIDIA API Key belum diisi. Silakan ketik API Key Anda di kolom input di atas atau isi di file .env');
+          if (serverErr.message.includes('Failed to fetch') || serverErr.message.includes('NetworkError') || serverErr.message.includes('tidak aktif') || serverErr.message.includes('404')) {
+            throw new Error('Server SCADA (server.js) belum berjalan!\n\n💡 Solusi:\n1. Buka folder SCADA di komputer, lalu klik 2x berkas "start_scada.bat" (browser akan otomatis membuka http://localhost:3000).\n2. Atau, jika Anda mengakses lewat HP / GitHub Pages tanpa server lokal, gunakan tab "Input Manual" untuk mencatat angka tekanan manometer secara langsung.');
           } else {
             throw serverErr;
           }
         }
 
         if (!result) {
-          throw new Error('Gagal mendapatkan respon dari AI Vision API. Pastikan API key terisi di kolom input atau file .env');
+          throw new Error('Gagal mendapatkan respon dari AI Vision API. Pastikan server.js berjalan melalui start_scada.bat.');
         }
 
         // Tampilkan Hasil di Modal
