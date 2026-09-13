@@ -1234,6 +1234,22 @@
         font-size: 16px !important; /* Prevents auto-zoom in iOS Safari */
       }
     }
+    
+    .scada-pressure-tooltip {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      white-space: nowrap;
+    }
+    .scada-pressure-tooltip::before {
+      border-bottom-color: rgba(56, 189, 248, 0.4); /* tooltip arrow */
+    }
   </style>
 </head>
 <body>
@@ -2574,6 +2590,12 @@
           });
 
           const teleMarker = L.marker([n.lat, n.lng], { icon: radarIcon }).addTo(map);
+          teleMarker.bindTooltip(`${n.measuredPressure} bar`, {
+            permanent: true,
+            direction: 'bottom',
+            className: 'scada-pressure-tooltip',
+            offset: [0, 8]
+          });
           const safeLabel = escapeHtml(n.label);
           const safeNotes = escapeHtml(n.telemetryNotes || 'Terverifikasi');
           teleMarker.bindPopup(`
