@@ -265,7 +265,10 @@
         activePipesCount++;
       }
 
-      if (startNode.type === 'reservoir' || endNode.type === 'reservoir') {
+      // Hitung hanya pipa yang KELUAR dari reservoir ke junction (bukan antar-reservoir)
+      const startIsReservoir = startNode.type === 'reservoir' || startNode.type === 'tank';
+      const endIsReservoir = endNode.type === 'reservoir' || endNode.type === 'tank';
+      if ((startIsReservoir || endIsReservoir) && !(startIsReservoir && endIsReservoir)) {
         totalDischargeLps += calc.discharge_Lps;
       }
 
