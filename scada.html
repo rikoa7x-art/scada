@@ -3694,6 +3694,9 @@
         const res = await fetch(file);
         if (!res.ok) throw new Error('Gagal memuat berkas ' + file);
         const network = await res.json();
+        
+        classifyStrategicPoints(network.nodes, network.pipes);
+        
         customAreas[id] = {
           id: id,
           name: name,
