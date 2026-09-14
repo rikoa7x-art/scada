@@ -2242,32 +2242,42 @@
 
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-      // Layer 1: OpenStreetMap (Peta Jalan Jelas, 100% Gratis Tanpa API Key)
+      // Layer 1: Google Maps Hybrid (Satelit Udara Resolusi Tinggi + Nama Jalan)
+      const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 21,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '© Google Maps'
+      });
+
+      // Layer 2: Google Maps Streets (Peta Jalan Standar)
+      const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 21,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '© Google Maps'
+      });
+
+      // Layer 3: Google Maps Terrain (Kontur & Topografi)
+      const googleTerrain = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+        maxZoom: 21,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '© Google Maps'
+      });
+
+      // Layer 4: OpenStreetMap (Alternatif)
       const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
       });
 
-      // Layer 2: Esri World Imagery (Foto Satelit Udara Nyata Kota Subang)
-      const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Tiles © Esri'
-      });
+      // Default aktifkan Google Maps Hybrid (Satelit + Jalan)
+      googleHybrid.addTo(map);
 
-      // Layer 3: Esri World Street Map (Peta Jalan Kontras)
-      const esriStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: '© Esri Street'
-      });
-
-      // Default aktifkan OpenStreetMap
-      osmLayer.addTo(map);
-
-      // Tambahkan Kontrol Pemilih Basemap (Layer Switcher) di Kanan Atas
+      // Kontrol Pemilih Basemap di Kanan Atas
       const baseMaps = {
-        "🗺️ Peta Jalan (OpenStreetMap)": osmLayer,
-        "🛰️ Citra Satelit (Esri Satellite)": esriSatellite,
-        "🏙️ Peta Jalan Kota (Esri Street)": esriStreet
+        "🛰️ Google Satelit Hybrid": googleHybrid,
+        "🗺️ Google Maps Jalan": googleStreets,
+        "⛰️ Google Terrain": googleTerrain,
+        "🌐 OpenStreetMap": osmLayer
       };
       L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 
