@@ -2189,9 +2189,48 @@
     window.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
       initMap();
-      await loadSubangNetwork();
-      startAutoRefresh();
+      showLoginModal();
     });
+
+    function showLoginModal() {
+      const loginOverlay = document.createElement('div');
+      loginOverlay.id = 'login-overlay-full';
+      loginOverlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0b1320;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-sans);';
+      loginOverlay.innerHTML = `
+        <div style="background:var(--bg-card);padding:30px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.5);border:1px solid var(--border-color);width:320px;text-align:center;">
+          <img src="logo.jpg" alt="Logo" style="width:80px;height:80px;border-radius:12px;margin-bottom:15px;object-fit:cover;border:2px solid #38bdf8;">
+          <h2 style="color:#fff;margin-bottom:20px;font-size:20px;">PRODIST SCADA Login</h2>
+          <input type="text" id="login-user" placeholder="Username" style="width:100%;padding:10px;margin-bottom:15px;border-radius:6px;border:1px solid #38bdf840;background:#0b1320;color:#fff;box-sizing:border-box;">
+          <input type="password" id="login-pass" placeholder="Password" style="width:100%;padding:10px;margin-bottom:20px;border-radius:6px;border:1px solid #38bdf840;background:#0b1320;color:#fff;box-sizing:border-box;" onkeypress="if(event.key==='Enter') document.getElementById('login-btn').click();">
+          <button id="login-btn" class="btn btn-manual" style="width:100%;justify-content:center;padding:10px;font-size:14px;">Login & Masuk Wilayah</button>
+          <p id="login-error" style="color:#f43f5e;margin-top:15px;font-size:12px;display:none;">Username atau Password salah!</p>
+        </div>
+      `;
+      document.body.appendChild(loginOverlay);
+
+      document.getElementById('login-btn').onclick = async () => {
+        const u = document.getElementById('login-user').value.trim();
+        const p = document.getElementById('login-pass').value.trim();
+        const found = SCADA_USERS.find(user => user.username === u && user.password === p);
+        if (found) {
+          loginOverlay.remove();
+          // Muat data wilayah berdasarkan user
+          if (found.areaId === 'subang_kota') {
+            await loadSubangNetwork();
+          } else {
+            const pref = predefinedAreas.find(pa => pa.id === found.areaId);
+            if (pref) {
+              await loadPredefinedArea(pref.id, pref.file, pref.name);
+            } else {
+              await loadSubangNetwork();
+            }
+          }
+          startAutoRefresh();
+        } else {
+          document.getElementById('login-error').style.display = 'block';
+        }
+      };
+    }
 
     // Inisialisasi Peta Leaflet Berpusat di Kota Subang
     function initMap() {
@@ -3571,6 +3610,25 @@
     let pendingImportContent = null;
     let pendingImportFileName = '';
     let pendingImportExt = '';
+    
+    const SCADA_USERS = [
+      { username: 'agung', password: 'subang', areaId: 'subang_kota' },
+      { username: 'yudi', password: 'jalancagak', areaId: 'jalancagak' },
+      { username: 'ambo', password: 'pabuaran', areaId: 'pabuaran' },
+      { username: 'rohman', password: 'cisalak', areaId: 'cisalak' },
+      { username: 'nunu', password: 'kalijati', areaId: 'kalijati' },
+      { username: 'tedy', password: 'tanjungsiang', areaId: 'tanjungsiang' },
+      { username: 'yudi', password: 'sagalaherang', areaId: 'sagalaherang' }
+    ];
+
+    const predefinedAreas = [
+      { id: 'jalancagak', name: 'Jalancagak', file: 'epanet_jalancagak.json' },
+      { id: 'sagalaherang', name: 'Sagalaherang', file: 'epanet_sagalaherang.json' },
+      { id: 'pabuaran', name: 'Pabuaran', file: 'epanet_pabuaran.json' },
+      { id: 'cisalak', name: 'Cisalak', file: 'epanet_cisalak.json' },
+      { id: 'kalijati', name: 'Kalijati', file: 'kalijati_epanet.json' },
+      { id: 'tanjungsiang', name: 'Tanjungsiang', file: 'epanet_tanjungsiang.json' }
+    ];
 
     // Inisialisasi storage wilayah dari localStorage
     function initAreaStorage() {
@@ -3627,6 +3685,29 @@
       }
     }
 
+    async function loadPredefinedArea(id, file, name) {
+      if (customAreas[id]) {
+        selectArea(id);
+        return;
+      }
+      try {
+        const res = await fetch(file);
+        if (!res.ok) throw new Error('Gagal memuat berkas ' + file);
+        const network = await res.json();
+        customAreas[id] = {
+          id: id,
+          name: name,
+          network: network,
+          importedAt: Date.now()
+        };
+        saveCustomAreasToStorage();
+        selectArea(id);
+      } catch (err) {
+        console.error(err);
+        alert('Gagal memuat jaringan ' + name + ': ' + err.message);
+      }
+    }
+
     function renderSavedAreasList() {
       const container = document.getElementById('saved-areas-list');
       if (!container) return;
@@ -3639,7 +3720,7 @@
 
       const isSubangActive = currentAreaId === 'subang_kota';
       const subangCard = document.createElement('div');
-      subangCard.style.cssText = `background: var(--bg-card); border: 1px solid ${isSubangActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;`;
+      subangCard.style.cssText = `background: var(--bg-card); border: 1px solid ${isSubangActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;`;
       subangCard.innerHTML = `
         <div>
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -3659,36 +3740,75 @@
       `;
       container.appendChild(subangCard);
 
-      // 2. Wilayah-wilayah Custom yang di-import
-      const customKeys = Object.keys(customAreas);
+      // 2. Predefined Wilayah Baru
+      predefinedAreas.forEach(areaInfo => {
+        const key = areaInfo.id;
+        const isActive = currentAreaId === key;
+        const isLoaded = !!customAreas[key];
+        
+        const card = document.createElement('div');
+        card.style.cssText = `background: var(--bg-card); border: 1px solid ${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;`;
+        
+        let statsHtml = \`<p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Data Jaringan Bawaan</p>\`;
+        
+        if (isLoaded) {
+          const area = customAreas[key];
+          const lenKm = (area.network.pipes || []).reduce((acc, p) => acc + (p.length || 0), 0) / 1000;
+          const nNodes = (area.network.nodes || []).length;
+          const nPipes = (area.network.pipes || []).length;
+          statsHtml = \`<p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+            \${nNodes} Simpul • \${nPipes} Pipa • \${lenKm.toFixed(1)} km (PVC)
+          </p>\`;
+        }
+
+        card.innerHTML = \`
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <b style="color: #ffffff; font-size: 13px;">🗺️ \${escapeHtml(areaInfo.name)}</b>
+              \${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+            </div>
+            \${statsHtml}
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            \${isActive ?
+              '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
+              \`<button class="btn btn-accent btn-xs" onclick="loadPredefinedArea('\${key}', '\${areaInfo.file}', '\${areaInfo.name}')">🚀 Gunakan</button>\`
+            }
+          </div>
+        \`;
+        container.appendChild(card);
+      });
+
+      // 3. Wilayah-wilayah Custom yang di-import
+      const customKeys = Object.keys(customAreas).filter(k => !predefinedAreas.find(p => p.id === k));
       customKeys.forEach(key => {
         const area = customAreas[key];
         const isActive = currentAreaId === key;
         const card = document.createElement('div');
-        card.style.cssText = `background: var(--bg-card); border: 1px solid ${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;`;
+        card.style.cssText = \`background: var(--bg-card); border: 1px solid \${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;\`;
         
         const lenKm = (area.network.pipes || []).reduce((acc, p) => acc + (p.length || 0), 0) / 1000;
         const nNodes = (area.network.nodes || []).length;
         const nPipes = (area.network.pipes || []).length;
 
-        card.innerHTML = `
+        card.innerHTML = \`
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <b style="color: #ffffff; font-size: 13px;">🗺️ ${escapeHtml(area.name)}</b>
-              ${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+              <b style="color: #ffffff; font-size: 13px;">🗺️ \${escapeHtml(area.name)}</b>
+              \${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
             </div>
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
-              ${nNodes} Simpul • ${nPipes} Pipa • ${lenKm.toFixed(1)} km (PVC)
+              \${nNodes} Simpul • \${nPipes} Pipa • \${lenKm.toFixed(1)} km (PVC)
             </p>
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            ${isActive ?
+            \${isActive ?
               '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
-              `<button class="btn btn-accent btn-xs" onclick="selectArea('${key}')">🚀 Gunakan</button>`
+              \`<button class="btn btn-accent btn-xs" onclick="selectArea('\${key}')">🚀 Gunakan</button>\`
             }
-            <button class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: #f43f5e40;" onclick="deleteCustomArea('${key}')" title="Hapus wilayah ini">🗑️</button>
+            <button class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: #f43f5e40;" onclick="deleteCustomArea('\${key}')" title="Hapus wilayah ini">🗑️</button>
           </div>
-        `;
+        \`;
         container.appendChild(card);
       });
     }
