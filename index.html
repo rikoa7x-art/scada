@@ -3701,13 +3701,17 @@
         };
         
         // Hapus dari localStorage jika sebelumnya tersimpan (karena ini predefined)
-        const saved = localStorage.getItem('scada_custom_areas');
-        if (saved) {
-          let parsed = JSON.parse(saved);
-          if (parsed[id]) {
-            delete parsed[id];
-            localStorage.setItem('scada_custom_areas', JSON.stringify(parsed));
+        try {
+          const saved = localStorage.getItem('scada_custom_areas');
+          if (saved) {
+            let parsed = JSON.parse(saved);
+            if (parsed[id]) {
+              delete parsed[id];
+              localStorage.setItem('scada_custom_areas', JSON.stringify(parsed));
+            }
           }
+        } catch (e) {
+          console.warn('Gagal membersihkan cache localStorage:', e);
         }
         
         selectArea(id);
@@ -3847,7 +3851,12 @@
       delete customAreas[areaId];
       saveCustomAreasToStorage();
       if (currentAreaId === areaId) {
-        selectArea('subang_kota');
+        const activePref = predefinedAreas.find(p => customAreas[p.id]);
+        if (activePref) {
+          selectArea(activePref.id);
+        } else {
+          selectArea('subang_kota');
+        }
       } else {
         renderSavedAreasList();
       }
