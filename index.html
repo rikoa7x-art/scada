@@ -3749,33 +3749,33 @@
         const card = document.createElement('div');
         card.style.cssText = `background: var(--bg-card); border: 1px solid ${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;`;
         
-        let statsHtml = \`<p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Data Jaringan Bawaan</p>\`;
+        let statsHtml = `<p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">Data Jaringan Bawaan</p>`;
         
         if (isLoaded) {
           const area = customAreas[key];
           const lenKm = (area.network.pipes || []).reduce((acc, p) => acc + (p.length || 0), 0) / 1000;
           const nNodes = (area.network.nodes || []).length;
           const nPipes = (area.network.pipes || []).length;
-          statsHtml = \`<p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
-            \${nNodes} Simpul • \${nPipes} Pipa • \${lenKm.toFixed(1)} km (PVC)
-          </p>\`;
+          statsHtml = `<p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+            ${nNodes} Simpul • ${nPipes} Pipa • ${lenKm.toFixed(1)} km (PVC)
+          </p>`;
         }
 
-        card.innerHTML = \`
+        card.innerHTML = `
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <b style="color: #ffffff; font-size: 13px;">🗺️ \${escapeHtml(areaInfo.name)}</b>
-              \${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+              <b style="color: #ffffff; font-size: 13px;">🗺️ ${escapeHtml(areaInfo.name)}</b>
+              ${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
             </div>
-            \${statsHtml}
+            ${statsHtml}
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            \${isActive ?
+            ${isActive ?
               '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
-              \`<button class="btn btn-accent btn-xs" onclick="loadPredefinedArea('\${key}', '\${areaInfo.file}', '\${areaInfo.name}')">🚀 Gunakan</button>\`
+              `<button class="btn btn-accent btn-xs" onclick="loadPredefinedArea('${key}', '${areaInfo.file}', '${areaInfo.name}')">🚀 Gunakan</button>`
             }
           </div>
-        \`;
+        `;
         container.appendChild(card);
       });
 
@@ -3785,30 +3785,30 @@
         const area = customAreas[key];
         const isActive = currentAreaId === key;
         const card = document.createElement('div');
-        card.style.cssText = \`background: var(--bg-card); border: 1px solid \${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;\`;
+        card.style.cssText = `background: var(--bg-card); border: 1px solid ${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;`;
         
         const lenKm = (area.network.pipes || []).reduce((acc, p) => acc + (p.length || 0), 0) / 1000;
         const nNodes = (area.network.nodes || []).length;
         const nPipes = (area.network.pipes || []).length;
 
-        card.innerHTML = \`
+        card.innerHTML = `
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <b style="color: #ffffff; font-size: 13px;">🗺️ \${escapeHtml(area.name)}</b>
-              \${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+              <b style="color: #ffffff; font-size: 13px;">🗺️ ${escapeHtml(area.name)}</b>
+              ${isActive ? '<span class="scada-badge">AKTIF</span>' : ''}
             </div>
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
-              \${nNodes} Simpul • \${nPipes} Pipa • \${lenKm.toFixed(1)} km (PVC)
+              ${nNodes} Simpul • ${nPipes} Pipa • ${lenKm.toFixed(1)} km (PVC)
             </p>
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            \${isActive ?
+            ${isActive ?
               '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
-              \`<button class="btn btn-accent btn-xs" onclick="selectArea('\${key}')">🚀 Gunakan</button>\`
+              `<button class="btn btn-accent btn-xs" onclick="selectArea('${key}')">🚀 Gunakan</button>`
             }
-            <button class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: #f43f5e40;" onclick="deleteCustomArea('\${key}')" title="Hapus wilayah ini">🗑️</button>
+            <button class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: #f43f5e40;" onclick="deleteCustomArea('${key}')" title="Hapus wilayah ini">🗑️</button>
           </div>
-        \`;
+        `;
         container.appendChild(card);
       });
     }
