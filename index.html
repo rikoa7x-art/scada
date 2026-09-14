@@ -3728,32 +3728,37 @@
       const subangPipes = (defaultSubangNetwork?.pipes || networkData.pipes || []).length;
 
       const isSubangActive = currentAreaId === 'subang_kota';
-      const subangCard = document.createElement('div');
-      subangCard.style.cssText = `background: var(--bg-card); border: 1px solid ${isSubangActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;`;
-      subangCard.innerHTML = `
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <b style="color: #ffffff; font-size: 13px;">🏙️ Subang Kota (Jaringan Utama)</b>
-            ${isSubangActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+      if (isSubangActive) {
+        const subangCard = document.createElement('div');
+        subangCard.style.cssText = `background: var(--bg-card); border: 1px solid ${isSubangActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;`;
+        subangCard.innerHTML = `
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <b style="color: #ffffff; font-size: 13px;">🏙️ Subang Kota (Jaringan Utama)</b>
+              ${isSubangActive ? '<span class="scada-badge">AKTIF</span>' : ''}
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+              ${subangNodes} Simpul • ${subangPipes} Pipa • ${subangLength.toFixed(1)} km (PVC C=140)
+            </p>
           </div>
-          <p style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
-            ${subangNodes} Simpul • ${subangPipes} Pipa • ${subangLength.toFixed(1)} km (PVC C=140)
-          </p>
-        </div>
-        <div>
-          ${isSubangActive ?
-            '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
-            `<button class="btn btn-accent btn-xs" onclick="selectArea('subang_kota')">🚀 Gunakan Wilayah Ini</button>`
-          }
-        </div>
-      `;
-      container.appendChild(subangCard);
+          <div>
+            ${isSubangActive ?
+              '<span style="font-size: 11px; color: #34d399; font-weight: 600;">✓ Sedang Ditampilkan</span>' :
+              `<button class="btn btn-accent btn-xs" onclick="selectArea('subang_kota')">🚀 Gunakan Wilayah Ini</button>`
+            }
+          </div>
+        `;
+        container.appendChild(subangCard);
+      }
 
       // 2. Predefined Wilayah Baru
       predefinedAreas.forEach(areaInfo => {
         const key = areaInfo.id;
         const isActive = currentAreaId === key;
         const isLoaded = !!customAreas[key];
+        
+        // Batasi akses: Jangan tampilkan wilayah bawaan lain yang bukan wilayah aktif milik user ini
+        if (!isActive) return;
         
         const card = document.createElement('div');
         card.style.cssText = `background: var(--bg-card); border: 1px solid ${isActive ? '#0ea5e9' : 'var(--border-color)'}; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;`;
