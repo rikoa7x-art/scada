@@ -3686,12 +3686,8 @@
     }
 
     async function loadPredefinedArea(id, file, name) {
-      if (customAreas[id]) {
-        selectArea(id);
-        return;
-      }
       try {
-        const res = await fetch(file);
+        const res = await fetch(file + '?v=' + Date.now());
         if (!res.ok) throw new Error('Gagal memuat berkas ' + file);
         const network = await res.json();
         
@@ -3703,7 +3699,17 @@
           network: network,
           importedAt: Date.now()
         };
-        saveCustomAreasToStorage();
+        
+        // Hapus dari localStorage jika sebelumnya tersimpan (karena ini predefined)
+        const saved = localStorage.getItem('scada_custom_areas');
+        if (saved) {
+          let parsed = JSON.parse(saved);
+          if (parsed[id]) {
+            delete parsed[id];
+            localStorage.setItem('scada_custom_areas', JSON.stringify(parsed));
+          }
+        }
+        
         selectArea(id);
       } catch (err) {
         console.error(err);
