@@ -486,10 +486,78 @@
     });
 
 
-    // 2. Interpolasi Hidrolis Head untuk Node Tanpa Data
-    //    Menggantikan estimasi jarak geografis (3 m/km) dengan interpolasi
-    //    berbasis resistansi pipa + conductance-weighted formula.
-    //    Menjamin kontinuitas debit (Q masuk ≈ Q keluar) di setiap simpul.
+    // 2a. Propagasi Pengaruh Pompa Aktif → Reset Data EPANET Statis di Zona Pompa
+    //
+    //     MASALAH yang diselesaikan:
+    //     Ketika pompa aktif, head discharge-nya bisa jauh berbeda dari kondisi
+    //     saat file EPANET di-generate. Node-node di zona pompa yang headnya
+    //     "beku" dari simulasi EPANET lama menyebabkan:
+    //       - Pipa dekat pompa: ΔH besar → Q sangat tinggi (tidak realistis)
+    //       - Pipa berikutnya: ΔH kecil → Q sangat rendah (tidak realistis)
+    //     → Hasilnya: lompatan debit drastis yang tidak fisik.
+    //
+    //     SOLUSI:
+    //     BFS dari setiap discharge pompa yang aktif. Semua node yang:
+    //       - Bukan node telemetri lapangan (hasTelemetry) ← data aktual, jangan diubah
+    //       - Bukan reservoir / tangki                     ← batas sistem, jangan diubah
+    //       - Punya data EPANET statis (hasEpanetPressure)
+    //     ... di-reset headnya agar hydraulicInterpolateNodes bisa menghitung
+    //     ulang dari head pompa aktual sebagai boundary upstream.
+    {
+      // Bangun adjacency ringan untuk BFS
+      const pipeAdj = new Map();
+      updatedNodes.forEach(n => pipeAdj.set(n.id, []));
+      pipes.forEach(p => {
+        if (!p.startNodeId || !p.endNodeId) return;
+        if (!pipeAdj.has(p.startNodeId)) pipeAdj.set(p.startNodeId, []);
+        if (!pipeAdj.has(p.endNodeId))   pipeAdj.set(p.endNodeId, []);
+        pipeAdj.get(p.startNodeId).push(p.endNodeId);
+        pipeAdj.get(p.endNodeId).push(p.startNodeId);
+      });
+
+      solvedPumps.forEach(pump => {
+        if (pump.status !== 'on') return;
+        const dischargeNode = nodeMap.get(pump.endNodeId);
+        if (!dischargeNode || !dischargeNode.isPumpBoosted) return;
+
+        // BFS dari node discharge pompa ke seluruh zona layanan
+        const queue   = [pump.endNodeId];
+        const visited = new Set([pump.endNodeId]);
+
+        while (queue.length > 0) {
+          const cur = queue.shift();
+          for (const nbr of (pipeAdj.get(cur) || [])) {
+            if (visited.has(nbr)) continue;
+            visited.add(nbr);
+
+            const nbrNode = nodeMap.get(nbr);
+            if (!nbrNode) continue;
+
+            // Telemetri lapangan = data aktual real-time → jangan diubah
+            if (nbrNode.hasTelemetry) continue;
+            // Reservoir / tangki = batas sistem hidrolika → jangan diubah
+            if (nbrNode.type === 'reservoir' || nbrNode.type === 'tank') continue;
+
+            // Reset EPANET statis → akan di-interpolasi ulang dari head pompa aktual
+            if (nbrNode.hasEpanetPressure) {
+              nbrNode.hasEpanetPressure = false;
+              nbrNode.totalHead = nbrNode.elevation; // reset sementara
+              nbrNode.pressure  = 0;
+              nbrNode.isInPumpZone = true;
+            }
+
+            queue.push(nbr);
+          }
+        }
+      });
+    }
+
+    // 2b. Interpolasi Hidrolis Head untuk Node Tanpa Data
+    //     Setelah zona pompa di-reset (langkah 2a), hydraulicInterpolateNodes
+    //     akan menghitung head secara konsisten menggunakan:
+    //       - Head pompa aktual sebagai boundary upstream
+    //       - Telemetri lapangan sebagai boundary lainnya
+    //     → Debit pipa dalam zona pompa kini konsisten (tidak ada lompatan Q)
     hydraulicInterpolateNodes(updatedNodes, nodeMap, pipes);
 
 
