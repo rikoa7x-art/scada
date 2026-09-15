@@ -62,6 +62,163 @@
   }
 
   /**
+   * Menghitung Resistansi Hidrolis Pipa (koefisien hambatan Hazen-Williams)
+   * R = 10.67 × L / (C^1.852 × D^4.871)
+   *
+   * R digunakan untuk interpolasi head antar simpul:
+   * - R besar  → pipa panjang/kecil/kasar → head loss besar per satuan Q
+   * - R kecil  → pipa pendek/besar/halus  → head loss kecil
+   *
+   * @returns {number} Resistansi (dimensi: m / (m³/s)^1.852)
+   */
+  function computePipeResistance(lengthM, nominalDiameterMm, cFactor) {
+    const D = getInternalDiameterMeters(nominalDiameterMm);
+    const L = Math.max(1.0, Number(lengthM) || 10.0);
+    const C = Math.max(50, Math.min(160, Number(cFactor) || 140));
+    if (D <= 0) return Infinity;
+    return (10.67 * L) / (Math.pow(C, HW_EXPONENT) * Math.pow(D, 4.871));
+  }
+
+  /**
+   * Interpolasi Hidrolis Head untuk Node Tanpa Data (Telemetri / EPANET)
+   *
+   * Algoritma:
+   * 1. Bangun graf adjacency berbasis resistansi pipa (R_ij)
+   * 2. Untuk setiap node unknown, jalankan Dijkstra untuk menemukan
+   *    semua "boundary node" (node dengan head diketahui) terdekat
+   *    secara hidrolis — BUKAN secara geografis
+   * 3. Interpolasi head menggunakan CONDUCTANCE-WEIGHTED formula:
+   *
+   *    H_n = Σ(H_i / R_i) / Σ(1 / R_i)
+   *
+   *    Ini adalah penyelesaian persamaan kontinuitas linearisasi:
+   *    Σ Q_i = Σ (H_i - H_n) / R_i = 0  ←→ hukum kekekalan massa di node n
+   *
+   * Hasilnya: Q Pipa_A ≈ Q Pipa_B untuk jalur seri (tidak ada lompatan debit
+   * yang tidak fisik hanya karena satu node tidak punya data sensor).
+   *
+   * @param {Array}  updatedNodes - array node hasil inisialisasi head
+   * @param {Map}    nodeMap      - Map nodeId → node object
+   * @param {Array}  pipes        - array seluruh ruas pipa jaringan
+   */
+  function hydraulicInterpolateNodes(updatedNodes, nodeMap, pipes) {
+    // Definisi "node yang headnya sudah diketahui"
+    const isKnown = (n) => n && (
+      n.hasTelemetry    ||
+      n.type === 'reservoir' ||
+      n.type === 'tank'      ||
+      n.isPumpBoosted        ||
+      n.hasEpanetPressure
+    );
+
+    // Bangun adjacency list berbobot resistansi
+    const adjacency = new Map();
+    updatedNodes.forEach(n => adjacency.set(n.id, []));
+    pipes.forEach(p => {
+      if (!p.startNodeId || !p.endNodeId) return;
+      if (!adjacency.has(p.startNodeId)) adjacency.set(p.startNodeId, []);
+      if (!adjacency.has(p.endNodeId))   adjacency.set(p.endNodeId, []);
+      const C = getRoughnessC(p.material, p.roughness);
+      const R = computePipeResistance(p.length, p.diameter, C);
+      adjacency.get(p.startNodeId).push({ nodeId: p.endNodeId,   R });
+      adjacency.get(p.endNodeId).push(  { nodeId: p.startNodeId, R });
+    });
+
+    updatedNodes.forEach(n => {
+      // Lewati node yang sudah diketahui headnya atau bukan junction
+      if (isKnown(n) || n.type !== 'junction') return;
+
+      // ─── Dijkstra dari node n ke seluruh boundary ───────────────────
+      // Tujuan: temukan semua "boundary node" (known head) yang paling
+      // dekat secara hidrolis (minimum accumulated resistance), bukan jarak fisik.
+      const dist     = new Map([[n.id, 0]]);
+      const visited  = new Set();
+      const pq       = [{ nodeId: n.id, R: 0 }];
+      // boundaryMap: nodeId → {head, R: accumulated resistance dari n ke boundary ini}
+      const boundaryMap = new Map();
+
+      while (pq.length > 0) {
+        // Priority queue sederhana — sufficient untuk skala jaringan SCADA
+        pq.sort((a, b) => a.R - b.R);
+        const { nodeId: cur, R: curR } = pq.shift();
+        if (visited.has(cur)) continue;
+        visited.add(cur);
+
+        for (const { nodeId: nbr, R: edgeR } of (adjacency.get(cur) || [])) {
+          const newR = curR + edgeR;
+          if (dist.has(nbr) && dist.get(nbr) <= newR) continue;
+          dist.set(nbr, newR);
+
+          const nbrNode = nodeMap.get(nbr);
+          if (!nbrNode) continue;
+
+          if (isKnown(nbrNode)) {
+            // Boundary ditemukan — catat dengan accumulated resistance
+            // Update jika menemukan path lebih pendek ke boundary yang sama
+            const prev = boundaryMap.get(nbr);
+            if (!prev || newR < prev.R) {
+              boundaryMap.set(nbr, { head: nbrNode.totalHead, R: newR });
+            }
+            // PENTING: jangan ekspansi melewati boundary node
+            // (mencegah "shortcut" antar dua boundary yang tidak melalui n)
+          } else {
+            // Node belum diketahui — lanjut ekspansi Dijkstra
+            pq.push({ nodeId: nbr, R: newR });
+          }
+        }
+      }
+
+      const boundaries = Array.from(boundaryMap.values());
+
+      // ─── Interpolasi berdasarkan jumlah boundary yang ditemukan ─────
+      let interpolatedHead;
+
+      if (boundaries.length === 0) {
+        // Tidak ada node referensi di seluruh jaringan terhubung → pakai elevasi
+        n.totalHead = n.elevation;
+        n.pressure  = 0;
+        n.isInterpolated = false;
+        return;
+
+      } else if (boundaries.length === 1) {
+        // Satu boundary: propagasi satu arah berbasis resistansi.
+        // Estimasi Q referensi 5 L/s = 0.005 m³/s untuk hitung head loss tipis.
+        // hf = R × Q^1.852
+        const Q_ref = 0.005;
+        const hf    = boundaries[0].R * Math.pow(Q_ref, HW_EXPONENT);
+        interpolatedHead = boundaries[0].head - hf;
+
+      } else {
+        // Dua atau lebih boundary: Conductance-Weighted Interpolation.
+        //
+        // Derive dari persamaan kontinuitas node (linearisasi HW):
+        //   Σ (H_i - H_n) / R_i = 0
+        //   H_n × Σ(1/R_i) = Σ(H_i / R_i)
+        //   H_n = Σ(H_i × C_i) / Σ(C_i),  C_i = 1/R_i (konduktansi)
+        //
+        // Contoh kasus seri A──n──B:
+        //   H_n = (H_A×C_A + H_B×C_B) / (C_A + C_B)
+        //   Ini setara dengan interpolasi resistance-weighted:
+        //   H_n = H_A - R_A/(R_A+R_B) × (H_A - H_B)  ✓
+        let sumConductance  = 0;
+        let sumWeightedHead = 0;
+        for (const b of boundaries) {
+          const conductance = 1.0 / Math.max(b.R, 1e-12); // hindari div/0
+          sumConductance  += conductance;
+          sumWeightedHead += b.head * conductance;
+        }
+        interpolatedHead = sumWeightedHead / sumConductance;
+      }
+
+      n.totalHead      = Math.max(n.elevation, interpolatedHead);
+      n.pressure       = Math.max(0, Math.round(((n.totalHead - n.elevation) / HEAD_PER_BAR) * 100) / 100);
+      n.isInterpolated = true;   // flag untuk debugging
+      n.boundaryCount  = boundaries.length;
+      nodeMap.set(n.id, n);
+    });
+  }
+
+  /**
    * Menghitung Total Dynamic Head (HGL) pada suatu simpul
    */
   function calculateTotalHead(elevation, pressureBar) {
@@ -83,7 +240,7 @@
     }
     const D = getInternalDiameterMeters(nomD);
     const L = Math.max(1.0, Number(lengthM) || 10.0);
-    const C = Math.max(50, Math.min(150, Number(cFactor) || 140));
+    const C = Math.max(50, Math.min(160, Number(cFactor) || 140));
 
     const headDiff = head1 - head2;
     const absHf = Math.abs(headDiff);
@@ -102,8 +259,8 @@
 
     const flowDirection = headDiff > 0 ? 'forward' : 'backward';
 
-    // Rumus Hazen-Williams metrik: hf = 10.67 * L * Q^1.852 / (C^1.852 * D^4.87)
-    const numerator = absHf * Math.pow(C, HW_EXPONENT) * Math.pow(D, 4.87);
+    // Rumus Hazen-Williams metrik (standar EPANET): hf = 10.67 * L * Q^1.852 / (C^1.852 * D^4.871)
+    const numerator = absHf * Math.pow(C, HW_EXPONENT) * Math.pow(D, 4.871);
     const denominator = 10.67 * L;
     const discharge_m3s = Math.pow(numerator / denominator, 1 / HW_EXPONENT);
 
@@ -328,38 +485,13 @@
       return pumpResult;
     });
 
-    // 2. Propagasi Head ke Simpul-Simpul yang Benar-Benar Tidak Punya Data
-    //    HANYA node yang tidak hasTelemetry, bukan reservoir, bukan isPumpBoosted,
-    //    DAN tidak memiliki data tekanan EPANET pre-computed (hasEpanetPressure=false)
-    const knownNodes = updatedNodes.filter(n => n.hasTelemetry || n.type === 'reservoir' || n.isPumpBoosted);
-    if (knownNodes.length > 0) {
-      updatedNodes.forEach(n => {
-        if (!n.hasTelemetry && n.type === 'junction' && !n.isPumpBoosted && !n.hasEpanetPressure) {
-          // Node ini benar-benar tidak punya data -> estimasi dari simpul referensi terdekat
-          let closest = null;
-          let minDist = Infinity;
-          knownNodes.forEach(kn => {
-            const dLat = n.lat - kn.lat;
-            const dLng = n.lng - kn.lng;
-            const dist = Math.sqrt(dLat * dLat + dLng * dLng);
-            if (dist < minDist) {
-              minDist = dist;
-              closest = kn;
-            }
-          });
 
-          if (closest) {
-            const approxDistKm = minDist * 111.0;
-            const estimatedHeadLoss = Math.min(approxDistKm * 3.0, 15.0);
-            n.totalHead = Math.max(n.elevation, closest.totalHead - estimatedHeadLoss);
-            n.pressure = Math.max(0, Math.round(((n.totalHead - n.elevation) / HEAD_PER_BAR) * 100) / 100);
-            if (closest.isPumpBoosted) {
-              n.isInPumpZone = true;
-            }
-          }
-        }
-      });
-    }
+    // 2. Interpolasi Hidrolis Head untuk Node Tanpa Data
+    //    Menggantikan estimasi jarak geografis (3 m/km) dengan interpolasi
+    //    berbasis resistansi pipa + conductance-weighted formula.
+    //    Menjamin kontinuitas debit (Q masuk ≈ Q keluar) di setiap simpul.
+    hydraulicInterpolateNodes(updatedNodes, nodeMap, pipes);
+
 
     let totalDischargeLps = 0;
     let leakWarningsCount = 0;
@@ -504,6 +636,8 @@
     solveScadaNetwork,
     getInternalDiameterMeters,
     getRoughnessC,
+    computePipeResistance,
+    hydraulicInterpolateNodes,
     HEAD_PER_BAR
   };
 
