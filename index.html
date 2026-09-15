@@ -706,6 +706,77 @@
       animation: leakPulse 1.2s ease-in-out infinite;
     }
 
+    /* Label Debit Air Langsung di Jalur Pipa (View Map) */
+    .pipe-flow-div-icon {
+      position: absolute !important;
+      left: 0;
+      top: 0;
+      background: transparent;
+      border: none;
+      pointer-events: auto;
+    }
+    .pipe-flow-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: rgba(11, 19, 32, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.65);
+      border-radius: 10px;
+      padding: 1.5px 6px;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      backdrop-filter: blur(4px);
+    }
+    .pipe-flow-badge small {
+      font-size: 8px;
+      opacity: 0.85;
+      font-weight: 500;
+    }
+    .pipe-flow-badge:hover {
+      transform: scale(1.18);
+      background: rgba(15, 23, 42, 0.98);
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+      z-index: 1000 !important;
+    }
+    .pipe-flow-badge-high {
+      background: rgba(2, 132, 199, 0.92);
+      border-color: #ffffff;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.7);
+    }
+    .pipe-flow-badge-leak {
+      background: rgba(225, 29, 72, 0.92);
+      border-color: #fecdd3;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.8);
+      animation: leakPulse 1.2s ease-in-out infinite;
+    }
+    .pipe-flow-badge-low {
+      background: rgba(15, 23, 42, 0.78);
+      border-color: rgba(148, 163, 184, 0.35);
+      color: #94a3b8;
+    }
+    /* Zoom adaptif agar tidak bertumpukan saat peta di-zoom out */
+    #map.zoom-overview .pipe-flow-badge-low {
+      display: none !important;
+    }
+    #map.zoom-overview .pipe-flow-badge:not(.pipe-flow-badge-high):not(.pipe-flow-badge-leak) {
+      display: none !important;
+    }
+    #map.zoom-mid .pipe-flow-badge-low {
+      display: none !important;
+    }
+
     /* Tombol Pilihan Diameter Pipa Preset */
     .pipe-diam-btn {
       padding: 6px 4px !important;
@@ -1398,6 +1469,11 @@
       <!-- Toggle Titik Pantau Ideal vs Semua -->
       <button id="btn-toggle-nodes" class="btn btn-dark" onclick="toggleNodeVisibility()" title="Ganti antara hanya menampilkan Titik Pantau Ideal atau Semua Node">
         <span>⭐</span> <span id="toggle-nodes-label">Titik Ideal (45)</span>
+      </button>
+
+      <!-- Toggle Label Debit Air di Jalur Pipa -->
+      <button id="btn-toggle-pipe-flow" class="btn btn-dark active" onclick="togglePipeFlowLabels()" title="Tampilkan / Sembunyikan Label Angka Debit Air (L/s) Langsung di Jalur Pipa" style="border-color: rgba(56, 189, 248, 0.7); color: #38bdf8;">
+        <span>🌊</span> <span id="toggle-pipe-flow-label">Debit Pipa (ON)</span>
       </button>
 
       <!-- Export CSV -->
@@ -2483,6 +2559,8 @@
     let pipeLayers = [];
     let nodeLayers = [];
     let pipeLayersMap = new Map();
+    let pipeFlowLabelLayers = [];
+    let showPipeFlowLabels = true;
     let pumpLayers = [];
     let pumpLayersMap = new Map();
     let customPumps = [];
@@ -2634,6 +2712,19 @@
       // Lacak popup terbuka untuk mencegah re-render saat operator membaca info
       map.on('popupopen', () => { _isPopupOpen = true; });
       map.on('popupclose', () => { _isPopupOpen = false; });
+
+      // Perbarui kelas zoom di elemen peta untuk filter label debit adaptif
+      const updateZoomClasses = () => {
+        if (!map) return;
+        const z = map.getZoom();
+        const mapEl = document.getElementById('map');
+        if (!mapEl) return;
+        mapEl.classList.toggle('zoom-overview', z <= 13);
+        mapEl.classList.toggle('zoom-mid', z === 14 || z === 15);
+        mapEl.classList.toggle('zoom-detail', z >= 16);
+      };
+      map.on('zoomend', updateZoomClasses);
+      updateZoomClasses();
     }
 
     // ================= AUTO-REFRESH POLLING =================
@@ -2854,9 +2945,11 @@
       pipeLayers.forEach(l => map.removeLayer(l));
       nodeLayers.forEach(l => map.removeLayer(l));
       if (pumpLayers) pumpLayers.forEach(l => map.removeLayer(l));
+      if (pipeFlowLabelLayers) pipeFlowLabelLayers.forEach(l => map.removeLayer(l));
       pipeLayers = [];
       nodeLayers = [];
       pumpLayers = [];
+      pipeFlowLabelLayers = [];
       pipeLayersMap.clear();
       pumpLayersMap.clear();
 
@@ -2970,6 +3063,44 @@
           startLabel: startLabel,
           endLabel: endLabel
         });
+
+        // Label debit air langsung di jalur pipa (View Map)
+        if (latlngs.length >= 2) {
+          const mid = getPipeMidpoint(latlngs);
+          if (mid) {
+            const flowVal = p.discharge_Lps || 0;
+            let badgeClass = 'pipe-flow-badge';
+            if (isLeak) {
+              badgeClass += ' pipe-flow-badge-leak';
+            } else if (flowVal > 20) {
+              badgeClass += ' pipe-flow-badge-high';
+            } else if (flowVal < 0.3) {
+              badgeClass += ' pipe-flow-badge-low';
+            }
+
+            const flowIcon = L.divIcon({
+              className: 'pipe-flow-div-icon',
+              html: `<div class="${badgeClass}" title="Pipa ${startLabel} ➔ ${endLabel}: ${flowVal.toFixed(1)} L/s">🌊 ${flowVal.toFixed(1)} <small>L/s</small></div>`,
+              iconSize: [60, 20],
+              iconAnchor: [30, 10]
+            });
+
+            const flowMarker = L.marker([mid[0], mid[1]], {
+              icon: flowIcon,
+              interactive: true,
+              zIndexOffset: isLeak ? 500 : (flowVal > 20 ? 300 : 100)
+            });
+
+            flowMarker.on('click', () => {
+              polyline.openPopup(mid);
+            });
+
+            if (showPipeFlowLabels) {
+              flowMarker.addTo(map);
+            }
+            pipeFlowLabelLayers.push(flowMarker);
+          }
+        }
       });
 
       // 2. Gambar Node (Reservoir & Junctions)
@@ -3288,6 +3419,79 @@
         }
       }
       renderNetwork();
+    }
+
+    // Hitung titik tengah fisik (50% jarak kumulatif) dari polyline jalur pipa
+    function getPipeMidpoint(latlngs) {
+      if (!latlngs || latlngs.length === 0) return null;
+      if (latlngs.length === 1) return [latlngs[0][0], latlngs[0][1]];
+      if (latlngs.length === 2) {
+        return [
+          (latlngs[0][0] + latlngs[1][0]) / 2,
+          (latlngs[0][1] + latlngs[1][1]) / 2
+        ];
+      }
+      let totalDist = 0;
+      const segDists = [];
+      for (let i = 0; i < latlngs.length - 1; i++) {
+        const dLat = latlngs[i + 1][0] - latlngs[i][0];
+        const dLng = latlngs[i + 1][1] - latlngs[i][1];
+        const dist = Math.hypot(dLat, dLng);
+        segDists.push(dist);
+        totalDist += dist;
+      }
+      if (totalDist === 0) return [latlngs[0][0], latlngs[0][1]];
+
+      const halfDist = totalDist / 2;
+      let accDist = 0;
+      for (let i = 0; i < segDists.length; i++) {
+        if (accDist + segDists[i] >= halfDist) {
+          const rem = halfDist - accDist;
+          const ratio = segDists[i] > 0 ? (rem / segDists[i]) : 0;
+          return [
+            latlngs[i][0] + ratio * (latlngs[i + 1][0] - latlngs[i][0]),
+            latlngs[i][1] + ratio * (latlngs[i + 1][1] - latlngs[i][1])
+          ];
+        }
+        accDist += segDists[i];
+      }
+      return [latlngs[Math.floor(latlngs.length / 2)][0], latlngs[Math.floor(latlngs.length / 2)][1]];
+    }
+
+    // Toggle Tampilan Label Debit Air Langsung di Peta
+    function togglePipeFlowLabels() {
+      showPipeFlowLabels = !showPipeFlowLabels;
+      const btn = document.getElementById('btn-toggle-pipe-flow');
+      const label = document.getElementById('toggle-pipe-flow-label');
+      const mobLabel = document.getElementById('mobile-toggle-pipe-flow-label');
+
+      if (btn && label) {
+        if (showPipeFlowLabels) {
+          btn.classList.add('active');
+          btn.style.borderColor = 'rgba(56, 189, 248, 0.7)';
+          btn.style.color = '#38bdf8';
+          label.textContent = 'Debit Pipa (ON)';
+        } else {
+          btn.classList.remove('active');
+          btn.style.borderColor = '';
+          btn.style.color = 'var(--text-muted)';
+          label.textContent = 'Debit Pipa (OFF)';
+        }
+      }
+
+      if (mobLabel) {
+        mobLabel.textContent = showPipeFlowLabels ? 'Label Debit Pipa (Aktif)' : 'Label Debit Pipa (Nonaktif)';
+      }
+
+      if (pipeFlowLabelLayers) {
+        pipeFlowLabelLayers.forEach(layer => {
+          if (showPipeFlowLabels) {
+            if (!map.hasLayer(layer)) map.addLayer(layer);
+          } else {
+            if (map.hasLayer(layer)) map.removeLayer(layer);
+          }
+        });
+      }
     }
 
     // Update Angka KPI Header
@@ -7051,6 +7255,9 @@
         </button>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); toggleNodeVisibility();">
           <span>⭐</span> <div><b>Ganti Tampilan Titik</b><br><small style="opacity: 0.8;">Titik Ideal (45) vs Semua Simpul (314)</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" onclick="closeMobileMenuModal(); togglePipeFlowLabels();">
+          <span>🌊</span> <div><b id="mobile-toggle-pipe-flow-label">Label Debit Pipa (Aktif)</b><br><small style="opacity: 0.8;">Tampilkan / sembunyikan angka debit air di peta</small></div>
         </button>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); exportTelemetryBackup();">
           <span>💾</span> <div><b>Cadangkan Data (JSON)</b><br><small style="opacity: 0.8;">Unduh salinan data pengukuran ke HP</small></div>
