@@ -245,18 +245,26 @@
 
       const calc = calculatePipeDischarge(head1, head2, p.length, p.diameter, C);
 
-      // Jangan gunakan tekanan reservoir (0 bar) untuk evaluasi status kebocoran
+      // Hanya gunakan tekanan yang diukur langsung dari sensor (hasTelemetry) untuk evaluasi kebocoran
       const startIsSource = startNode.type === 'reservoir' || startNode.type === 'tank';
       const endIsSource = endNode.type === 'reservoir' || endNode.type === 'tank';
       let minPressure;
       if (startIsSource && endIsSource) {
-        minPressure = undefined; // Kedua ujung reservoir, skip pengecekan tekanan
+        minPressure = undefined; 
       } else if (startIsSource) {
-        minPressure = endNode.pressure || 0;
+        minPressure = endNode.hasTelemetry ? endNode.pressure : undefined;
       } else if (endIsSource) {
-        minPressure = startNode.pressure || 0;
+        minPressure = startNode.hasTelemetry ? startNode.pressure : undefined;
       } else {
-        minPressure = Math.min(startNode.pressure || 0, endNode.pressure || 0);
+        if (startNode.hasTelemetry && endNode.hasTelemetry) {
+          minPressure = Math.min(startNode.pressure, endNode.pressure);
+        } else if (startNode.hasTelemetry) {
+          minPressure = startNode.pressure;
+        } else if (endNode.hasTelemetry) {
+          minPressure = endNode.pressure;
+        } else {
+          minPressure = undefined;
+        }
       }
       const status = evaluatePipeStatus(calc.velocity_mps, minPressure);
 
@@ -268,11 +276,15 @@
         activePipesCount++;
       }
 
-      // Hitung hanya pipa yang KELUAR dari reservoir ke junction (bukan antar-reservoir)
+      // Hitung aliran keluar (net) dari sumber reservoir ke jaringan distribusi
       const startIsReservoir = startNode.type === 'reservoir' || startNode.type === 'tank';
       const endIsReservoir = endNode.type === 'reservoir' || endNode.type === 'tank';
-      if ((startIsReservoir || endIsReservoir) && !(startIsReservoir && endIsReservoir)) {
-        totalDischargeLps += calc.discharge_Lps;
+      if (startIsReservoir && !endIsReservoir) {
+        if (calc.flowDirection === 'forward') totalDischargeLps += calc.discharge_Lps;
+        else if (calc.flowDirection === 'backward') totalDischargeLps -= calc.discharge_Lps;
+      } else if (endIsReservoir && !startIsReservoir) {
+        if (calc.flowDirection === 'backward') totalDischargeLps += calc.discharge_Lps;
+        else if (calc.flowDirection === 'forward') totalDischargeLps -= calc.discharge_Lps;
       }
 
       return {
