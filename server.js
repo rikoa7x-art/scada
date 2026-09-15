@@ -62,10 +62,10 @@ async function syncTelemetryToSupabase(reading) {
 async function deleteTelemetryFromSupabase(nodeId) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
   try {
-    // Saat reset_all (nodeId = null): hapus semua row telemetri KECUALI katalog __SCADA_CUSTOM_NODES__ dan __SCADA_PIPE_OVERRIDES__
+    // Saat reset_all (nodeId = null): hapus semua row telemetri KECUALI katalog __SCADA_CUSTOM_NODES__, __SCADA_PIPE_OVERRIDES__, dan __SCADA_PUMPS__
     const url = nodeId
       ? `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.${encodeURIComponent(nodeId)}`
-      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=neq.${encodeURIComponent('__SCADA_CUSTOM_NODES__')}&node_id=neq.${encodeURIComponent('__SCADA_PIPE_OVERRIDES__')}`;
+      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=neq.${encodeURIComponent('__SCADA_CUSTOM_NODES__')}&node_id=neq.${encodeURIComponent('__SCADA_PIPE_OVERRIDES__')}&node_id=neq.${encodeURIComponent('__SCADA_PUMPS__')}`;
     await fetch(url, {
       method: 'DELETE',
       headers: {
@@ -94,8 +94,8 @@ async function pullTelemetrySnapshotFromSupabase() {
         const readings = {};
         const history = [];
         rows.forEach(r => {
-          if (r.node_id === '__SCADA_CUSTOM_NODES__' || r.node_id === '__SCADA_PIPE_OVERRIDES__' || r.gauge_type === 'custom_nodes_catalog' || r.gauge_type === 'pipe_overrides_catalog' || r.gauge_type === 'custom_junction') {
-            return; // Lewati record katalog kustom & pipe overrides & placeholder titik kustom
+          if (r.node_id === '__SCADA_CUSTOM_NODES__' || r.node_id === '__SCADA_PIPE_OVERRIDES__' || r.node_id === '__SCADA_PUMPS__' || r.gauge_type === 'custom_nodes_catalog' || r.gauge_type === 'pipe_overrides_catalog' || r.gauge_type === 'pumps_catalog' || r.gauge_type === 'custom_junction') {
+            return; // Lewati record katalog kustom, overrides, pompa, & placeholder titik kustom
           }
           readings[r.node_id] = {
             nodeId: r.node_id,
@@ -268,6 +268,66 @@ async function pullPipeOverridesSnapshotFromSupabase() {
   }
   return null;
 }
+
+// ================= SUPABASE SYNC UNTUK KONFIGURASI POMPA =================
+async function syncPumpsCatalogToSupabase(pumps) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    const catalogRow = {
+      node_id: '__SCADA_PUMPS__',
+      node_label: 'KATALOG_STASIUN_POMPA',
+      pressure_bar: 0,
+      pressure_m: 0,
+      confidence: 1,
+      officer_name: 'Sistem SCADA',
+      gauge_type: 'pumps_catalog',
+      notes: JSON.stringify(pumps || []),
+      updated_at: new Date().toISOString()
+    };
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?on_conflict=node_id`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(catalogRow)
+    });
+
+    if (res.ok) {
+      console.log(`⚡ [Server] Sinkron katalog pompa (${(pumps || []).length} unit) ke Supabase Cloud sukses.`);
+    } else {
+      console.warn(`[Server] Supabase pumps sync response: ${res.status}`);
+    }
+  } catch (err) {
+    console.warn('[Server] Supabase pumps sync gagal:', err.message);
+  }
+}
+
+async function pullPumpsSnapshotFromSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.__SCADA_PUMPS__`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0 && rows[0].notes) {
+        const parsed = JSON.parse(rows[0].notes);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('[Server] Gagal memuat snapshot pompa dari Supabase:', err.message);
+  }
+  return null;
+}
+
 
 // Periksa API key saat startup
 if (!NVIDIA_API_KEY) {
@@ -841,6 +901,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         await writePumpsSafe(pumps);
+        await syncPumpsCatalogToSupabase(pumps);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, pump: pumpObj }));
         return;
@@ -852,6 +913,7 @@ const server = http.createServer(async (req, res) => {
 
         if (action === 'reset_all') {
           await writePumpsSafe([]);
+          await syncPumpsCatalogToSupabase([]);
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Seluruh konfigurasi pompa berhasil di-reset' }));
           return;
@@ -866,6 +928,7 @@ const server = http.createServer(async (req, res) => {
         let pumps = await readPumpsSafe();
         pumps = pumps.filter(p => p.id !== pumpId);
         await writePumpsSafe(pumps);
+        await syncPumpsCatalogToSupabase(pumps);
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, message: `Pompa ${pumpId} berhasil dihapus` }));
@@ -995,6 +1058,22 @@ server.listen(PORT, '0.0.0.0', async () => {
   } catch (e) {
     console.warn('[Server] Gagal cek snapshot pipe overrides Supabase:', e.message);
   }
+
+  // Jika data konfigurasi pompa lokal kosong, coba muat snapshot dari Supabase Cloud
+  try {
+    const localPumps = await readPumpsSafe();
+    if (!localPumps || localPumps.length === 0) {
+      console.log('📡 Mengecek cadangan konfigurasi pompa di Supabase Cloud...');
+      const cloudPumps = await pullPumpsSnapshotFromSupabase();
+      if (cloudPumps && cloudPumps.length > 0) {
+        await writePumpsSafe(cloudPumps);
+        console.log(`✅ Berhasil memuat ${cloudPumps.length} konfigurasi pompa dari Supabase Cloud ke server lokal.`);
+      }
+    }
+  } catch (e) {
+    console.warn('[Server] Gagal cek snapshot pompa Supabase:', e.message);
+  }
+
 
   if (process.argv.includes('--open')) {
     const { exec } = require('child_process');

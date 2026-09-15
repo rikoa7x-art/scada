@@ -2258,6 +2258,24 @@
                 return;
               }
 
+              // Deteksi update pada katalog stasiun pompa
+              if (row.node_id === '__SCADA_PUMPS__' || row.gauge_type === 'pumps_catalog') {
+                try {
+                  const incomingPumps = JSON.parse(row.notes);
+                  if (Array.isArray(incomingPumps)) {
+                    customPumps = incomingPumps;
+                    localStorage.setItem('prodist_scada_pumps', JSON.stringify(customPumps));
+                    renderNetwork();
+                    if (document.getElementById('modal-pump-manager')?.classList.contains('active')) {
+                      renderPumpManagerList();
+                      renderPumpAnalysis();
+                    }
+                    console.log(`⚡ Realtime stasiun pompa diperbarui dari Supabase (${customPumps.length} unit).`);
+                  }
+                } catch (e) { console.warn('⚠️ [Realtime] Error memproses update pompa dari Supabase:', e.message); }
+                return;
+              }
+
               // Abaikan record placeholder titik kustom yang belum memiliki bacaan tekanan aktual
               if (row.gauge_type === 'custom_junction') {
                 return;
@@ -2361,7 +2379,7 @@
             let cloudLastUpdated = null;
             
             data.forEach(row => {
-              if (row.node_id === '__SCADA_CUSTOM_NODES__' || row.node_id === '__SCADA_PIPE_OVERRIDES__' || row.gauge_type === 'custom_nodes_catalog' || row.gauge_type === 'pipe_overrides_catalog' || row.gauge_type === 'custom_junction') {
+              if (row.node_id === '__SCADA_CUSTOM_NODES__' || row.node_id === '__SCADA_PIPE_OVERRIDES__' || row.node_id === '__SCADA_PUMPS__' || row.gauge_type === 'custom_nodes_catalog' || row.gauge_type === 'pipe_overrides_catalog' || row.gauge_type === 'pumps_catalog' || row.gauge_type === 'custom_junction') {
                 return; // Lewati record katalog sistem & placeholder titik kustom yang belum diukur
               }
               cloudReadings[row.node_id] = {
@@ -2422,7 +2440,7 @@
     async function syncLocalReadingsToSupabase(readings) {
       if (!supabaseClient || !readings) return;
       const rows = Object.values(readings)
-        .filter(r => r.nodeId !== '__SCADA_CUSTOM_NODES__' && r.nodeId !== '__SCADA_PIPE_OVERRIDES__' && r.gauge_type !== 'custom_nodes_catalog' && r.gauge_type !== 'pipe_overrides_catalog' && r.gauge_type !== 'custom_junction')
+        .filter(r => r.nodeId !== '__SCADA_CUSTOM_NODES__' && r.nodeId !== '__SCADA_PIPE_OVERRIDES__' && r.nodeId !== '__SCADA_PUMPS__' && r.gauge_type !== 'custom_nodes_catalog' && r.gauge_type !== 'pipe_overrides_catalog' && r.gauge_type !== 'pumps_catalog' && r.gauge_type !== 'custom_junction')
         .map(r => ({
           node_id: r.nodeId,
           node_label: r.nodeLabel || r.nodeId,
@@ -3960,7 +3978,8 @@
             .from('scada_telemetry')
             .delete()
             .neq('node_id', '__SCADA_CUSTOM_NODES__')
-            .neq('node_id', '__SCADA_PIPE_OVERRIDES__');
+            .neq('node_id', '__SCADA_PIPE_OVERRIDES__')
+            .neq('node_id', '__SCADA_PUMPS__');
           if (error) console.warn('Gagal reset data di Supabase:', error);
           else console.log('🧹 Berhasil reset data telemetri di Supabase Cloud');
 
@@ -4051,10 +4070,56 @@
     // ================= FITUR MANAJEMEN & SIMULASI STASIUN POMPA DISTRIBUSI =================
 
     /**
-     * Memuat daftar pompa dari Server Lokal, LocalStorage, atau bawaan wilayah aktif
+     * Sinkronisasi data stasiun pompa ke Supabase Cloud
+     */
+    async function syncPumpsToSupabase(pumps) {
+      if (!supabaseClient) return;
+      try {
+        await supabaseClient
+          .from('scada_telemetry')
+          .upsert({
+            node_id: '__SCADA_PUMPS__',
+            node_label: 'KATALOG_STASIUN_POMPA',
+            pressure_bar: 0,
+            pressure_m: 0,
+            confidence: 1,
+            officer_name: 'Sistem SCADA',
+            gauge_type: 'pumps_catalog',
+            notes: JSON.stringify(pumps || []),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'node_id' });
+        console.log(`⚡ [Cloud] Katalog pompa tersinkron ke Supabase Cloud (${(pumps || []).length} unit).`);
+      } catch (e) {
+        console.warn('⚠️ Gagal sinkronisasi data pompa ke Supabase Cloud:', e);
+      }
+    }
+
+    /**
+     * Memuat daftar pompa dari Supabase Cloud, Server Lokal, LocalStorage, atau bawaan wilayah aktif
      */
     async function loadPumpsData() {
       try {
+        // 1. Muat dari Supabase Cloud (jika aktif)
+        let cloudPumps = null;
+        if (supabaseClient) {
+          try {
+            const { data, error } = await supabaseClient
+              .from('scada_telemetry')
+              .select('notes')
+              .eq('node_id', '__SCADA_PUMPS__')
+              .limit(1);
+            if (!error && Array.isArray(data) && data.length > 0 && data[0].notes) {
+              const parsed = JSON.parse(data[0].notes);
+              if (Array.isArray(parsed)) {
+                cloudPumps = parsed;
+                console.log(`⚡ Berhasil memuat ${cloudPumps.length} konfigurasi pompa dari Supabase Cloud.`);
+              }
+            }
+          } catch (e) {
+            console.warn('Gagal membaca data pompa dari Supabase Cloud:', e);
+          }
+        }
+
         let apiPumps = [];
         try {
           const res = await fetch('/api/pumps?v=' + Date.now());
@@ -4062,7 +4127,7 @@
             const data = await res.json();
             if (Array.isArray(data)) apiPumps = data;
           }
-        } catch (e) { /* Server lokal offline — pompa dimuat dari localStorage saja */ }
+        } catch (e) { /* Server lokal offline — pompa dimuat dari cloud/localStorage saja */ }
 
         let hasSavedConfig = false;
         let localPumps = [];
@@ -4088,7 +4153,7 @@
         const pumpMap = new Map();
         // Jika pengguna BELUM PERNAH menyimpan konfigurasi pompa (baru pertama kali buka / setelah reset):
         // Muat pompa bawaan dari file JSON
-        if (!hasSavedConfig) {
+        if (!hasSavedConfig && (!cloudPumps || cloudPumps.length === 0)) {
           filePumps.forEach(p => {
             if (!deletedPumpIds.has(p.id)) {
               pumpMap.set(p.id, {
@@ -4113,7 +4178,16 @@
           });
         }
 
-        // Gabungkan pompa dari backend server jika ada dan belum dihapus
+        // Gabungkan pompa dari Supabase Cloud jika ada dan belum dihapus
+        if (cloudPumps && Array.isArray(cloudPumps)) {
+          cloudPumps.forEach(p => {
+            if (!deletedPumpIds.has(p.id)) {
+              pumpMap.set(p.id, p);
+            }
+          });
+        }
+
+        // Gabungkan pompa dari backend server lokal jika ada dan belum dihapus
         apiPumps.forEach(p => {
           if (!deletedPumpIds.has(p.id)) {
             pumpMap.set(p.id, p);
@@ -4125,10 +4199,11 @@
 
         // Sediakan 1 unit booster bawaan HANYA jika:
         // 1. Belum ada konfigurasi pompa yang pernah disimpan pengguna (!hasSavedConfig)
-        // 2. Pompa default booster belum pernah dihapus pengguna (!deletedPumpIds.has)
-        // 3. Wilayah adalah subang_kota dan pumpMap masih kosong
+        // 2. Tidak ada konfigurasi cloud (!cloudPumps)
+        // 3. Pompa default booster belum pernah dihapus pengguna (!deletedPumpIds.has)
+        // 4. Wilayah adalah subang_kota dan pumpMap masih kosong
         const defaultBoosterId = 'pump-booster-subang-r1';
-        if (pumpMap.size === 0 && !hasSavedConfig && !deletedPumpIds.has(defaultBoosterId) && (!currentAreaId || currentAreaId === 'subang_kota')) {
+        if (pumpMap.size === 0 && !hasSavedConfig && (!cloudPumps || cloudPumps.length === 0) && !deletedPumpIds.has(defaultBoosterId) && (!currentAreaId || currentAreaId === 'subang_kota')) {
           const r1 = (networkData.nodes || []).find(n => n.type === 'reservoir');
           const jMain = (networkData.nodes || []).find(n => n.label === 'J307' || (n.isMonitoringPoint && n.id !== r1?.id));
           if (r1 && jMain) {
@@ -4151,6 +4226,10 @@
         }
 
         customPumps = Array.from(pumpMap.values());
+        // Simpan state terkonsolidasi ke localStorage
+        try {
+          localStorage.setItem('prodist_scada_pumps', JSON.stringify(customPumps));
+        } catch (e) {}
       } catch (err) {
         console.warn('Gagal memuat data pompa:', err);
       }
@@ -4166,7 +4245,7 @@
     }
 
     /**
-     * Menyimpan data pompa ke LocalStorage dan Server
+     * Menyimpan data pompa ke LocalStorage, Supabase Cloud, dan Server Lokal
      */
     async function savePumpToStorage(pumpObj) {
       const idx = customPumps.findIndex(p => p.id === pumpObj.id);
@@ -4189,6 +4268,9 @@
         localStorage.setItem('prodist_scada_pumps', JSON.stringify(customPumps));
       } catch (e) {}
 
+      // Sinkronkan ke Supabase Cloud
+      syncPumpsToSupabase(customPumps).catch(() => {});
+
       try {
         await fetch('/api/pumps', {
           method: 'POST',
@@ -4199,7 +4281,7 @@
     }
 
     /**
-     * Menghapus pompa dari penyimpanan
+     * Menghapus pompa dari penyimpanan (LocalStorage, Supabase Cloud, dan Server Lokal)
      */
     async function deletePumpFromStorage(pumpId) {
       customPumps = customPumps.filter(p => p.id !== pumpId);
@@ -4218,6 +4300,9 @@
         if (!deletedIds.includes(pumpId)) deletedIds.push(pumpId);
         localStorage.setItem('prodist_scada_deleted_pumps', JSON.stringify(deletedIds));
       } catch (e) {}
+
+      // Sinkronkan hasil penghapusan ke Supabase Cloud
+      syncPumpsToSupabase(customPumps).catch(() => {});
 
       try {
         await fetch(`/api/pumps?id=${encodeURIComponent(pumpId)}`, { method: 'DELETE' });
@@ -4254,7 +4339,7 @@
     }
 
     /**
-     * Reset konfigurasi pompa ke kondisi awal
+     * Reset konfigurasi pompa ke kondisi awal (Lokal, Supabase Cloud, dan Server)
      */
     async function resetPumpsToDefault() {
       if (!confirm('Apakah Anda yakin ingin me-reset konfigurasi pompa ke kondisi default wilayah ini?')) return;
@@ -4264,6 +4349,8 @@
       localStorage.removeItem('prodist_scada_pumps');
       localStorage.removeItem('prodist_scada_deleted_pumps');
       customPumps = [];
+      // Reset juga di Supabase Cloud
+      await syncPumpsToSupabase([]);
       await loadPumpsData();
       renderNetwork();
       renderPumpManagerList();
