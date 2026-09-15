@@ -136,3 +136,45 @@ Aplikasi kini mendukung analisa jaringan pipa untuk **daerah / cabang pelayanan 
 * Sistem langsung menjalankan perhitungan hidrolik Hazen-Williams untuk estimasi tekanan dan aliran air.
 * Anda dapat dengan mudah beralih kembali ke Subang Kota atau wilayah lain kapan saja melalui menu **"📂 Wilayah Tersimpan"**.
 
+---
+
+## 9. Panduan Sistem Pemompaan (Booster & In-Line Pump) & Analisis Tekanan
+
+Aplikasi kini mendukung pemodelan dan analisis komprehensif untuk **Sistem Penyediaan Air Minum (SPAM) Pemompaan dan Hibrida (Gravitasi + Pompa)**:
+
+### A. Perbedaan Mendasar: Gravitasi vs Pemompaan
+1. **Sistem Gravitasi Murni**:
+   * Mengandalkan energi potensial beda elevasi: \(H_{\text{hilir}} = Z_{\text{sumber}} - h_f\).
+   * Tekanan pelanggan: \(P = (H - Z) / 10{,}197\) bar.
+   * Sangat hemat biaya energi listrik, namun daerah perbukitan dan ujung pipa transmisi panjang rawan mengalami defisit tekanan / air mati (\(P < 0{,}5\) bar).
+2. **Sistem Pemompaan (Booster & Transmisi)**:
+   * Menambahkan energi mekanis buatan (*Head Pompa* / \(H_p\)) ke dalam aliran:
+     $$H_{\text{tekan}} = H_{\text{hisap}} + H_p$$
+   * Kenaikan tekanan langsung: \(\Delta P = H_p / 10{,}197\) bar.
+   * Tekanan di hilir pompa meningkat pesat sehingga mampu melayani daerah tinggi dan mengatasi gesekan pipa panjang.
+   * Sistem otomatis menghitung kebutuhan daya motor listrik (\(P_e\) kW / HP) dan konsumsi energi spesifik (SEC dalam \(\text{kWh/m}^3\)).
+
+### B. Cara Menggunakan Fitur Pompa di SCADA:
+1. **Melihat Status Pompa**:
+   * Klik tombol **"⚙️ Pompa (X)"** pada header toolbar atas atau pilih menu pompa di versi smartphone.
+   * Pada peta, stasiun pompa ditandai dengan ikon lingkaran **⚙️** di antara simpul hisap dan tekan.
+   * Ikon berdenyut (*pulsing*) dengan garis warna oranye keemasan menandakan pompa **aktif menyala (*ON*)**.
+2. **Saklar Cepat Nyalakan / Matikan (ON / OFF)**:
+   * Klik marker pompa pada peta, lalu klik tombol **"⏹️ Matikan"** atau **"▶️ Nyalakan"**.
+   * Amati seketika bagaimana warna pipa di hilir pompa dan angka tekanan di titik pantau berubah secara langsung!
+3. **Menambah / Mengubah Konfigurasi Pompa**:
+   * Klik tombol **"🔧 Konfigurasi"** pada popup peta atau buka tab **"Pasang Pompa Baru"** di modal pompa.
+   * Atur:
+     * **Simpul Hisap (*Suction*) & Simpul Tekan (*Discharge*)**.
+     * **Head Dorong Desain (\(H_d\))**: Head angkat pompa dalam meter kolom air (contoh: \(30 - 80\text{ m}\)).
+     * **Debit Desain (\(Q_d\))**: Kapasitas aliran pompa (contoh: \(20 - 60\text{ L/s}\)).
+     * **Kecepatan Putar VFD**: Pengali putaran pompa (\(70\% - 120\%\)) untuk simulasi *Variable Frequency Drive*.
+     * **Efisiensi Pompa (%)**: Standar efisiensi teknis motor & pompa (default: \(75\%\)).
+4. **Analisis Tekanan & Efisiensi Biaya Energi Listrik**:
+   * Buka tab **"📊 Analisis Tekanan & Daya"** pada modal pompa untuk melihat:
+     * Status sistem (Gravitasi Murni vs Hibrida).
+     * Total daya listrik yang terserap (\(\text{kW}\) dan \(\text{HP}\)).
+     * Total debit yang dipasok oleh sistem pemompaan (\(\text{L/s}\) & \(\text{m}^3/\text{jam}\)).
+     * Estimasi biaya tagihan listrik PLN per jam, per hari, dan proyeksi per bulan.
+
+

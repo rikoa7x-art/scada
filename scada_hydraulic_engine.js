@@ -128,6 +128,17 @@
    * Menghitung Status Operasional Pipa berdasarkan standar hidrolika PDAM
    */
   function evaluatePipeStatus(velocity_mps, pressureBar) {
+    // Cek no-flow TERLEBIH DAHULU: jika tidak ada aliran, tidak bisa dideteksi sebagai bocor
+    if (velocity_mps === 0) {
+      return {
+        code: 'NO_FLOW',
+        label: 'Tidak Ada Aliran (Statis/Kran Tertutup)',
+        color: '#94A3B8',
+        severity: 'idle'
+      };
+    }
+
+    // Baru cek tekanan rendah (hanya relevan jika pipa sedang mengalir)
     if (pressureBar !== undefined && pressureBar < 0.5) {
       return {
         code: 'LEAK_WARNING',
@@ -155,15 +166,6 @@
       };
     }
 
-    if (velocity_mps === 0) {
-      return {
-        code: 'NO_FLOW',
-        label: 'Tidak Ada Aliran (Statis/Kran Tertutup)',
-        color: '#94A3B8',
-        severity: 'idle'
-      };
-    }
-
     return {
       code: 'NORMAL',
       label: 'Aliran Normal Optimal (0.3 - 2.0 m/s)',
@@ -173,9 +175,102 @@
   }
 
   /**
-   * State Estimation Jaringan SCADA Kota Subang
+   * Menghitung Karakteristik Hidrolika dan Energi Pompa
    */
-  function solveScadaNetwork(nodes, pipes, telemetryReadings = {}) {
+  function calculatePumpHydraulics(pump, suctionNode, dischargeNode) {
+    const isOn = pump.status !== 'off';
+    const speed = Math.max(0.2, Math.min(2.0, Number(pump.speed) || 1.0));
+    const designHead = Math.max(5.0, Number(pump.designHead) || 40.0);
+    const designFlow = Math.max(1.0, Number(pump.designFlow) || 30.0);
+    const efficiency = Math.max(0.2, Math.min(0.95, Number(pump.efficiency) || 0.75));
+
+    if (!isOn) {
+      return {
+        ...pump,
+        status: 'off',
+        speed,
+        headBoost_m: 0,
+        pressureBoost_bar: 0,
+        discharge_Lps: 0,
+        discharge_m3h: 0,
+        hydraulicPower_kW: 0,
+        motorPower_kW: 0,
+        motorPower_HP: 0,
+        sec_kWh_m3: 0,
+        suctionHead_m: suctionNode ? (suctionNode.totalHead || suctionNode.elevation) : 0,
+        dischargeHead_m: dischargeNode ? (dischargeNode.totalHead || dischargeNode.elevation) : 0,
+        suctionPressure_bar: suctionNode ? (suctionNode.pressure || 0) : 0,
+        dischargePressure_bar: dischargeNode ? (dischargeNode.pressure || 0) : 0,
+        statusColor: '#94A3B8',
+        statusLabel: 'Mati / Standby'
+      };
+    }
+
+    // Model Kurva Standar EPANET: H = H0 - a*Q^2
+    // Di mana H0 = 1.33 * Hdes, a = 0.33 * Hdes / Qdes^2
+    const h0 = 1.333 * designHead;
+    const aCoeff = (0.333 * designHead) / Math.pow(designFlow, 2);
+
+    // Debit aktual operasi (L/s) - mendekati debit desain disesuaikan kecepatan VFD
+    let actualFlow = designFlow * speed;
+    let headBoost = Math.max(5.0, (Math.pow(speed, 2) * h0) - (aCoeff * Math.pow(actualFlow, 2)));
+
+    // Jika ada kurva kustom 1-titik atau 3-titik
+    if (pump.pumpCurve && Array.isArray(pump.pumpCurve) && pump.pumpCurve.length > 0) {
+      const pt = pump.pumpCurve[0];
+      if (pt.flow && pt.head) {
+        actualFlow = pt.flow * speed;
+        headBoost = pt.head * Math.pow(speed, 2);
+      }
+    }
+
+    const pressureBoost_bar = Math.round((headBoost / HEAD_PER_BAR) * 100) / 100;
+    
+    // Daya hidrolik air (kW): Pw = rho * g * Q * H / 1000 = Q (L/s) * H (m) / 102
+    const hydraulicPower_kW = (actualFlow * headBoost) / 102.0;
+
+    // Daya listrik motor (kW): Pe = Pw / total efficiency
+    const motorPower_kW = hydraulicPower_kW / efficiency;
+    const motorPower_HP = motorPower_kW * 1.341;
+
+    // Specific Energy Consumption (SEC): kWh / m3
+    const discharge_m3h = actualFlow * 3.6;
+    const sec_kWh_m3 = discharge_m3h > 0 ? (motorPower_kW / discharge_m3h) : 0;
+
+    const suctionHead = suctionNode ? (suctionNode.totalHead || suctionNode.elevation) : 0;
+    const suctionPres = suctionNode ? (suctionNode.pressure || 0) : 0;
+    const dischargeHead = suctionHead + headBoost;
+    const dischargeElev = dischargeNode ? dischargeNode.elevation : 0;
+    const dischargePres = Math.max(0, Math.round(((dischargeHead - dischargeElev) / HEAD_PER_BAR) * 100) / 100);
+
+    return {
+      ...pump,
+      status: 'on',
+      speed,
+      designHead,
+      designFlow,
+      efficiency,
+      headBoost_m: Math.round(headBoost * 100) / 100,
+      pressureBoost_bar,
+      discharge_Lps: Math.round(actualFlow * 100) / 100,
+      discharge_m3h: Math.round(discharge_m3h * 10) / 10,
+      hydraulicPower_kW: Math.round(hydraulicPower_kW * 100) / 100,
+      motorPower_kW: Math.round(motorPower_kW * 100) / 100,
+      motorPower_HP: Math.round(motorPower_HP * 10) / 10,
+      sec_kWh_m3: Math.round(sec_kWh_m3 * 1000) / 1000,
+      suctionHead_m: Math.round(suctionHead * 100) / 100,
+      dischargeHead_m: Math.round(dischargeHead * 100) / 100,
+      suctionPressure_bar: suctionPres,
+      dischargePressure_bar: dischargePres,
+      statusColor: '#10B981',
+      statusLabel: 'Beroperasi (Normal)'
+    };
+  }
+
+  /**
+   * State Estimation Jaringan SCADA Kota Subang (Mendukung SPAM Gravitasi & Pemompaan)
+   */
+  function solveScadaNetwork(nodes, pipes, telemetryReadings = {}, pumps = []) {
     const nodeMap = new Map();
 
     const updatedNodes = nodes.map(n => {
@@ -183,6 +278,7 @@
       const tele = telemetryReadings[copy.id];
 
       if (tele && tele.pressure_bar !== undefined) {
+        // PRIORITAS 1: Data sensor telemetri lapangan (paling akurat)
         copy.hasTelemetry = true;
         copy.measuredPressure = tele.pressure_bar;
         copy.telemetryTimestamp = tele.timestamp;
@@ -190,21 +286,56 @@
         copy.totalHead = calculateTotalHead(copy.elevation, tele.pressure_bar);
         copy.pressure = tele.pressure_bar;
       } else if (copy.type === 'reservoir' || copy.type === 'tank') {
+        // PRIORITAS 2: Sumber air (reservoir/tangki) - head = elevasi permukaan air
         copy.hasTelemetry = false;
         copy.totalHead = copy.elevation;
         copy.pressure = 0;
-      } else {
+      } else if (copy.pressure !== undefined && copy.pressure > 0) {
+        // PRIORITAS 3: Data tekanan pre-computed dari EPANET (lebih akurat dari estimasi jarak)
+        // Ini adalah hasil solver Hardy-Cross EPANET yang sudah valid - JANGAN ditimpa estimasi kasar
         copy.hasTelemetry = false;
-        copy.totalHead = copy.totalHead || (copy.elevation + (copy.pressure ? copy.pressure * HEAD_PER_BAR : 0));
+        copy.hasEpanetPressure = true;
+        copy.totalHead = Math.round((copy.elevation + copy.pressure * HEAD_PER_BAR) * 100) / 100;
+      } else {
+        // PRIORITAS 4: Node tanpa data apapun - akan diestimasi dari propagasi
+        copy.hasTelemetry = false;
+        copy.hasEpanetPressure = false;
+        copy.totalHead = copy.elevation; // Inisialisasi ke elevasi saja
+        copy.pressure = 0;
       }
       nodeMap.set(copy.id, copy);
       return copy;
     });
 
-    const knownNodes = updatedNodes.filter(n => n.hasTelemetry || n.type === 'reservoir');
+    // 1. Proses Evaluasi Hidrolika Pompa
+    const solvedPumps = (pumps || []).map(p => {
+      const suctionNode = nodeMap.get(p.startNodeId);
+      const dischargeNode = nodeMap.get(p.endNodeId);
+      const pumpResult = calculatePumpHydraulics(p, suctionNode, dischargeNode);
+
+      // Jika pompa aktif: override head discharge node.
+      // Telemetri lapangan tetap lebih prioritas daripada pompa.
+      if (pumpResult.status === 'on' && dischargeNode) {
+        if (!dischargeNode.hasTelemetry) {
+          dischargeNode.totalHead = pumpResult.dischargeHead_m;
+          dischargeNode.pressure = pumpResult.dischargePressure_bar;
+          dischargeNode.isPumpBoosted = true;
+          dischargeNode.hasEpanetPressure = false; // pompa menggantikan data EPANET statis
+          dischargeNode.pumpSourceLabel = p.label || 'Pompa';
+        }
+      }
+
+      return pumpResult;
+    });
+
+    // 2. Propagasi Head ke Simpul-Simpul yang Benar-Benar Tidak Punya Data
+    //    HANYA node yang tidak hasTelemetry, bukan reservoir, bukan isPumpBoosted,
+    //    DAN tidak memiliki data tekanan EPANET pre-computed (hasEpanetPressure=false)
+    const knownNodes = updatedNodes.filter(n => n.hasTelemetry || n.type === 'reservoir' || n.isPumpBoosted);
     if (knownNodes.length > 0) {
       updatedNodes.forEach(n => {
-        if (!n.hasTelemetry && n.type === 'junction') {
+        if (!n.hasTelemetry && n.type === 'junction' && !n.isPumpBoosted && !n.hasEpanetPressure) {
+          // Node ini benar-benar tidak punya data -> estimasi dari simpul referensi terdekat
           let closest = null;
           let minDist = Infinity;
           knownNodes.forEach(kn => {
@@ -222,6 +353,9 @@
             const estimatedHeadLoss = Math.min(approxDistKm * 3.0, 15.0);
             n.totalHead = Math.max(n.elevation, closest.totalHead - estimatedHeadLoss);
             n.pressure = Math.max(0, Math.round(((n.totalHead - n.elevation) / HEAD_PER_BAR) * 100) / 100);
+            if (closest.isPumpBoosted) {
+              n.isInPumpZone = true;
+            }
           }
         }
       });
@@ -231,6 +365,7 @@
     let leakWarningsCount = 0;
     let activePipesCount = 0;
 
+    // 3. Evaluasi Aliran Seluruh Ruas Pipa
     const updatedPipes = pipes.map(p => {
       const startNode = nodeMap.get(p.startNodeId);
       const endNode = nodeMap.get(p.endNodeId);
@@ -276,15 +411,18 @@
         activePipesCount++;
       }
 
-      // Hitung aliran keluar (net) dari sumber reservoir ke jaringan distribusi
-      const startIsReservoir = startNode.type === 'reservoir' || startNode.type === 'tank';
-      const endIsReservoir = endNode.type === 'reservoir' || endNode.type === 'tank';
+      // Hitung aliran keluar (net) dari sumber reservoir/tangki ke jaringan distribusi
+      // PERBAIKAN Bug #3: Hanya hitung aliran MASUK jaringan (forward dari reservoir)
+      // Aliran backward ke reservoir diabaikan karena pada sistem terbuka (gravitasi/pompa dari reservoir),
+      // air tidak mungkin mengalir balik ke reservoir — itu artefak dari estimasi head yang tidak akurat
+      const startIsReservoir = startIsSource; // alias agar konsisten dengan konteks di bawah
+      const endIsReservoir = endIsSource;
       if (startIsReservoir && !endIsReservoir) {
         if (calc.flowDirection === 'forward') totalDischargeLps += calc.discharge_Lps;
-        else if (calc.flowDirection === 'backward') totalDischargeLps -= calc.discharge_Lps;
+        // Backward dari J ke RES diabaikan: tidak mungkin secara fisik untuk sistem gravitasi
       } else if (endIsReservoir && !startIsReservoir) {
         if (calc.flowDirection === 'backward') totalDischargeLps += calc.discharge_Lps;
-        else if (calc.flowDirection === 'forward') totalDischargeLps -= calc.discharge_Lps;
+        // Forward dari jaringan ke RES diabaikan: sama, return-flow tidak mungkin
       }
 
       return {
@@ -300,6 +438,36 @@
       };
     });
 
+    // 4. Hitung Kontribusi Pompa terhadap Pasokan Air
+    // Pompa dari reservoir masuk ke totalDischarge jika:
+    // - Pipa langsung dari reservoir ke jaringan tidak mengalir (Q=0), ATAU
+    // - Tidak ada pipa langsung dari reservoir ke discharge node pompa
+    // Ini mencegah double-counting sekaligus memastikan jaringan pump-only terhitung pasokannya
+    let totalPumpDischargeLps = 0;
+    let totalPumpPowerKw = 0;
+    solvedPumps.forEach(pump => {
+      if (pump.status === 'on') {
+        totalPumpPowerKw += pump.motorPower_kW || 0;
+        totalPumpDischargeLps += pump.discharge_Lps || 0;
+
+        const sNode = nodeMap.get(pump.startNodeId);
+        if (sNode && (sNode.type === 'reservoir' || sNode.type === 'tank')) {
+          // Cek apakah pipa langsung reservoir->discharge node sudah menghitung aliran ini
+          const directPipes = updatedPipes.filter(p =>
+            (p.startNodeId === pump.startNodeId && p.endNodeId === pump.endNodeId) ||
+            (p.startNodeId === pump.endNodeId && p.endNodeId === pump.startNodeId)
+          );
+          const directFlowLps = directPipes.reduce((s, p) => s + (p.discharge_Lps || 0), 0);
+
+          // Jika tidak ada pipa langsung yang mengalir, pompa adalah satu-satunya sumber pasokan
+          // Tambahkan debit pompa ke totalDischarge (tidak ada double-counting)
+          if (directFlowLps === 0) {
+            totalDischargeLps += pump.discharge_Lps || 0;
+          }
+        }
+      }
+    });
+
     const junctions = updatedNodes.filter(n => n.type === 'junction');
     const totalPressure = junctions.reduce((acc, n) => acc + (n.pressure || 0), 0);
     const avgPressure = junctions.length > 0 ? (totalPressure / junctions.length) : 0;
@@ -308,6 +476,10 @@
       activeSensorsCount: Object.keys(telemetryReadings).length,
       totalNodes: nodes.length,
       totalPipes: pipes.length,
+      totalPumps: solvedPumps.length,
+      activePumps: solvedPumps.filter(p => p.status === 'on').length,
+      totalPumpPowerKw: Math.round(totalPumpPowerKw * 10) / 10,
+      totalPumpDischargeLps: Math.round(totalPumpDischargeLps * 100) / 100,
       totalDischargeLps: Math.round(totalDischargeLps * 100) / 100,
       totalDischarge_m3h: Math.round(totalDischargeLps * 3.6 * 10) / 10,
       avgPressureBar: Math.round(avgPressure * 100) / 100,
@@ -319,6 +491,7 @@
     return {
       nodes: updatedNodes,
       pipes: updatedPipes,
+      pumps: solvedPumps,
       summary
     };
   }
@@ -326,6 +499,7 @@
   return {
     calculateTotalHead,
     calculatePipeDischarge,
+    calculatePumpHydraulics,
     evaluatePipeStatus,
     solveScadaNetwork,
     getInternalDiameterMeters,
@@ -334,3 +508,4 @@
   };
 
 });
+

@@ -1250,6 +1250,93 @@
     .scada-pressure-tooltip::before {
       border-bottom-color: rgba(56, 189, 248, 0.4); /* tooltip arrow */
     }
+
+    /* Styling Stasiun Pompa Distribusi */
+    .scada-pump-div-icon {
+      background: transparent;
+      border: none;
+    }
+    .scada-pump-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .scada-pump-badge:hover {
+      transform: scale(1.18);
+      z-index: 1000 !important;
+    }
+    .pump-active-pulse {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: 2.5px solid #fbbf24;
+      color: #ffffff;
+      animation: pumpPulseAnim 1.6s infinite alternate ease-in-out;
+    }
+    .pump-idle-badge {
+      background: #1e293b;
+      border: 2px solid #64748b;
+      color: #94a3b8;
+    }
+    .pump-badge-text {
+      font-size: 8.5px;
+      font-weight: 800;
+      line-height: 1;
+      margin-top: 1px;
+      letter-spacing: 0.3px;
+    }
+    @keyframes pumpPulseAnim {
+      0% {
+        box-shadow: 0 0 6px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0.3);
+      }
+      100% {
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.9), 0 0 0 10px rgba(245, 158, 11, 0);
+      }
+    }
+    .pump-status-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .pump-status-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .pump-status-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155;
+      transition: .25s;
+      border-radius: 24px;
+      border: 1px solid #475569;
+    }
+    .pump-status-slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .25s;
+      border-radius: 50%;
+    }
+    input:checked + .pump-status-slider {
+      background-color: #10b981;
+      border-color: #34d399;
+    }
+    input:checked + .pump-status-slider:before {
+      transform: translateX(20px);
+    }
   </style>
 </head>
 <body>
@@ -1284,6 +1371,11 @@
       <!-- Tambah Titik Junction Button -->
       <button class="btn btn-dark" onclick="openAddJunctionModal()" title="Tambah Titik Junction / Manometer Pengukuran Tekanan Baru" style="border-color: rgba(168, 85, 247, 0.6); color: #c084fc;">
         <span>➕</span> Tambah Titik
+      </button>
+
+      <!-- Kelola Pompa Distribusi Button -->
+      <button class="btn btn-dark" onclick="openPumpManagerModal()" title="Konfigurasi & Simulasi Stasiun Pompa Distribusi (Booster / In-Line)" style="border-color: rgba(245, 158, 11, 0.6); color: #fbbf24;">
+        <span>⚙️</span> Pompa (<span id="active-pumps-badge-count">0</span>)
       </button>
 
 
@@ -1890,6 +1982,174 @@
     </div>
   </div>
 
+  <!-- Modal Manajemen & Simulasi Stasiun Pompa Distribusi -->
+  <div class="modal-backdrop" id="modal-pump-manager" onclick="if(event.target===this) closePumpManagerModal()">
+    <div class="modal-box" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 style="color: #fbbf24;"><span>⚙️</span> Stasiun Pompa Distribusi (Booster & In-Line)</h3>
+        <button class="modal-close" onclick="closePumpManagerModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tabs -->
+        <div class="modal-tab-bar">
+          <button class="modal-tab-btn active" id="tab-btn-pumps-list" onclick="switchPumpModalTab('list')">
+            <span>📋</span> Daftar & Saklar Pompa
+          </button>
+          <button class="modal-tab-btn" id="tab-btn-pumps-form" onclick="switchPumpModalTab('form')">
+            <span id="tab-pump-form-icon">➕</span> <span id="tab-pump-form-title">Pasang Pompa Baru</span>
+          </button>
+          <button class="modal-tab-btn" id="tab-btn-pumps-analysis" onclick="switchPumpModalTab('analysis')">
+            <span>📊</span> Analisis Tekanan & Daya
+          </button>
+        </div>
+
+        <!-- TAB 1: Daftar & Saklar Pompa -->
+        <div id="section-pumps-list">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+              Unit pompa yang terpasang pada jaringan wilayah aktif:
+            </p>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-dark btn-xs" style="color: #34d399; border-color: rgba(52, 211, 153, 0.4);" onclick="toggleAllPumps(true)">
+                ⚡ Nyalakan Semua
+              </button>
+              <button class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: rgba(244, 63, 94, 0.4);" onclick="toggleAllPumps(false)">
+                ⏹️ Matikan Semua
+              </button>
+            </div>
+          </div>
+
+          <div id="pumps-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto;">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <button class="btn btn-dark btn-xs" onclick="resetPumpsToDefault()">
+              <span>🔄</span> Reset Pompa Bawaan Wilayah
+            </button>
+            <button class="btn btn-accent btn-sm" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #fbbf24;" onclick="openNewPumpForm()">
+              <span>➕</span> Tambah Stasiun Pompa Baru
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 2: Formulir Tambah / Edit Pompa -->
+        <div id="section-pumps-form" style="display: none;">
+          <input type="hidden" id="form-pump-id">
+          
+          <div class="input-group">
+            <label for="form-pump-label">Nama / Label Stasiun Pompa:</label>
+            <input type="text" id="form-pump-label" class="input-control" placeholder="Contoh: Pompa Booster Sukamulya" style="font-weight: 600;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="input-group">
+              <label for="form-pump-suction-node">Simpul Sisi Hisap (Suction Node):</label>
+              <select id="form-pump-suction-node" class="input-control" onchange="onPumpNodesChanged()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="form-pump-discharge-node">Simpul Sisi Tekan (Discharge Node):</label>
+              <select id="form-pump-discharge-node" class="input-control" onchange="onPumpNodesChanged()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div class="input-group">
+              <label for="form-pump-head">Head Dorong Desain (m):</label>
+              <input type="number" id="form-pump-head" class="input-control" value="40" min="5" max="300" step="1" oninput="updatePumpFormPreview()" style="font-weight: 700; color: #38bdf8;">
+              <small style="font-size: 10.5px; color: var(--text-muted);"><span id="form-pump-head-bar">3.92</span> bar lift</small>
+            </div>
+            <div class="input-group">
+              <label for="form-pump-flow">Debit Desain (L/s):</label>
+              <input type="number" id="form-pump-flow" class="input-control" value="30" min="1" max="1000" step="1" oninput="updatePumpFormPreview()" style="font-weight: 700; color: #38bdf8;">
+              <small style="font-size: 10.5px; color: var(--text-muted);"><span id="form-pump-flow-m3h">108</span> m³/jam</small>
+            </div>
+            <div class="input-group">
+              <label for="form-pump-speed">Kecepatan Putar / VFD:</label>
+              <select id="form-pump-speed" class="input-control" onchange="updatePumpFormPreview()">
+                <option value="0.7">70% (Hemat Energi)</option>
+                <option value="0.8">80% (Beban Rendah)</option>
+                <option value="0.9">90% (Normal Rendah)</option>
+                <option value="1.0" selected>100% (Kecepatan Penuh)</option>
+                <option value="1.1">110% (Beban Puncak)</option>
+                <option value="1.2">120% (Maksimum)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="input-group">
+              <label for="form-pump-efficiency">Efisiensi Pompa (%):</label>
+              <input type="number" id="form-pump-efficiency" class="input-control" value="75" min="20" max="95" step="1" oninput="updatePumpFormPreview()">
+              <small style="font-size: 10.5px; color: var(--text-muted);">Standar pompa PDAM: 70% - 85%</small>
+            </div>
+            <div class="input-group">
+              <label>Status Operasional Awal:</label>
+              <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;">
+                  <input type="radio" name="form-pump-status" value="on" checked onchange="updatePumpFormPreview()">
+                  <span style="color: #34d399; font-weight: 600;">🟢 Menyala (ON)</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;">
+                  <input type="radio" name="form-pump-status" value="off" onchange="updatePumpFormPreview()">
+                  <span style="color: #94a3b8; font-weight: 600;">⚫ Mati (OFF)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Preview Simulasi Pompa -->
+          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 10px 14px; margin: 10px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <b style="font-size: 12px; color: #fbbf24;">⚡ ESTIMASI OUTPUT & ENERGI POMPA</b>
+              <span id="form-preview-status-badge" class="scada-badge" style="background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981;">Siap Operasi</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11.5px;">
+              <div>
+                <span style="color: var(--text-muted);">Beda Tekanan Dorong:</span><br>
+                <b id="form-preview-boost" style="font-size: 14px; color: #38bdf8;">+40.0 m (+3.92 bar)</b>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Estimasi Debit Pompa:</span><br>
+                <b id="form-preview-flow" style="font-size: 14px; color: #ffffff;">30.0 L/s (108.0 m³/jam)</b>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Daya Listrik Motor:</span><br>
+                <b id="form-preview-power" style="font-size: 14px; color: #fbbf24;">15.7 kW (21.0 HP)</b>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Konsumsi Spesifik (SEC):</span><br>
+                <b id="form-preview-sec" style="font-size: 14px; color: #ffffff;">0.145 kWh/m³</b>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn btn-dark" style="flex: 1; justify-content: center;" onclick="switchPumpModalTab('list')">
+              Batal
+            </button>
+            <button type="button" class="btn btn-accent" style="flex: 2; justify-content: center; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #fbbf24;" onclick="savePumpFromModal()">
+              <span>💾</span> Simpan & Terapkan Pompa
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 3: Analisis Tekanan & Energi -->
+        <div id="section-pumps-analysis" style="display: none;">
+          <div id="pumps-analysis-content">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- Leaflet JS (Lokal Offline dengan Fallback CDN) -->
   <script src="leaflet/leaflet.js"></script>
   <script>
@@ -2186,6 +2446,11 @@
     let pipeLayers = [];
     let nodeLayers = [];
     let pipeLayersMap = new Map();
+    let pumpLayers = [];
+    let pumpLayersMap = new Map();
+    let customPumps = [];
+    let _lastSolvedPumps = [];
+    let _lastSolvedSummary = null;
     let _pipeHighlightTimer = null;
     let _debounceTimer = null; // Timer debounce untuk filter pencarian
     let _autoRefreshTimer = null; // Timer auto-refresh polling
@@ -2422,6 +2687,9 @@
         // Muat data telemetri tersimpan (Supabase Cloud -> Server Lokal -> LocalStorage)
         await loadTelemetryData();
 
+        // Muat konfigurasi stasiun pompa distribusi
+        await loadPumpsData();
+
         populateNodeDropdown(networkData.nodes);
         renderNetwork();
       } catch (err) {
@@ -2548,16 +2816,23 @@
       // Bersihkan layer sebelumnya
       pipeLayers.forEach(l => map.removeLayer(l));
       nodeLayers.forEach(l => map.removeLayer(l));
+      if (pumpLayers) pumpLayers.forEach(l => map.removeLayer(l));
       pipeLayers = [];
       nodeLayers = [];
+      pumpLayers = [];
       pipeLayersMap.clear();
+      pumpLayersMap.clear();
 
       // Jalankan Engine Hidrolik SCADA
+      const effectivePumps = getEffectivePumps();
       const solved = window.ScadaHydraulicEngine.solveScadaNetwork(
         networkData.nodes,
         networkData.pipes,
-        telemetryReadings
+        telemetryReadings,
+        effectivePumps
       );
+      _lastSolvedPumps = solved.pumps || [];
+      _lastSolvedSummary = solved.summary;
 
       // Buat nodeMap untuk lookup O(1) di rendering pipa
       const nodeMap = new Map();
@@ -2866,6 +3141,86 @@
         }
       });
 
+      // 3. Gambar Seluruh Stasiun Pompa Distribusi (Booster & In-Line)
+      (solved.pumps || []).forEach(pump => {
+        const sNode = nodeMap.get(pump.startNodeId);
+        const eNode = nodeMap.get(pump.endNodeId);
+        if (!sNode || !eNode) return;
+
+        const midLat = (sNode.lat + eNode.lat) / 2;
+        const midLng = (sNode.lng + eNode.lng) / 2;
+        allBounds.push([midLat, midLng]);
+
+        const sLabel = escapeHtml(sNode.label || 'Hisap');
+        const eLabel = escapeHtml(eNode.label || 'Tekan');
+        const isPumpOn = pump.status === 'on';
+
+        // Garis koneksi hisap -> tekan
+        const pumpLine = L.polyline([[sNode.lat, sNode.lng], [eNode.lat, eNode.lng]], {
+          color: isPumpOn ? '#f59e0b' : '#64748b',
+          weight: 4,
+          dashArray: isPumpOn ? '6, 6' : '3, 6',
+          opacity: 0.95,
+          className: isPumpOn ? 'pipe-flowing-active' : ''
+        }).addTo(map);
+        pumpLayers.push(pumpLine);
+
+        // Marker Ikon Pompa di Titik Tengah
+        const pumpIcon = L.divIcon({
+          className: 'scada-pump-div-icon',
+          html: `
+            <div class="scada-pump-badge ${isPumpOn ? 'pump-active-pulse' : 'pump-idle-badge'}" title="${escapeHtml(pump.label)}">
+              <span style="font-size: 15px; line-height: 1;">⚙️</span>
+              <span class="pump-badge-text">${isPumpOn ? ('+' + pump.headBoost_m + 'm') : 'OFF'}</span>
+            </div>
+          `,
+          iconSize: [42, 42],
+          iconAnchor: [21, 21]
+        });
+
+        const pumpMarker = L.marker([midLat, midLng], { icon: pumpIcon }).addTo(map);
+
+        pumpMarker.bindTooltip(`
+          <div style="font-family: var(--font-sans); font-size: 11.5px; line-height: 1.4;">
+            <b>⚙️ ${escapeHtml(pump.label)}</b> • <b style="color: ${pump.statusColor};">${pump.statusLabel}</b><br>
+            <span>Head Dorong: <b>+${pump.headBoost_m} m</b> (+${pump.pressureBoost_bar} bar)</span><br>
+            <span>Q: <b>${pump.discharge_Lps} L/s</b> | Daya: <b>${pump.motorPower_kW} kW</b></span>
+          </div>
+        `, { sticky: true });
+
+        pumpMarker.bindPopup(`
+          <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.5; min-width: 255px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+              <b style="color: #fbbf24; font-size: 13.5px;">⚙️ ${escapeHtml(pump.label)}</b>
+              <span class="scada-badge" style="background: ${isPumpOn ? 'rgba(16,185,129,0.2)' : 'rgba(148,163,184,0.2)'}; color: ${pump.statusColor}; border-color: ${pump.statusColor}80;">
+                ${isPumpOn ? '🟢 MENYALA' : '⚫ MATI'}
+              </span>
+            </div>
+            <div style="margin: 6px 0; border-top: 1px solid #334155; padding-top: 6px;">
+              <b>Jalur Pompa:</b> ${sLabel} (Hisap) ➔ ${eLabel} (Tekan)<br>
+              <b>Head Dorong (ΔH):</b> <span style="color: #38bdf8; font-weight: 700;">+${pump.headBoost_m} m</span> (+${pump.pressureBoost_bar} bar)<br>
+              <b>Tekanan Sisi Tekan:</b> <span style="color: #34d399; font-weight: 700;">${pump.dischargePressure_bar} bar</span> (${pump.dischargeHead_m} mdpl)<br>
+              <b>Tekanan Sisi Hisap:</b> ${pump.suctionPressure_bar} bar (${pump.suctionHead_m} mdpl)<br>
+              <b>Debit Aliran (Q):</b> <span style="color: #38bdf8; font-weight: 700;">${pump.discharge_Lps} L/s</span> (${pump.discharge_m3h} m³/jam)<br>
+              <b>Daya Motor Listrik:</b> <b>${pump.motorPower_kW} kW</b> (${pump.motorPower_HP} HP)<br>
+              <b>Konsumsi Energi (SEC):</b> ${pump.sec_kWh_m3} kWh/m³<br>
+              <b>Kecepatan VFD:</b> ${(pump.speed * 100).toFixed(0)}%
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <button class="btn ${isPumpOn ? 'btn-dark' : 'btn-accent'}" style="flex: 1; justify-content: center; ${isPumpOn ? 'color: #f43f5e; border-color: rgba(244,63,94,0.4);' : 'background: #10b981; border-color: #34d399;'}" onclick="quickTogglePump('${pump.id}')">
+                ${isPumpOn ? '⏹️ Matikan' : '▶️ Nyalakan'}
+              </button>
+              <button class="btn btn-dark" style="flex: 1; justify-content: center; color: #fbbf24; border-color: rgba(245,158,11,0.4);" onclick="openEditPumpModal('${pump.id}')">
+                🔧 Konfigurasi
+              </button>
+            </div>
+          </div>
+        `);
+
+        pumpLayers.push(pumpMarker);
+        pumpLayersMap.set(pump.id, { marker: pumpMarker, line: pumpLine, pump });
+      });
+
       // Fit bounds jika baru pertama kali dimuat
       if (allBounds.length > 0 && !window._hasFittedMap) {
         map.fitBounds(allBounds, { padding: [40, 40] });
@@ -2900,10 +3255,23 @@
     // Update Angka KPI Header
     function updateKpis(summary) {
       document.getElementById('kpi-total-flow').innerHTML = `${summary.totalDischargeLps.toFixed(1)} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">L/s</span>`;
-      document.getElementById('kpi-total-flow-m3h').textContent = `${summary.totalDischarge_m3h.toFixed(1)} m³/jam dari Reservoir R1 & R2`;
-      document.getElementById('kpi-avg-pressure').innerHTML = `${summary.avgPressureBar.toFixed(2)} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">bar</span>`;
-      document.getElementById('kpi-avg-pressure-m').textContent = `${(summary.avgPressureBar * HEAD_PER_BAR).toFixed(1)} m kolom air`;
       
+      const pumpFlowNote = summary.activePumps > 0 ? ` (Termasuk Pompa ${summary.totalPumpDischargeLps?.toFixed(1) || '0.0'} L/s)` : '';
+      document.getElementById('kpi-total-flow-m3h').textContent = `${summary.totalDischarge_m3h.toFixed(1)} m³/jam dari Reservoir${pumpFlowNote}`;
+
+      document.getElementById('kpi-avg-pressure').innerHTML = `${summary.avgPressureBar.toFixed(2)} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">bar</span>`;
+      
+      // PERBAIKAN Bug E: Perjelas bahwa ini adalah tekanan rata-rata jaringan (bukan total head)
+      // dan bedakan antara data sensor lapangan vs data EPANET pre-solved
+      const dataSourceNote = summary.activeSensorsCount > 0
+        ? `${summary.activeSensorsCount} Sensor Lapangan`
+        : 'Data EPANET';
+      const pumpPowerNote = summary.activePumps > 0 ? ` • ⚙️ ${summary.activePumps} Pompa Aktif (${summary.totalPumpPowerKw} kW)` : ' • Gravitasi Murni';
+      document.getElementById('kpi-avg-pressure-m').textContent = `${(summary.avgPressureBar * HEAD_PER_BAR).toFixed(1)} mH₂O · Sumber: ${dataSourceNote}${pumpPowerNote}`;
+      
+      const pumpBadge = document.getElementById('active-pumps-badge-count');
+      if (pumpBadge) pumpBadge.textContent = summary.activePumps || 0;
+
       const totalStrategic = networkData.nodes.filter(n => n.isMonitoringPoint).length;
       document.getElementById('kpi-active-sensors').innerHTML = `${summary.activeSensorsCount} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted)">/ ${totalStrategic || 45} Ideal</span>`;
       
@@ -3626,16 +3994,19 @@
 
     // Ekspor Data SCADA ke Format CSV/Excel
     function exportScadaCsv() {
+      const effectivePumps = getEffectivePumps();
       const solved = window.ScadaHydraulicEngine.solveScadaNetwork(
         networkData.nodes,
         networkData.pipes,
-        telemetryReadings
+        telemetryReadings,
+        effectivePumps
       );
 
       let csv = 'DATA PRODIST SCADA JARINGAN PIPA\n';
       csv += `Tanggal Ekspor: ${new Date().toLocaleString('id-ID')}\n`;
       csv += `Total Pasokan Air: ${solved.summary.totalDischargeLps} L/s (${solved.summary.totalDischarge_m3h} m3/jam)\n`;
-      csv += `Tekanan Rata-Rata: ${solved.summary.avgPressureBar} bar\n\n`;
+      csv += `Tekanan Rata-Rata: ${solved.summary.avgPressureBar} bar\n`;
+      csv += `Stasiun Pompa Aktif: ${solved.summary.activePumps || 0} / ${solved.summary.totalPumps || 0} Unit (${solved.summary.totalPumpPowerKw || 0} kW)\n\n`;
 
       csv += '--- DATA TITIK SENSOR TELEMETRI AKTIF ---\n';
       csv += 'Node ID,Label,Elevasi (m),Tekanan (bar),Tinggi Tekan (m),Petugas,Waktu,Catatan\n';
@@ -3645,7 +4016,17 @@
         csv += `${escapeCsvField(n.id)},${escapeCsvField(n.label)},${n.elevation},${n.measuredPressure},${(n.measuredPressure*HEAD_PER_BAR).toFixed(2)},${escapeCsvField(reading.officerName || '')},${escapeCsvField(n.telemetryTimestamp||'')},${escapeCsvField(n.telemetryNotes||'')}\n`;
       });
 
-      csv += '\n--- DATA ALIRAN PIPA (321 PIPA SUBANG) ---\n';
+      if (solved.pumps && solved.pumps.length > 0) {
+        csv += '\n--- DATA STASIUN POMPA DISTRIBUSI (BOOSTER & IN-LINE) ---\n';
+        csv += 'Pompa ID,Label,Dari Simpul (Hisap),Ke Simpul (Tekan),Status,Head Dorong (m),Tekanan Tekan (bar),Debit (L/s),Daya Listrik (kW),SEC (kWh/m3)\n';
+        solved.pumps.forEach(p => {
+          const s = solved.nodes.find(n => n.id === p.startNodeId)?.label || p.startNodeId;
+          const e = solved.nodes.find(n => n.id === p.endNodeId)?.label || p.endNodeId;
+          csv += `${escapeCsvField(p.id)},${escapeCsvField(p.label)},${escapeCsvField(s)},${escapeCsvField(e)},${escapeCsvField(p.statusLabel)},${p.headBoost_m},${p.dischargePressure_bar},${p.discharge_Lps},${p.motorPower_kW},${p.sec_kWh_m3}\n`;
+        });
+      }
+
+      csv += `\n--- DATA ALIRAN PIPA (${solved.pipes.length} PIPA ${(currentAreaId || 'subang_kota').toUpperCase().replace('_', ' ')}) ---\n`;
       csv += 'Pipa ID,Dari Node,Ke Node,Diameter (mm),Panjang (m),Material,Debit (L/s),Debit (m3/jam),Kecepatan (m/s),Headloss (m),Status,Spesifikasi\n';
       solved.pipes.forEach(p => {
         const s = solved.nodes.find(n => n.id === p.startNodeId)?.label || 'A';
@@ -3661,6 +4042,664 @@
       a.download = `SCADA_SUBANG_TELEMETRI_${Date.now()}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    // ================= FITUR MANAJEMEN & SIMULASI STASIUN POMPA DISTRIBUSI =================
+
+    /**
+     * Memuat daftar pompa dari Server Lokal, LocalStorage, atau bawaan wilayah aktif
+     */
+    async function loadPumpsData() {
+      try {
+        let apiPumps = [];
+        try {
+          const res = await fetch('/api/pumps?v=' + Date.now());
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) apiPumps = data;
+          }
+        } catch (e) {}
+
+        let localPumps = [];
+        try {
+          const stored = localStorage.getItem('prodist_scada_pumps');
+          if (stored) localPumps = JSON.parse(stored);
+        } catch (e) {}
+
+        const filePumps = Array.isArray(networkData.pumps) ? networkData.pumps : [];
+
+        const pumpMap = new Map();
+        filePumps.forEach(p => pumpMap.set(p.id, {
+          ...p,
+          label: p.label || 'Pompa ' + p.id,
+          status: p.status || 'on',
+          designHead: p.designHead || (p.pumpCurve && p.pumpCurve[0] ? p.pumpCurve[0].head : 40),
+          designFlow: p.designFlow || (p.pumpCurve && p.pumpCurve[0] ? p.pumpCurve[0].flow : 30),
+          speed: p.speed || 1.0,
+          efficiency: p.efficiency || 0.75,
+          areaId: currentAreaId
+        }));
+        localPumps.forEach(p => pumpMap.set(p.id, p));
+        apiPumps.forEach(p => pumpMap.set(p.id, p));
+
+        // Jika di Subang belum ada pompa sama sekali, sediakan 1 unit booster bawaan siap pakai
+        if (pumpMap.size === 0 && (!currentAreaId || currentAreaId === 'subang_kota')) {
+          const r1 = (networkData.nodes || []).find(n => n.type === 'reservoir');
+          const jMain = (networkData.nodes || []).find(n => n.label === 'J307' || (n.isMonitoringPoint && n.id !== r1?.id));
+          if (r1 && jMain) {
+            const defaultBooster = {
+              id: 'pump-booster-subang-r1',
+              label: 'Pompa Booster Transmisi R1',
+              startNodeId: r1.id,
+              endNodeId: jMain.id,
+              status: 'on',
+              designHead: 35,
+              designFlow: 45,
+              speed: 1.0,
+              efficiency: 0.78,
+              motorPowerKw: 19.8,
+              notes: 'Booster pump pasokan utama kota Subang',
+              areaId: 'subang_kota'
+            };
+            pumpMap.set(defaultBooster.id, defaultBooster);
+          }
+        }
+
+        customPumps = Array.from(pumpMap.values());
+      } catch (err) {
+        console.warn('Gagal memuat data pompa:', err);
+      }
+    }
+
+    /**
+     * Mendapatkan daftar pompa yang aktif dan terpasang pada simpul-simpul wilayah saat ini
+     */
+    function getEffectivePumps() {
+      if (!customPumps || customPumps.length === 0) return [];
+      const nodeIds = new Set((networkData.nodes || []).map(n => n.id));
+      return customPumps.filter(p => nodeIds.has(p.startNodeId) && nodeIds.has(p.endNodeId));
+    }
+
+    /**
+     * Menyimpan data pompa ke LocalStorage dan Server
+     */
+    async function savePumpToStorage(pumpObj) {
+      const idx = customPumps.findIndex(p => p.id === pumpObj.id);
+      if (idx >= 0) {
+        customPumps[idx] = pumpObj;
+      } else {
+        customPumps.push(pumpObj);
+      }
+
+      try {
+        localStorage.setItem('prodist_scada_pumps', JSON.stringify(customPumps));
+      } catch (e) {}
+
+      try {
+        await fetch('/api/pumps', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pumpObj)
+        });
+      } catch (e) {}
+    }
+
+    /**
+     * Menghapus pompa dari penyimpanan
+     */
+    async function deletePumpFromStorage(pumpId) {
+      customPumps = customPumps.filter(p => p.id !== pumpId);
+      try {
+        localStorage.setItem('prodist_scada_pumps', JSON.stringify(customPumps));
+      } catch (e) {}
+
+      try {
+        await fetch(`/api/pumps?id=${encodeURIComponent(pumpId)}`, { method: 'DELETE' });
+      } catch (e) {}
+    }
+
+    /**
+     * Saklar cepat ON/OFF pompa (dari popup peta atau daftar pompa)
+     */
+    async function quickTogglePump(pumpId) {
+      const pump = customPumps.find(p => p.id === pumpId);
+      if (!pump) return;
+      pump.status = pump.status === 'on' ? 'off' : 'on';
+      await savePumpToStorage(pump);
+      renderNetwork();
+      if (document.getElementById('modal-pump-manager')?.classList.contains('active')) {
+        renderPumpManagerList();
+        renderPumpAnalysis();
+      }
+    }
+
+    /**
+     * Saklar serentak untuk semua pompa di wilayah ini
+     */
+    async function toggleAllPumps(statusBool) {
+      const effective = getEffectivePumps();
+      for (const p of effective) {
+        p.status = statusBool ? 'on' : 'off';
+        await savePumpToStorage(p);
+      }
+      renderNetwork();
+      renderPumpManagerList();
+      renderPumpAnalysis();
+    }
+
+    /**
+     * Reset konfigurasi pompa ke kondisi awal
+     */
+    async function resetPumpsToDefault() {
+      if (!confirm('Apakah Anda yakin ingin me-reset konfigurasi pompa ke kondisi default wilayah ini?')) return;
+      try {
+        await fetch('/api/pumps?action=reset_all', { method: 'DELETE' });
+      } catch (e) {}
+      localStorage.removeItem('prodist_scada_pumps');
+      customPumps = [];
+      await loadPumpsData();
+      renderNetwork();
+      renderPumpManagerList();
+      renderPumpAnalysis();
+    }
+
+    /**
+     * Membuka Modal Manajemen Pompa
+     */
+    function openPumpManagerModal() {
+      const modal = document.getElementById('modal-pump-manager');
+      if (!modal) return;
+      populatePumpNodeDropdowns();
+      renderPumpManagerList();
+      renderPumpAnalysis();
+      switchPumpModalTab('list');
+      modal.classList.add('active');
+      syncModalOpenState();
+    }
+
+    /**
+     * Menutup Modal Manajemen Pompa
+     */
+    function closePumpManagerModal() {
+      const modal = document.getElementById('modal-pump-manager');
+      if (modal) {
+        modal.classList.remove('active');
+        syncModalOpenState();
+      }
+    }
+
+    /**
+     * Berpindah Tab pada Modal Pompa
+     */
+    function switchPumpModalTab(tabName) {
+      ['list', 'form', 'analysis'].forEach(t => {
+        const btn = document.getElementById('tab-btn-pumps-' + t);
+        const sec = document.getElementById('section-pumps-' + t);
+        if (btn) btn.classList.toggle('active', t === tabName);
+        if (sec) sec.style.display = t === tabName ? 'block' : 'none';
+      });
+      if (tabName === 'list') renderPumpManagerList();
+      if (tabName === 'analysis') renderPumpAnalysis();
+    }
+
+    /**
+     * Membuka form tambah pompa baru
+     */
+    function openNewPumpForm() {
+      document.getElementById('form-pump-id').value = '';
+      document.getElementById('form-pump-label').value = `Pompa Booster ${getEffectivePumps().length + 1}`;
+      document.getElementById('form-pump-head').value = 40;
+      document.getElementById('form-pump-flow').value = 30;
+      document.getElementById('form-pump-speed').value = '1.0';
+      document.getElementById('form-pump-efficiency').value = 75;
+      
+      const onRadio = document.querySelector('input[name="form-pump-status"][value="on"]');
+      if (onRadio) onRadio.checked = true;
+
+      document.getElementById('tab-pump-form-icon').textContent = '➕';
+      document.getElementById('tab-pump-form-title').textContent = 'Pasang Pompa Baru';
+
+      populatePumpNodeDropdowns();
+      updatePumpFormPreview();
+      switchPumpModalTab('form');
+    }
+
+    /**
+     * Membuka form edit pompa
+     */
+    function openEditPumpModal(pumpId) {
+      const modal = document.getElementById('modal-pump-manager');
+      if (!modal) return;
+      populatePumpNodeDropdowns();
+
+      const pump = customPumps.find(p => p.id === pumpId);
+      if (!pump) return;
+
+      document.getElementById('form-pump-id').value = pump.id;
+      document.getElementById('form-pump-label').value = pump.label || '';
+      document.getElementById('form-pump-suction-node').value = pump.startNodeId || '';
+      document.getElementById('form-pump-discharge-node').value = pump.endNodeId || '';
+      document.getElementById('form-pump-head').value = pump.designHead || 40;
+      document.getElementById('form-pump-flow').value = pump.designFlow || 30;
+      document.getElementById('form-pump-speed').value = String(pump.speed || 1.0);
+      document.getElementById('form-pump-efficiency').value = (pump.efficiency ? Math.round(pump.efficiency * 100) : 75);
+
+      const statusVal = pump.status === 'off' ? 'off' : 'on';
+      const statusRadio = document.querySelector(`input[name="form-pump-status"][value="${statusVal}"]`);
+      if (statusRadio) statusRadio.checked = true;
+
+      document.getElementById('tab-pump-form-icon').textContent = '🔧';
+      document.getElementById('tab-pump-form-title').textContent = 'Edit: ' + (pump.label || 'Pompa');
+
+      updatePumpFormPreview();
+      switchPumpModalTab('form');
+      modal.classList.add('active');
+      syncModalOpenState();
+    }
+
+    /**
+     * Mengisi dropdown node hisap dan tekan pompa
+     */
+    function populatePumpNodeDropdowns() {
+      const suctionSelect = document.getElementById('form-pump-suction-node');
+      const dischargeSelect = document.getElementById('form-pump-discharge-node');
+      if (!suctionSelect || !dischargeSelect) return;
+
+      const curSuction = suctionSelect.value;
+      const curDischarge = dischargeSelect.value;
+
+      let html = '<option value="">-- Pilih Simpul --</option>';
+      const nodes = networkData.nodes || [];
+      const sorted = [...nodes].sort((a, b) => {
+        if (a.type === 'reservoir' && b.type !== 'reservoir') return -1;
+        if (b.type === 'reservoir' && a.type !== 'reservoir') return 1;
+        if (a.isMonitoringPoint && !b.isMonitoringPoint) return -1;
+        if (!a.isMonitoringPoint && b.isMonitoringPoint) return 1;
+        return (a.label || '').localeCompare(b.label || '');
+      });
+
+      sorted.forEach(n => {
+        const typeIcon = n.type === 'reservoir' ? '💧' : (n.isMonitoringPoint ? '⭐' : '📍');
+        html += `<option value="${n.id}">${typeIcon} ${escapeHtml(n.label)} (${n.elevation} mdpl)</option>`;
+      });
+
+      suctionSelect.innerHTML = html;
+      dischargeSelect.innerHTML = html;
+
+      if (curSuction) suctionSelect.value = curSuction;
+      else if (sorted.length > 0) suctionSelect.value = sorted[0].id;
+
+      if (curDischarge) dischargeSelect.value = curDischarge;
+      else if (sorted.length > 1) dischargeSelect.value = sorted[1].id;
+    }
+
+    function onPumpNodesChanged() {
+      updatePumpFormPreview();
+    }
+
+    /**
+     * Memperbarui preview kalkulasi hidrolik & daya pada form pompa
+     */
+    function updatePumpFormPreview() {
+      const head = Number(document.getElementById('form-pump-head')?.value) || 40;
+      const flow = Number(document.getElementById('form-pump-flow')?.value) || 30;
+      const speed = Number(document.getElementById('form-pump-speed')?.value) || 1.0;
+      const eff = (Number(document.getElementById('form-pump-efficiency')?.value) || 75) / 100.0;
+      const status = document.querySelector('input[name="form-pump-status"]:checked')?.value || 'on';
+
+      const barEl = document.getElementById('form-pump-head-bar');
+      if (barEl) barEl.textContent = (head / HEAD_PER_BAR).toFixed(2);
+
+      const m3hEl = document.getElementById('form-pump-flow-m3h');
+      if (m3hEl) m3hEl.textContent = (flow * 3.6).toFixed(1);
+
+      const dummyPump = {
+        status,
+        designHead: head,
+        designFlow: flow,
+        speed,
+        efficiency: eff
+      };
+
+      const sNodeId = document.getElementById('form-pump-suction-node')?.value;
+      const eNodeId = document.getElementById('form-pump-discharge-node')?.value;
+      const sNode = (networkData.nodes || []).find(n => n.id === sNodeId);
+      const eNode = (networkData.nodes || []).find(n => n.id === eNodeId);
+
+      const calc = window.ScadaHydraulicEngine.calculatePumpHydraulics(dummyPump, sNode, eNode);
+
+      const boostEl = document.getElementById('form-preview-boost');
+      if (boostEl) boostEl.textContent = `+${calc.headBoost_m} m (+${calc.pressureBoost_bar} bar)`;
+
+      const flowEl = document.getElementById('form-preview-flow');
+      if (flowEl) flowEl.textContent = `${calc.discharge_Lps} L/s (${calc.discharge_m3h} m³/jam)`;
+
+      const powerEl = document.getElementById('form-preview-power');
+      if (powerEl) powerEl.textContent = `${calc.motorPower_kW} kW (${calc.motorPower_HP} HP)`;
+
+      const secEl = document.getElementById('form-preview-sec');
+      if (secEl) secEl.textContent = `${calc.sec_kWh_m3} kWh/m³`;
+
+      const badge = document.getElementById('form-preview-status-badge');
+      if (badge) {
+        badge.textContent = calc.statusLabel;
+        badge.style.color = calc.statusColor;
+      }
+    }
+
+    /**
+     * Menyimpan pompa dari formulir modal
+     */
+    async function savePumpFromModal() {
+      const label = document.getElementById('form-pump-label')?.value.trim();
+      const sNodeId = document.getElementById('form-pump-suction-node')?.value;
+      const eNodeId = document.getElementById('form-pump-discharge-node')?.value;
+      const head = Number(document.getElementById('form-pump-head')?.value);
+      const flow = Number(document.getElementById('form-pump-flow')?.value);
+      const speed = Number(document.getElementById('form-pump-speed')?.value) || 1.0;
+      const eff = (Number(document.getElementById('form-pump-efficiency')?.value) || 75) / 100.0;
+      const status = document.querySelector('input[name="form-pump-status"]:checked')?.value || 'on';
+      const existingId = document.getElementById('form-pump-id')?.value;
+
+      if (!label) {
+        alert('Silakan masukkan nama/label stasiun pompa.');
+        return;
+      }
+      if (!sNodeId || !eNodeId) {
+        alert('Silakan pilih simpul hisap dan simpul tekan.');
+        return;
+      }
+      if (sNodeId === eNodeId) {
+        alert('Simpul hisap dan simpul tekan tidak boleh sama.');
+        return;
+      }
+
+      const pumpObj = {
+        id: existingId || ('pump-' + Date.now()),
+        label,
+        startNodeId: sNodeId,
+        endNodeId: eNodeId,
+        designHead: head || 40,
+        designFlow: flow || 30,
+        speed,
+        efficiency: eff,
+        status,
+        areaId: currentAreaId || 'subang_kota',
+        notes: `Pompa ${label}`,
+        updatedAt: new Date().toISOString()
+      };
+
+      await savePumpToStorage(pumpObj);
+      renderNetwork();
+      switchPumpModalTab('list');
+    }
+
+    /**
+     * Render daftar pompa di modal tab 1
+     */
+    function renderPumpManagerList() {
+      const container = document.getElementById('pumps-list-container');
+      if (!container) return;
+
+      const effectivePumps = getEffectivePumps();
+      if (effectivePumps.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 35px 20px; color: var(--text-muted); font-size: 12px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px dashed var(--border-color);">
+            <div style="font-size: 32px; margin-bottom: 8px;">⚙️</div>
+            Belum ada stasiun pompa pada wilayah ini.<br>
+            Sistem saat ini beroperasi dengan <b>Gravitasi Murni</b>.<br><br>
+            <button class="btn btn-accent btn-xs" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #fbbf24;" onclick="openNewPumpForm()">
+              ➕ Pasang Pompa Booster Sekarang
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const nodeMap = new Map();
+      (networkData.nodes || []).forEach(n => nodeMap.set(n.id, n));
+
+      let html = '';
+      effectivePumps.forEach(pump => {
+        const sNode = nodeMap.get(pump.startNodeId);
+        const eNode = nodeMap.get(pump.endNodeId);
+        const sLabel = escapeHtml(sNode?.label || 'Hisap');
+        const eLabel = escapeHtml(eNode?.label || 'Tekan');
+        const isPumpOn = pump.status === 'on';
+
+        const calc = _lastSolvedPumps.find(p => p.id === pump.id) || window.ScadaHydraulicEngine.calculatePumpHydraulics(pump, sNode, eNode);
+
+        html += `
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid ${isPumpOn ? 'rgba(251, 191, 36, 0.4)' : '#334155'}; border-radius: 8px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">⚙️</span>
+                <div>
+                  <b style="color: #ffffff; font-size: 13.5px;">${escapeHtml(pump.label)}</b>
+                  <div style="font-size: 11px; color: var(--text-muted);">
+                    🌊 Ruas: <b style="color: #38bdf8;">${sLabel}</b> (${sNode?.elevation || 0} mdpl) ➔ <b style="color: #34d399;">${eLabel}</b> (${eNode?.elevation || 0} mdpl)
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <label class="pump-status-switch" title="Nyalakan / Matikan Pompa">
+                  <input type="checkbox" ${isPumpOn ? 'checked' : ''} onchange="quickTogglePump('${pump.id}')">
+                  <span class="pump-status-slider"></span>
+                </label>
+                <span class="scada-badge" style="font-size: 10.5px; background: ${isPumpOn ? 'rgba(16,185,129,0.2)' : 'rgba(148,163,184,0.15)'}; color: ${calc.statusColor};">
+                  ${isPumpOn ? 'MENYALA' : 'MATI'}
+                </span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px; font-size: 11px; margin-bottom: 8px;">
+              <div>
+                <span style="color: var(--text-muted);">Head Dorong:</span><br>
+                <b style="color: #38bdf8;">+${calc.headBoost_m} m</b> (+${calc.pressureBoost_bar} bar)
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Tekanan Tekan:</span><br>
+                <b style="color: #34d399;">${calc.dischargePressure_bar} bar</b>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Debit Aliran (Q):</span><br>
+                <b style="color: #ffffff;">${calc.discharge_Lps} L/s</b>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Daya Listrik (Pe):</span><br>
+                <b style="color: #fbbf24;">${calc.motorPower_kW} kW</b>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="font-size: 10.5px; color: var(--text-muted);">
+                SEC: <b>${calc.sec_kWh_m3} kWh/m³</b> • VFD: <b>${(pump.speed * 100).toFixed(0)}%</b>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-dark btn-xs" style="color: #fbbf24; border-color: rgba(245,158,11,0.4);" onclick="openEditPumpModal('${pump.id}')">
+                  🔧 Edit
+                </button>
+                <button class="btn btn-dark btn-xs" style="color: #f43f5e; border-color: rgba(244,63,94,0.4);" onclick="deletePump('${pump.id}')">
+                  🗑️ Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    /**
+     * Menghapus stasiun pompa
+     */
+    async function deletePump(pumpId) {
+      if (!confirm('Hapus stasiun pompa ini?')) return;
+      await deletePumpFromStorage(pumpId);
+      renderNetwork();
+      renderPumpManagerList();
+      renderPumpAnalysis();
+    }
+
+    /**
+     * Render Analisis Hidrolika & Efisiensi Energi di Modal Tab 3
+     */
+    function renderPumpAnalysis() {
+      const container = document.getElementById('pumps-analysis-content');
+      if (!container) return;
+
+      // PERBAIKAN: Gunakan data pompa yang sudah dikalkulasi oleh engine (bukan data mentah)
+      // _lastSolvedPumps diisi oleh renderNetwork() setelah engine selesai menghitung
+      const solvedPumps = (_lastSolvedPumps && _lastSolvedPumps.length > 0)
+        ? _lastSolvedPumps
+        : getEffectivePumps(); // fallback jika belum pernah di-render
+
+      const activePumps = solvedPumps.filter(p => p.status === 'on');
+
+      // PERBAIKAN: Pakai field snake_case dari engine hasil (motorPower_kW, discharge_Lps)
+      // Bukan motorPowerKw (camelCase, field input/storage) atau fallback hardcoded
+      const totalPower = activePumps.reduce((acc, p) => acc + (p.motorPower_kW || 0), 0);
+      const totalHydraulicPower = activePumps.reduce((acc, p) => acc + (p.hydraulicPower_kW || 0), 0);
+      const totalDischarge_Lps = activePumps.reduce((acc, p) => acc + (p.discharge_Lps || 0), 0);
+      const totalDischarge_m3h = totalDischarge_Lps * 3.6;
+
+      // SEC Gabungan: total daya listrik / total debit (kWh/m³)
+      const totalSEC = totalDischarge_m3h > 0 ? (totalPower / totalDischarge_m3h) : 0;
+
+      // Efisiensi rata-rata pompa aktif
+      const avgEff = activePumps.length > 0
+        ? activePumps.reduce((acc, p) => acc + (p.efficiency || 0.75), 0) / activePumps.length
+        : 0;
+
+      // Tarif listrik PLN golongan P-2 (bisnis/industri ≥ 6.600 VA) per Juli 2024
+      const PLN_TARIFF_PER_KWH = 1444.70; // Rp/kWh — sumber: Permen ESDM No. 7 Tahun 2024
+      const costPerHour = totalPower * PLN_TARIFF_PER_KWH;
+      const costPerDay = costPerHour * 24;
+      const costPerMonth = costPerDay * 30;
+
+      // Sinkronisasi dengan summary dari engine jika tersedia
+      const summary = _lastSolvedSummary || {};
+      const networkAvgPressure = summary.avgPressureBar || 0;
+      const leakCount = summary.leakWarningsCount || 0;
+      const activePipeCount = summary.activePipesCount || 0;
+
+      container.innerHTML = `
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 12px;">
+          <h4 style="margin: 0 0 10px 0; color: #fbbf24; font-size: 13.5px;">⚡ Ringkasan Energi & Operasional Pompa</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px;">
+              <span style="color: var(--text-muted);">Status Operasional Sistem:</span><br>
+              <b style="font-size: 15px; color: ${activePumps.length > 0 ? '#34d399' : '#94a3b8'};">
+                ${activePumps.length > 0 ? `⚙️ HIBRIDA (${activePumps.length} Pompa + Gravitasi)` : '⛰️ GRAVITASI MURNI'}
+              </b>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px;">
+              <span style="color: var(--text-muted);">Total Daya Listrik Motor (Pe):</span><br>
+              <b style="font-size: 15px; color: #fbbf24;">${totalPower.toFixed(2)} kW (${(totalPower * 1.341).toFixed(1)} HP)</b><br>
+              <small style="color: var(--text-muted);">Daya Hidraulik (Pw): ${totalHydraulicPower.toFixed(2)} kW · η̄: ${(avgEff * 100).toFixed(0)}%</small>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px;">
+              <span style="color: var(--text-muted);">Total Debit Pemompaan:</span><br>
+              <b style="font-size: 15px; color: #38bdf8;">${totalDischarge_Lps.toFixed(2)} L/s (${totalDischarge_m3h.toFixed(1)} m³/jam)</b><br>
+              <small style="color: var(--text-muted);">
+                SEC Gabungan: <b style="color: #a78bfa;">${totalSEC.toFixed(3)} kWh/m³</b>
+                ${totalSEC > 0.5 ? ' ⚠️ Tinggi' : totalSEC > 0 ? ' ✅ Efisien' : ''}
+              </small>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px;">
+              <span style="color: var(--text-muted);">Estimasi Biaya Listrik (Tarif PLN P-2):</span><br>
+              <b style="font-size: 13px; color: #f43f5e;">Rp ${Math.round(costPerHour).toLocaleString('id-ID')} / jam</b><br>
+              <small style="color: var(--text-muted);">
+                Per hari (24 jam): Rp ${Math.round(costPerDay).toLocaleString('id-ID')}<br>
+                Per bulan (30 hari): Rp ${Math.round(costPerMonth / 1000000).toLocaleString('id-ID')} Juta
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabel Per-Pompa -->
+        ${activePumps.length > 0 ? `
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 12px;">
+          <h4 style="margin: 0 0 10px 0; color: #38bdf8; font-size: 13px;">📊 Detail Hidrolika Per Unit Pompa</h4>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+              <thead>
+                <tr style="color: var(--text-muted); border-bottom: 1px solid #334155;">
+                  <th style="text-align:left; padding: 5px 6px; white-space:nowrap;">Pompa</th>
+                  <th style="text-align:right; padding: 5px 6px; white-space:nowrap;">ΔH (m)</th>
+                  <th style="text-align:right; padding: 5px 6px; white-space:nowrap;">Q (L/s)</th>
+                  <th style="text-align:right; padding: 5px 6px; white-space:nowrap;">Pe (kW)</th>
+                  <th style="text-align:right; padding: 5px 6px; white-space:nowrap;">η (%)</th>
+                  <th style="text-align:right; padding: 5px 6px; white-space:nowrap;">SEC</th>
+                  <th style="text-align:right; padding: 5px 6px; white-space:nowrap;">Rp/jam</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${activePumps.map(p => `
+                  <tr style="border-bottom: 1px solid #1e293b;">
+                    <td style="padding: 5px 6px; color: #fbbf24; font-weight: 600;">${escapeHtml(p.label || 'Pompa')}</td>
+                    <td style="text-align:right; padding: 5px 6px; color: #38bdf8;">+${p.headBoost_m}</td>
+                    <td style="text-align:right; padding: 5px 6px;">${p.discharge_Lps}</td>
+                    <td style="text-align:right; padding: 5px 6px; color: #fbbf24;">${p.motorPower_kW}</td>
+                    <td style="text-align:right; padding: 5px 6px; color: ${(p.efficiency||0.75) >= 0.7 ? '#34d399' : '#f59e0b'};">${((p.efficiency || 0.75) * 100).toFixed(0)}%</td>
+                    <td style="text-align:right; padding: 5px 6px; color: #a78bfa;">${p.sec_kWh_m3} kWh/m³</td>
+                    <td style="text-align:right; padding: 5px 6px; color: #f43f5e;">Rp ${Math.round(p.motorPower_kW * PLN_TARIFF_PER_KWH).toLocaleString('id-ID')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+              <tfoot>
+                <tr style="border-top: 2px solid #334155; font-weight: 700; background: rgba(0,0,0,0.2);">
+                  <td style="padding: 5px 6px; color: #ffffff;">TOTAL</td>
+                  <td style="text-align:right; padding: 5px 6px;"></td>
+                  <td style="text-align:right; padding: 5px 6px; color: #38bdf8;">${totalDischarge_Lps.toFixed(2)}</td>
+                  <td style="text-align:right; padding: 5px 6px; color: #fbbf24;">${totalPower.toFixed(2)}</td>
+                  <td style="text-align:right; padding: 5px 6px; color: ${avgEff >= 0.7 ? '#34d399' : '#f59e0b'};">${(avgEff * 100).toFixed(0)}%</td>
+                  <td style="text-align:right; padding: 5px 6px; color: #a78bfa;">${totalSEC.toFixed(3)}</td>
+                  <td style="text-align:right; padding: 5px 6px; color: #f43f5e;">Rp ${Math.round(costPerHour).toLocaleString('id-ID')}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Ringkasan Kondisi Jaringan -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+          <h4 style="margin: 0 0 8px 0; color: #94a3b8; font-size: 12.5px;">🌐 Kondisi Jaringan Distribusi Saat Ini</h4>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 11.5px;">
+            <div style="text-align: center;">
+              <div style="color: var(--text-muted); font-size: 10px; margin-bottom: 2px;">Tekanan Rata-rata</div>
+              <b style="font-size: 16px; color: ${networkAvgPressure >= 0.7 ? '#34d399' : networkAvgPressure > 0.3 ? '#f59e0b' : '#f43f5e'};">${networkAvgPressure.toFixed(2)}</b>
+              <span style="color: var(--text-muted); font-size: 10px;"> bar</span>
+              <div style="font-size: 10px; color: var(--text-muted);">(${(networkAvgPressure * HEAD_PER_BAR).toFixed(1)} m kolom air)</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="color: var(--text-muted); font-size: 10px; margin-bottom: 2px;">Pipa Aktif Mengalir</div>
+              <b style="font-size: 16px; color: #38bdf8;">${activePipeCount}</b>
+              <span style="color: var(--text-muted); font-size: 10px;"> ruas</span>
+              <div style="font-size: 10px; color: var(--text-muted);">dari ${summary.totalPipes || 0} total pipa</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="color: var(--text-muted); font-size: 10px; margin-bottom: 2px;">Peringatan Tekanan Drop</div>
+              <b style="font-size: 16px; color: ${leakCount > 0 ? '#f43f5e' : '#34d399'};">${leakCount}</b>
+              <span style="color: var(--text-muted); font-size: 10px;"> ruas</span>
+              <div style="font-size: 10px; color: ${leakCount > 0 ? '#f43f5e' : '#94a3b8'};">${leakCount > 0 ? '⚠️ Perlu inspeksi lapangan' : '✅ Semua normal'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px 14px;">
+          <h4 style="margin: 0 0 6px 0; color: #38bdf8; font-size: 13px;">ℹ️ Teori Hidrolika SPAM: Gravitasi vs Pemompaan</h4>
+          <p style="font-size: 11.5px; line-height: 1.5; color: #cbd5e1; margin: 0;">
+            • <b>Sistem Gravitasi</b>: HGL = Z<sub>sumber</sub> − h<sub>f</sub>. Tanpa biaya energi, namun tekanan terbatas oleh beda elevasi dan panjang pipa.<br>
+            • <b>Sistem Pompa</b>: H<sub>tekan</sub> = H<sub>hisap</sub> + H<sub>p</sub>. Menjamin tekanan ≥ 0,7 bar di zona elevasi tinggi, dengan konsumsi daya Pe = Pw / η (kW).<br>
+            • <b>SEC</b> (kWh/m³): Indikator efisiensi energi pompa. Nilai ideal PDAM < 0,3 kWh/m³. Nilai > 0,5 kWh/m³ mengindikasikan pompa perlu kalibrasi atau diganti.<br>
+            • <b>Tarif PLN P-2</b>: Rp ${PLN_TARIFF_PER_KWH.toLocaleString('id-ID', {minimumFractionDigits:2})}/kWh (Permen ESDM 2024, bukan pajak).
+          </p>
+        </div>
+      `;
     }
 
     // ================= MANAJEMEN & IMPORT WILAYAH JARINGAN PIPA =================
@@ -4326,6 +5365,9 @@
 
       // Muat data telemetri tersimpan (Supabase Cloud -> Server Lokal -> LocalStorage)
       await loadTelemetryData();
+
+      // Muat konfigurasi pompa untuk wilayah ini
+      await loadPumpsData();
 
       // Update Label di Tombol Header
       const label = document.getElementById('current-area-label');
@@ -5750,6 +6792,9 @@
         </label>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="closeMobileMenuModal(); openAreaManagerModal();">
           <span>🗺️</span> <div><b>Ganti / Import Wilayah Baru</b><br><small style="opacity: 0.8;">Subang, Ciasem, Pamanukan, KML/GeoJSON</small></div>
+        </button>
+        <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px; border-color: rgba(245, 158, 11, 0.5); color: #fbbf24;" onclick="closeMobileMenuModal(); openPumpManagerModal();">
+          <span>⚙️</span> <div><b>Kelola & Analisis Pompa Air</b><br><small style="opacity: 0.8;">Nyalakan/matikan booster pump, atur head & daya</small></div>
         </button>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px; border-color: rgba(56, 189, 248, 0.4);" onclick="closeMobileMenuModal(); openMobileDrawer('pipes');">
           <span>🔧</span> <div><b>Kelola Spesifikasi & Diameter Pipa</b><br><small style="opacity: 0.8;">Cari pipa, sesuaikan diameter, atau reset pipa</small></div>

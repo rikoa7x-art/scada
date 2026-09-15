@@ -20,6 +20,7 @@ const TELEMETRY_FILE = path.join(__dirname, 'telemetry_subang.json');
 const CUSTOM_NODES_FILE = path.join(__dirname, 'custom_nodes_subang.json');
 const SUBANG_NETWORK_FILE = path.join(__dirname, 'epanet_subang.json');
 const PIPE_OVERRIDES_FILE = path.join(__dirname, 'pipe_overrides_subang.json');
+const PUMPS_FILE = path.join(__dirname, 'pumps_subang.json');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://nbjfxzulzxxujudntdab.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iamZ4enVsenh4dWp1ZG50ZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTE2MzIsImV4cCI6MjEwNDc4NzYzMn0.LlIr9TLE3sE7X9xsohQcFrsU0OM8lisy1ymUvV-kdLo';
 
@@ -325,6 +326,24 @@ async function writePipeOverridesSafe(overrides) {
   const tempFile = PIPE_OVERRIDES_FILE + '.tmp';
   await fsPromises.writeFile(tempFile, JSON.stringify(overrides, null, 2), 'utf8');
   await fsPromises.rename(tempFile, PIPE_OVERRIDES_FILE);
+}
+
+async function readPumpsSafe() {
+  try {
+    const content = await fsPromises.readFile(PUMPS_FILE, 'utf8');
+    const parsed = JSON.parse(content);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    if (err.code === 'ENOENT') return [];
+    console.error('Error membaca pumps_subang.json:', err.message);
+    return [];
+  }
+}
+
+async function writePumpsSafe(pumps) {
+  const tempFile = PUMPS_FILE + '.tmp';
+  await fsPromises.writeFile(tempFile, JSON.stringify(pumps, null, 2), 'utf8');
+  await fsPromises.rename(tempFile, PUMPS_FILE);
 }
 
 // Simple file lock untuk mencegah race condition penulisan
@@ -766,6 +785,87 @@ const server = http.createServer(async (req, res) => {
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, message: `Override pipa ${pipeId} berhasil dihapus` }));
+        return;
+      }
+    }
+
+    // ----------------------------------------------------
+    // API ROUTE 6: Manajemen Konfigurasi Pompa (GET, POST, DELETE)
+    // ----------------------------------------------------
+    if (pathname === '/api/pumps') {
+      if (req.method === 'GET') {
+        const pumps = await readPumpsSafe();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(pumps));
+        return;
+      }
+
+      if (req.method === 'POST') {
+        const rawBody = await getRequestBody(req);
+        const pumpData = parseJsonBody(rawBody);
+
+        if (!pumpData.label || !pumpData.startNodeId || !pumpData.endNodeId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'label, startNodeId, dan endNodeId wajib diisi' }));
+          return;
+        }
+
+        const pumps = await readPumpsSafe();
+        const pumpId = pumpData.id || 'pump-' + Date.now();
+        const existingIdx = pumps.findIndex(p => p.id === pumpId);
+
+        const pumpObj = {
+          id: pumpId,
+          label: String(pumpData.label).trim(),
+          startNodeId: String(pumpData.startNodeId).trim(),
+          endNodeId: String(pumpData.endNodeId).trim(),
+          status: pumpData.status === 'off' ? 'off' : 'on',
+          designHead: Number(pumpData.designHead) || 40,
+          designFlow: Number(pumpData.designFlow) || 30,
+          speed: Number(pumpData.speed) || 1.0,
+          efficiency: Number(pumpData.efficiency) || 0.75,
+          motorPowerKw: Number(pumpData.motorPowerKw) || 15.0,
+          pumpCurve: pumpData.pumpCurve || [{ flow: Number(pumpData.designFlow) || 30, head: Number(pumpData.designHead) || 40 }],
+          areaId: pumpData.areaId || 'subang_kota',
+          notes: pumpData.notes || '',
+          updatedAt: new Date().toISOString()
+        };
+
+        if (existingIdx >= 0) {
+          pumps[existingIdx] = pumpObj;
+        } else {
+          pumps.push(pumpObj);
+        }
+
+        await writePumpsSafe(pumps);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, pump: pumpObj }));
+        return;
+      }
+
+      if (req.method === 'DELETE') {
+        const pumpId = reqUrl.searchParams.get('id') || reqUrl.searchParams.get('pumpId');
+        const action = reqUrl.searchParams.get('action');
+
+        if (action === 'reset_all') {
+          await writePumpsSafe([]);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, message: 'Seluruh konfigurasi pompa berhasil di-reset' }));
+          return;
+        }
+
+        if (!pumpId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Parameter id atau action=reset_all wajib disertakan' }));
+          return;
+        }
+
+        let pumps = await readPumpsSafe();
+        pumps = pumps.filter(p => p.id !== pumpId);
+        await writePumpsSafe(pumps);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: `Pompa ${pumpId} berhasil dihapus` }));
         return;
       }
     }
