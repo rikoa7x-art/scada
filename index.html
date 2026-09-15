@@ -3739,6 +3739,9 @@
         } catch (e) {
           console.warn('Gagal membersihkan cache localStorage:', e);
         }
+
+        // Pastikan modifikasi pipa dimuat dari Supabase Cloud / LocalStorage
+        await loadPipeOverrides();
         
         selectArea(id);
       } catch (err) {
@@ -4853,6 +4856,7 @@
         delete pipeOverrides[pipeId];
         savePipeOverridesToStorage();
         await deletePipeOverrideFromServer(pipeId);
+        alert(`ℹ️ Spesifikasi pipa dikembalikan ke ukuran asli: Ø ${origD} mm (${origMat}).`);
       } else {
         const overrideData = {
           pipeId: pipeId,
@@ -4865,6 +4869,7 @@
         pipeOverrides[pipeId] = overrideData;
         savePipeOverridesToStorage();
         await syncPipeOverrideToServer(pipeId, overrideData);
+        alert(`✅ Berhasil Disimpan!\n\nDiameter baru: Ø ${newD} mm (${newMat}, C=${newC})\nUkuran asli: Ø ${origD} mm\n\nData tersimpan di perangkat dan disinkronkan ke Supabase Cloud.`);
       }
 
       applyPipeOverrides();
@@ -4887,6 +4892,7 @@
       renderNetwork();
       closeEditPipeModal();
       zoomToPipe(pipeId);
+      alert('🔄 Pipa berhasil di-reset ke diameter asli bawaan.');
     }
 
     async function resetAllPipesToOriginal() {
