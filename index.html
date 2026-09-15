@@ -4064,35 +4064,76 @@
           }
         } catch (e) { /* Server lokal offline — pompa dimuat dari localStorage saja */ }
 
+        let hasSavedConfig = false;
         let localPumps = [];
         try {
           const stored = localStorage.getItem('prodist_scada_pumps');
-          if (stored) localPumps = JSON.parse(stored);
+          if (stored !== null) {
+            hasSavedConfig = true;
+            localPumps = JSON.parse(stored);
+            if (!Array.isArray(localPumps)) localPumps = [];
+          }
+        } catch (e) { console.warn('⚠️ Error membaca pompa dari localStorage:', e.message); }
+
+        // Muat daftar ID pompa yang sudah dihapus pengguna (tombstone list)
+        // agar pompa bawaan file JSON / booster default tidak muncul kembali setelah restart/login ulang
+        let deletedPumpIds = new Set();
+        try {
+          const deletedStored = localStorage.getItem('prodist_scada_deleted_pumps');
+          if (deletedStored) deletedPumpIds = new Set(JSON.parse(deletedStored));
         } catch (e) {}
 
         const filePumps = Array.isArray(networkData.pumps) ? networkData.pumps : [];
 
         const pumpMap = new Map();
-        filePumps.forEach(p => pumpMap.set(p.id, {
-          ...p,
-          label: p.label || 'Pompa ' + p.id,
-          status: p.status || 'on',
-          designHead: p.designHead || (p.pumpCurve && p.pumpCurve[0] ? p.pumpCurve[0].head : 40),
-          designFlow: p.designFlow || (p.pumpCurve && p.pumpCurve[0] ? p.pumpCurve[0].flow : 30),
-          speed: p.speed || 1.0,
-          efficiency: p.efficiency || 0.75,
-          areaId: currentAreaId
-        }));
-        localPumps.forEach(p => pumpMap.set(p.id, p));
-        apiPumps.forEach(p => pumpMap.set(p.id, p));
+        // Jika pengguna BELUM PERNAH menyimpan konfigurasi pompa (baru pertama kali buka / setelah reset):
+        // Muat pompa bawaan dari file JSON
+        if (!hasSavedConfig) {
+          filePumps.forEach(p => {
+            if (!deletedPumpIds.has(p.id)) {
+              pumpMap.set(p.id, {
+                ...p,
+                label: p.label || 'Pompa ' + p.id,
+                status: p.status || 'on',
+                designHead: p.designHead || (p.pumpCurve && p.pumpCurve[0] ? p.pumpCurve[0].head : 40),
+                designFlow: p.designFlow || (p.pumpCurve && p.pumpCurve[0] ? p.pumpCurve[0].flow : 30),
+                speed: p.speed || 1.0,
+                efficiency: p.efficiency || 0.75,
+                areaId: currentAreaId
+              });
+            }
+          });
+        } else {
+          // Jika pengguna SUDAH memiliki konfigurasi tersimpan di localStorage:
+          // Gunakan localPumps sebagai sumber utama (jika kosong berarti pengguna memang menghapus semua pompa)
+          localPumps.forEach(p => {
+            if (!deletedPumpIds.has(p.id)) {
+              pumpMap.set(p.id, p);
+            }
+          });
+        }
 
-        // Jika di Subang belum ada pompa sama sekali, sediakan 1 unit booster bawaan siap pakai
-        if (pumpMap.size === 0 && (!currentAreaId || currentAreaId === 'subang_kota')) {
+        // Gabungkan pompa dari backend server jika ada dan belum dihapus
+        apiPumps.forEach(p => {
+          if (!deletedPumpIds.has(p.id)) {
+            pumpMap.set(p.id, p);
+          }
+        });
+
+        // Pastikan semua ID di tombstone list terhapus bersih
+        deletedPumpIds.forEach(id => pumpMap.delete(id));
+
+        // Sediakan 1 unit booster bawaan HANYA jika:
+        // 1. Belum ada konfigurasi pompa yang pernah disimpan pengguna (!hasSavedConfig)
+        // 2. Pompa default booster belum pernah dihapus pengguna (!deletedPumpIds.has)
+        // 3. Wilayah adalah subang_kota dan pumpMap masih kosong
+        const defaultBoosterId = 'pump-booster-subang-r1';
+        if (pumpMap.size === 0 && !hasSavedConfig && !deletedPumpIds.has(defaultBoosterId) && (!currentAreaId || currentAreaId === 'subang_kota')) {
           const r1 = (networkData.nodes || []).find(n => n.type === 'reservoir');
           const jMain = (networkData.nodes || []).find(n => n.label === 'J307' || (n.isMonitoringPoint && n.id !== r1?.id));
           if (r1 && jMain) {
             const defaultBooster = {
-              id: 'pump-booster-subang-r1',
+              id: defaultBoosterId,
               label: 'Pompa Booster Transmisi R1',
               startNodeId: r1.id,
               endNodeId: jMain.id,
@@ -4135,6 +4176,15 @@
         customPumps.push(pumpObj);
       }
 
+      // Hapus dari deletedPumpIds jika pengguna menambahkan kembali
+      try {
+        const deletedStored = localStorage.getItem('prodist_scada_deleted_pumps');
+        if (deletedStored) {
+          const deletedIds = JSON.parse(deletedStored).filter(id => id !== pumpObj.id);
+          localStorage.setItem('prodist_scada_deleted_pumps', JSON.stringify(deletedIds));
+        }
+      } catch (e) {}
+
       try {
         localStorage.setItem('prodist_scada_pumps', JSON.stringify(customPumps));
       } catch (e) {}
@@ -4153,8 +4203,20 @@
      */
     async function deletePumpFromStorage(pumpId) {
       customPumps = customPumps.filter(p => p.id !== pumpId);
+      if (networkData && Array.isArray(networkData.pumps)) {
+        networkData.pumps = networkData.pumps.filter(p => p.id !== pumpId);
+      }
+
       try {
         localStorage.setItem('prodist_scada_pumps', JSON.stringify(customPumps));
+      } catch (e) {}
+
+      // Simpan ID yang dihapus ke tombstone list agar tidak muncul kembali dari filePumps atau booster bawaan saat reload
+      try {
+        const deletedStored = localStorage.getItem('prodist_scada_deleted_pumps');
+        const deletedIds = deletedStored ? JSON.parse(deletedStored) : [];
+        if (!deletedIds.includes(pumpId)) deletedIds.push(pumpId);
+        localStorage.setItem('prodist_scada_deleted_pumps', JSON.stringify(deletedIds));
       } catch (e) {}
 
       try {
@@ -4200,6 +4262,7 @@
         await fetch('/api/pumps?action=reset_all', { method: 'DELETE' });
       } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat reset pompa.'); }
       localStorage.removeItem('prodist_scada_pumps');
+      localStorage.removeItem('prodist_scada_deleted_pumps');
       customPumps = [];
       await loadPumpsData();
       renderNetwork();
