@@ -646,15 +646,18 @@
       box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
     }
 
-    /* Pulsing Sensor Marker */
+    /* Pulsing Sensor Marker - Wajib position: absolute agar koordinat Leaflet tidak melenceng saat zoom */
     .scada-radar-icon {
-      position: relative;
+      position: absolute !important;
+      left: 0;
+      top: 0;
       width: 24px;
       height: 24px;
       background: #0284c7;
       border: 2px solid #ffffff;
       border-radius: 50%;
       box-shadow: 0 0 10px #0284c7;
+      pointer-events: auto;
     }
     .scada-radar-icon::after {
       content: '';
@@ -663,6 +666,15 @@
       border: 2px solid #38bdf8;
       border-radius: 50%;
       animation: scada-pulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .scada-radar-icon-custom {
+      background: #7c3aed !important;
+      border: 2px solid #ffffff !important;
+      box-shadow: 0 0 10px #8b5cf6 !important;
+    }
+    .scada-radar-icon-custom::after {
+      border-color: #c084fc !important;
     }
 
     @keyframes scada-pulse {
@@ -823,8 +835,8 @@
       animation: spin 1s infinite linear;
     }
 
-    /* GPS User Marker on Map */
-    .gps-user-marker { position: relative; }
+    /* GPS User Marker on Map - Wajib position: absolute agar tepat di koordinat Leaflet */
+    .gps-user-marker { position: absolute !important; left: 0; top: 0; pointer-events: none; }
     .gps-pulse {
       width: 36px;
       height: 36px;
@@ -1253,6 +1265,9 @@
 
     /* Styling Stasiun Pompa Distribusi */
     .scada-pump-div-icon {
+      position: absolute !important;
+      left: 0;
+      top: 0;
       background: transparent;
       border: none;
     }
@@ -2982,13 +2997,14 @@
 
         } else if (n.hasTelemetry) {
           // Junction yang Memiliki Telemetri Tekanan dari Petugas (Pulsing Radar Icon)
+          const isCustomNode = !!n.isCustom;
           const radarIcon = L.divIcon({
-            className: 'scada-radar-icon',
+            className: isCustomNode ? 'scada-radar-icon scada-radar-icon-custom' : 'scada-radar-icon',
             iconSize: [24, 24],
             iconAnchor: [12, 12]
           });
 
-          const teleMarker = L.marker([n.lat, n.lng], { icon: radarIcon }).addTo(map);
+          const teleMarker = L.marker([Number(n.lat), Number(n.lng)], { icon: radarIcon }).addTo(map);
           teleMarker.bindTooltip(`${n.measuredPressure} bar`, {
             permanent: true,
             direction: 'bottom',
@@ -3028,7 +3044,7 @@
 
         } else if (n.isCustom) {
           // Titik Pantau Manometer Kustom Tambahan Pengguna
-          const customMarker = L.circleMarker([n.lat, n.lng], {
+          const customMarker = L.circleMarker([Number(n.lat), Number(n.lng)], {
             radius: 8,
             fillColor: '#8b5cf6',
             color: '#ffffff',
@@ -3093,7 +3109,7 @@
             mBadgeStyle = 'background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4)';
           }
 
-          const mMarker = L.circleMarker([n.lat, n.lng], {
+          const mMarker = L.circleMarker([Number(n.lat), Number(n.lng)], {
             radius: 7,
             fillColor: mColor,
             color: '#ffffff',
@@ -3133,7 +3149,7 @@
 
         } else if (showAllNodes) {
           // Junction Perantara Biasa (Hanya ditampilkan jika mode "Semua Node" aktif)
-          const dot = L.circleMarker([n.lat, n.lng], {
+          const dot = L.circleMarker([Number(n.lat), Number(n.lng)], {
             radius: 3,
             fillColor: '#64748b',
             color: '#334155',
@@ -6410,6 +6426,9 @@
 
         const enriched = {
           ...cNode,
+          lat: Number(cNode.lat),
+          lng: Number(cNode.lng),
+          elevation: Number(cNode.elevation) || 70,
           isCustom: true,
           isMonitoringPoint: true,
           category: cNode.category || 'custom_junction',
@@ -6428,14 +6447,17 @@
         customNodes.forEach(cNode => {
           let matchesSubang = cNode.areaId ? (cNode.areaId === 'subang_kota') : false;
           if (!cNode.areaId) {
-            const dLat = (cNode.lat - (-6.565)) * 111000;
-            const dLng = (cNode.lng - 107.765) * 111000;
+            const dLat = (Number(cNode.lat) - (-6.565)) * 111000;
+            const dLng = (Number(cNode.lng) - 107.765) * 111000;
             matchesSubang = Math.sqrt(dLat * dLat + dLng * dLng) < 8000;
           }
           if (!matchesSubang) return;
 
           const enriched = {
             ...cNode,
+            lat: Number(cNode.lat),
+            lng: Number(cNode.lng),
+            elevation: Number(cNode.elevation) || 70,
             isCustom: true,
             isMonitoringPoint: true,
             category: cNode.category || 'custom_junction',
@@ -6473,6 +6495,32 @@
 
       if (elevInput) {
         elevInput.dataset.userTouched = 'false';
+      }
+
+      // Handler cerdas saat paste koordinat gabungan (misal copy dari Google Maps: "-6.579659, 107.767065")
+      if (latInput && !latInput._hasCoordPaste) {
+        latInput._hasCoordPaste = true;
+        const handlePasteCoords = (e) => {
+          const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+          if (text.includes(',') || text.includes(';') || text.includes('\t') || (text.includes(' ') && text.trim().split(/\s+/).length === 2)) {
+            const parts = text.split(/[,;\t ]+/).map(p => p.trim().replace(',', '.')).filter(Boolean);
+            if (parts.length >= 2) {
+              const p1 = parseFloat(parts[0]);
+              const p2 = parseFloat(parts[1]);
+              if (!isNaN(p1) && !isNaN(p2)) {
+                e.preventDefault();
+                let pLat = p1, pLng = p2;
+                if (pLat > 90 && pLng < 0) { pLat = p2; pLng = p1; }
+                if (pLat > 0 && pLat < 15) { pLat = -pLat; }
+                latInput.value = pLat.toFixed(6);
+                if (lngInput) lngInput.value = pLng.toFixed(6);
+                onNewNodeCoordsChanged();
+              }
+            }
+          }
+        };
+        latInput.addEventListener('paste', handlePasteCoords);
+        if (lngInput) lngInput.addEventListener('paste', handlePasteCoords);
       }
 
       if (lat !== null && lng !== null) {
@@ -6524,8 +6572,14 @@
      * Callback saat peta diklik pada mode penunjukan posisi
      */
     function onMapPicked(e) {
-      const { lat, lng } = e.latlng;
+      let { lat, lng } = e.latlng;
       cancelMapPickMode();
+      // Cari apakah klik dekat pipa distribusi (<= 25 meter). Jika ya, tempelkan pas di jalur pipa
+      const res = findNearestPipeAndNode(lat, lng);
+      if (res.nearestProjPoint && res.pipeDist <= 25) {
+        lat = res.nearestProjPoint[0];
+        lng = res.nearestProjPoint[1];
+      }
       openAddJunctionModal(lat, lng);
     }
 
@@ -6580,7 +6634,11 @@
      * Mencari pipa dan simpul terdekat dari titik koordinat (lat, lng)
      */
     function findNearestPipeAndNode(lat, lng) {
-      if (!networkData) return { nearestNode: null, nearestPipe: null, nodeDist: Infinity, pipeDist: Infinity };
+      lat = parseFloat(String(lat).replace(',', '.'));
+      lng = parseFloat(String(lng).replace(',', '.'));
+      if (isNaN(lat) || isNaN(lng) || !networkData) {
+        return { nearestNode: null, nearestPipe: null, nodeDist: Infinity, pipeDist: Infinity, nearestProjPoint: null };
+      }
 
       const nodes = networkData.nodes || [];
       const pipes = networkData.pipes || [];
@@ -6590,8 +6648,8 @@
       let minNodeDistMeters = Infinity;
 
       for (const n of nodes) {
-        const dLat = (n.lat - lat) * 111000;
-        const dLng = (n.lng - lng) * 111000 * Math.cos(lat * Math.PI / 180);
+        const dLat = (Number(n.lat) - lat) * 111000;
+        const dLng = (Number(n.lng) - lng) * 111000 * Math.cos(lat * Math.PI / 180);
         const dist = Math.sqrt(dLat * dLat + dLng * dLng);
         if (dist < minNodeDistMeters) {
           minNodeDistMeters = dist;
@@ -6602,6 +6660,7 @@
       // 2. Pipa terdekat
       let nearestPipe = null;
       let minPipeDistMeters = Infinity;
+      let nearestProjPoint = null;
       const nodeMap = new Map();
       nodes.forEach(n => nodeMap.set(n.id, n));
 
@@ -6612,7 +6671,7 @@
         if (!coords || coords.length < 2) {
           const sn = nodeMap.get(p.startNodeId);
           const en = nodeMap.get(p.endNodeId);
-          if (sn && en) coords = [[sn.lat, sn.lng], [en.lat, en.lng]];
+          if (sn && en) coords = [[Number(sn.lat), Number(sn.lng)], [Number(en.lat), Number(en.lng)]];
         }
         if (!coords || coords.length < 2) continue;
 
@@ -6637,6 +6696,10 @@
           if (segDist < minPipeDistMeters) {
             minPipeDistMeters = segDist;
             nearestPipe = p;
+            nearestProjPoint = [
+              p1[0] + t * (p2[0] - p1[0]),
+              p1[1] + t * (p2[1] - p1[1])
+            ];
           }
         }
       }
@@ -6649,6 +6712,7 @@
         nodeDist: Math.round(minNodeDistMeters),
         nearestPipe,
         pipeDist: Math.round(minPipeDistMeters),
+        nearestProjPoint,
         startNode,
         endNode
       };
@@ -6658,8 +6722,10 @@
      * Handler saat nilai koordinat (Lat/Lng) pada modal berubah
      */
     function onNewNodeCoordsChanged() {
-      const latVal = parseFloat(document.getElementById('new-node-lat')?.value);
-      const lngVal = parseFloat(document.getElementById('new-node-lng')?.value);
+      const rawLat = String(document.getElementById('new-node-lat')?.value || '').replace(',', '.');
+      const rawLng = String(document.getElementById('new-node-lng')?.value || '').replace(',', '.');
+      const latVal = parseFloat(rawLat);
+      const lngVal = parseFloat(rawLng);
       const infoEl = document.getElementById('new-node-pipe-info');
       if (!infoEl) return;
 
@@ -6668,7 +6734,7 @@
         return;
       }
 
-      const { nearestNode, nodeDist, nearestPipe, pipeDist, startNode, endNode } = findNearestPipeAndNode(latVal, lngVal);
+      const { nearestNode, nodeDist, nearestPipe, pipeDist, startNode, endNode, nearestProjPoint } = findNearestPipeAndNode(latVal, lngVal);
 
       let pipeHtml = '';
       if (nearestPipe) {
@@ -6683,12 +6749,22 @@
           zoneText = ` • ${sDesc}`;
         }
 
+        const canSnap = (pipeDist > 0 && pipeDist <= 100 && nearestProjPoint);
+        const snapBtn = canSnap
+          ? `<div style="margin-top: 6px;">
+               <button type="button" class="btn btn-dark btn-xs" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); padding: 3px 8px;" onclick="snapNewNodeToNearestPipe()">
+                 ⚡ Tempelkan Pas ke Jalur Pipa (Koreksi ${pipeDist} m)
+               </button>
+             </div>`
+          : (pipeDist === 0 ? `<div style="color: #34d399; font-size: 11px; margin-top: 4px;">✅ Posisi tepat berada di garis pipa distribusi.</div>` : '');
+
         pipeHtml = `<div style="color: #38bdf8; font-weight: 700; margin-bottom: 4px; font-size: 12.5px;">
           🌊 Terdeteksi di Jalur Pipa: <b>${escapeHtml(sName)} ➔ ${escapeHtml(eName)}</b> (jarak ±${pipeDist} meter)
         </div>
         <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
           Spesifikasi: <b>Ø ${nearestPipe.diameter || 100} mm</b> (${escapeHtml(nearestPipe.material || 'PVC')}) • Panjang Pipa: <b>${Math.round(nearestPipe.length || 0)} m</b>${escapeHtml(zoneText)}
-        </div>`;
+        </div>
+        ${snapBtn}`;
       } else {
         pipeHtml = '<div style="color: #94a3b8;">Tidak ada pipa terdeteksi di sekitar koordinat ini.</div>';
       }
@@ -6714,11 +6790,32 @@
     }
 
     /**
+     * Menempelkan koordinat input junction tepat pada garis pipa distribusi terdekat
+     */
+    function snapNewNodeToNearestPipe() {
+      const rawLat = String(document.getElementById('new-node-lat')?.value || '').replace(',', '.');
+      const rawLng = String(document.getElementById('new-node-lng')?.value || '').replace(',', '.');
+      const latVal = parseFloat(rawLat);
+      const lngVal = parseFloat(rawLng);
+      if (isNaN(latVal) || isNaN(lngVal)) return;
+      const res = findNearestPipeAndNode(latVal, lngVal);
+      if (res.nearestProjPoint) {
+        const latInput = document.getElementById('new-node-lat');
+        const lngInput = document.getElementById('new-node-lng');
+        if (latInput) latInput.value = Number(res.nearestProjPoint[0]).toFixed(6);
+        if (lngInput) lngInput.value = Number(res.nearestProjPoint[1]).toFixed(6);
+        onNewNodeCoordsChanged();
+      }
+    }
+
+    /**
      * Mengestimasi elevasi tanah secara otomatis berdasarkan simpul jaringan terdekat
      */
     function autoEstimateElevationForNewNode() {
-      const latVal = parseFloat(document.getElementById('new-node-lat')?.value);
-      const lngVal = parseFloat(document.getElementById('new-node-lng')?.value);
+      const rawLat = String(document.getElementById('new-node-lat')?.value || '').replace(',', '.');
+      const rawLng = String(document.getElementById('new-node-lng')?.value || '').replace(',', '.');
+      const latVal = parseFloat(rawLat);
+      const lngVal = parseFloat(rawLng);
       if (isNaN(latVal) || isNaN(lngVal)) {
         alert('Tentukan koordinat Latitude & Longitude terlebih dahulu (via klik peta atau GPS).');
         return;
@@ -6748,15 +6845,29 @@
       const notesInput = document.getElementById('new-node-notes');
 
       const label = (labelInput?.value || '').trim();
-      const lat = parseFloat(latInput?.value);
-      const lng = parseFloat(lngInput?.value);
-      const elevation = parseFloat(elevInput?.value);
+      const rawLat = String(latInput?.value || '').trim().replace(',', '.');
+      const rawLng = String(lngInput?.value || '').trim().replace(',', '.');
+      let lat = parseFloat(rawLat);
+      let lng = parseFloat(rawLng);
+      const elevation = parseFloat(String(elevInput?.value || '').replace(',', '.'));
       const notes = (notesInput?.value || '').trim();
 
       if (!label) {
         alert('Nama / label titik simpul wajib diisi!');
         labelInput?.focus();
         return;
+      }
+
+      // Koreksi jika Lat dan Lng tertukar (Lat > 90 dan Lng < 0 untuk wilayah Indonesia)
+      if (lat > 90 && lng < 0) {
+        const temp = lat;
+        lat = lng;
+        lng = temp;
+      }
+
+      // Koreksi jika tanda minus tertinggal pada latitude (wilayah Subang di selatan khatulistiwa)
+      if (lat > 0 && lat < 15) {
+        lat = -lat;
       }
 
       if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
