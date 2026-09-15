@@ -2438,7 +2438,8 @@
     function populateNodeDropdown(nodes, filterText = '') {
       const select = document.getElementById('select-node');
       const curVal = select.value;
-      select.innerHTML = '<option value="">-- Pilih Titik Pantau Tekanan di Kota Subang --</option>';
+      const areaTitle = currentAreaId === 'subang_kota' ? 'Kota Subang' : ((typeof predefinedAreas !== 'undefined' && predefinedAreas.find(a => a.id === currentAreaId)?.name) || (typeof customAreas !== 'undefined' && customAreas[currentAreaId]?.name) || 'Wilayah Ini');
+      select.innerHTML = `<option value="">-- Pilih Titik Pantau Tekanan di ${areaTitle} --</option>`;
 
       // Filter jika ada teks pencarian
       const f = filterText.toLowerCase().trim();
@@ -3746,6 +3747,7 @@
 
     async function loadPredefinedArea(id, file, name) {
       try {
+        currentAreaId = id;
         const res = await fetch(file + '?v=' + Date.now());
         if (!res.ok) throw new Error('Gagal memuat berkas ' + file);
         const network = await res.json();
@@ -3773,10 +3775,13 @@
           console.warn('Gagal membersihkan cache localStorage:', e);
         }
 
+        // Muat titik junction kustom dari server/cloud/storage jika belum
+        await loadCustomNodes();
+
         // Pastikan modifikasi pipa dimuat dari Supabase Cloud / LocalStorage
         await loadPipeOverrides();
         
-        selectArea(id);
+        await selectArea(id);
       } catch (err) {
         console.error(err);
         alert('Gagal memuat jaringan ' + name + ': ' + err.message);
@@ -3893,17 +3898,17 @@
       });
     }
 
-    function selectArea(areaId) {
+    async function selectArea(areaId) {
       if (areaId === 'subang_kota') {
         if (!defaultSubangNetwork) {
-          loadSubangNetwork();
+          await loadSubangNetwork();
         } else {
           currentAreaId = 'subang_kota';
-          applyAreaNetwork(defaultSubangNetwork, 'Subang Kota');
+          await applyAreaNetwork(defaultSubangNetwork, 'Subang Kota');
         }
       } else if (customAreas[areaId]) {
         currentAreaId = areaId;
-        applyAreaNetwork(customAreas[areaId].network, customAreas[areaId].name);
+        await applyAreaNetwork(customAreas[areaId].network, customAreas[areaId].name);
       }
       closeAreaManagerModal();
     }
@@ -4294,12 +4299,16 @@
     }
 
     // Terapkan Jaringan Wilayah ke SCADA
-    function applyAreaNetwork(network, areaName) {
+    async function applyAreaNetwork(network, areaName) {
       networkData = network;
 
-      if (currentAreaId === 'subang_kota') {
-        mergeCustomNodesIntoNetwork();
+      // Pastikan titik junction kustom dimuat jika belum
+      if (!customNodes || customNodes.length === 0) {
+        await loadCustomNodes();
       }
+
+      // Gabungkan custom nodes yang relevan untuk wilayah ini ke dalam networkData
+      mergeCustomNodesIntoNetwork();
 
       // Pastikan spesifikasi default terdaftar dan terapkan override pipa
       if (networkData.pipes) {
@@ -4315,9 +4324,8 @@
         applyPipeOverrides();
       }
 
-      // Reset titik telemetri aktif agar tidak konflik dengan wilayah sebelumnya
-      telemetryReadings = {};
-      telemetryHistory = [];
+      // Muat data telemetri tersimpan (Supabase Cloud -> Server Lokal -> LocalStorage)
+      await loadTelemetryData();
 
       // Update Label di Tombol Header
       const label = document.getElementById('current-area-label');
@@ -5176,6 +5184,19 @@
     function mergeCustomNodesIntoNetwork() {
       if (!networkData || !networkData.nodes) return;
       customNodes.forEach(cNode => {
+        // Cek kecocokan wilayah:
+        // 1. Jika ada cNode.areaId, cocokkan langsung dengan currentAreaId
+        // 2. Jika tidak ada cNode.areaId (data lama), cek apakah jarak ke simpul terdekat di networkData < 8000m (8 km)
+        let matchesArea = false;
+        if (cNode.areaId) {
+          matchesArea = (cNode.areaId === currentAreaId);
+        } else {
+          const nearest = findNearestPipeAndNode(cNode.lat, cNode.lng);
+          matchesArea = nearest && nearest.nodeDist < 8000;
+        }
+
+        if (!matchesArea) return;
+
         // Otomatis bersihkan jika ada data lama yang masih menyimpan kode UUID mentah
         if (cNode.nearestPipeInfo && /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(cNode.nearestPipeInfo)) {
           const res = findNearestPipeAndNode(cNode.lat, cNode.lng);
@@ -5205,6 +5226,14 @@
 
       if (defaultSubangNetwork && defaultSubangNetwork.nodes && defaultSubangNetwork !== networkData) {
         customNodes.forEach(cNode => {
+          let matchesSubang = cNode.areaId ? (cNode.areaId === 'subang_kota') : false;
+          if (!cNode.areaId) {
+            const dLat = (cNode.lat - (-6.565)) * 111000;
+            const dLng = (cNode.lng - 107.765) * 111000;
+            matchesSubang = Math.sqrt(dLat * dLat + dLng * dLng) < 8000;
+          }
+          if (!matchesSubang) return;
+
           const enriched = {
             ...cNode,
             isCustom: true,
@@ -5536,9 +5565,9 @@
       }
 
       // Cek apakah label bentrok dengan node bawaan
-      const existingBaseNode = (defaultSubangNetwork?.nodes || []).find(n => (n.label || '').toLowerCase() === label.toLowerCase() && !n.isCustom);
+      const existingBaseNode = (networkData?.nodes || []).find(n => (n.label || '').toLowerCase() === label.toLowerCase() && !n.isCustom);
       if (existingBaseNode) {
-        alert(`Nama titik "${label}" sudah digunakan oleh simpul bawaan jaringan Subang. Mohon gunakan nama lain.`);
+        alert(`Nama titik "${label}" sudah digunakan oleh simpul bawaan jaringan ini. Mohon gunakan nama lain.`);
         return;
       }
 
@@ -5567,6 +5596,7 @@
         zoneLabel: '⭐ Titik Pantau Kustom Lapangan',
         monitoringReason: notes || pipeText || 'Titik pantau manometer kustom',
         nearestPipeInfo: pipeText,
+        areaId: currentAreaId || 'subang_kota',
         createdAt: new Date().toISOString()
       };
 

@@ -1,1 +1,74 @@
-{}
+{
+  "d91b5bb5-6b9e-4737-b327-d410d5cf39cc": {
+    "pipeId": "d91b5bb5-6b9e-4737-b327-d410d5cf39cc",
+    "diameter": 50,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 75,
+    "updatedAt": "2026-09-15T00:53:02.700Z"
+  },
+  "2abf0002-105f-4edf-84ac-b173e8720811": {
+    "pipeId": "2abf0002-105f-4edf-84ac-b173e8720811",
+    "diameter": 50,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 75,
+    "updatedAt": "2026-09-15T00:55:36.624Z"
+  },
+  "56f89de8-5083-456b-b48c-865a141fde7c": {
+    "pipeId": "56f89de8-5083-456b-b48c-865a141fde7c",
+    "diameter": 50,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 100,
+    "updatedAt": "2026-09-15T00:56:06.257Z"
+  },
+  "c168e10d-d549-460a-a64b-fda5767b9da4": {
+    "pipeId": "c168e10d-d549-460a-a64b-fda5767b9da4",
+    "diameter": 50,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 100,
+    "updatedAt": "2026-09-15T00:56:14.608Z"
+  },
+  "a6240904-9a80-4971-bee1-fb351778858d": {
+    "pipeId": "a6240904-9a80-4971-bee1-fb351778858d",
+    "diameter": 50,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 100,
+    "updatedAt": "2026-09-15T00:56:23.585Z"
+  },
+  "8769947d-46f8-412c-965a-84f864ee6168": {
+    "pipeId": "8769947d-46f8-412c-965a-84f864ee6168",
+    "diameter": 50,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 100,
+    "updatedAt": "2026-09-15T00:56:32.308Z"
+  },
+  "936a2878-2a84-4093-8bc9-8fff53637c72": {
+    "pipeId": "936a2878-2a84-4093-8bc9-8fff53637c72",
+    "diameter": 50,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 100,
+    "updatedAt": "2026-09-15T00:56:40.176Z"
+  },
+  "19ffe98d-cc55-4806-b835-d070b69ed6e9": {
+    "pipeId": "19ffe98d-cc55-4806-b835-d070b69ed6e9",
+    "diameter": 75,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 100,
+    "updatedAt": "2026-09-15T00:56:50.068Z"
+  },
+  "6be98ff2-8d2d-4001-a085-0850c3cc5043": {
+    "pipeId": "6be98ff2-8d2d-4001-a085-0850c3cc5043",
+    "diameter": 75,
+    "material": "PVC",
+    "roughness": 140,
+    "originalDiameter": 100,
+    "updatedAt": "2026-09-15T00:56:59.301Z"
+  }
+}

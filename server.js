@@ -661,6 +661,7 @@ const server = http.createServer(async (req, res) => {
           zone: 'custom',
           zoneLabel: newNode.zoneLabel || '⭐ Titik Pantau Kustom Lapangan',
           nearestPipeInfo: newNode.nearestPipeInfo || null,
+          areaId: newNode.areaId || 'subang_kota',
           isCustom: true,
           createdAt: newNode.createdAt || new Date().toISOString()
         };
