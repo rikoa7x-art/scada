@@ -2025,11 +2025,65 @@
       }
     }
 
-    // Muat data telemetri secara bertingkat: Supabase Cloud -> Server Lokal -> LocalStorage
+    // Muat data telemetri secara bertingkat dan gabungkan: Supabase Cloud + Server Lokal + LocalStorage
     async function loadTelemetryData() {
-      let loadedFromCloud = false;
+      let mergedReadings = {};
+      let mergedHistory = [];
+      let latestUpdated = null;
 
-      // 1. Coba muat dari Supabase Cloud
+      // Fungsi helper untuk menggabungkan data telemetri
+      const mergeData = (readings, history, lastUpdated) => {
+        if (readings) {
+          Object.keys(readings).forEach(key => {
+            const existing = mergedReadings[key];
+            const incoming = readings[key];
+            if (!existing || new Date(incoming.timestamp) > new Date(existing.timestamp)) {
+              mergedReadings[key] = incoming;
+            }
+          });
+        }
+        if (history && Array.isArray(history)) {
+          history.forEach(item => {
+            if (!mergedHistory.find(h => h.id === item.id)) {
+              mergedHistory.push(item);
+            }
+          });
+        }
+        if (lastUpdated) {
+          if (!latestUpdated || new Date(lastUpdated) > new Date(latestUpdated)) {
+            latestUpdated = lastUpdated;
+          }
+        }
+      };
+
+      // 1. Fallback ke LocalStorage (data offline di HP / browser)
+      try {
+        const localSaved = localStorage.getItem('scada_subang_telemetry_readings');
+        if (localSaved) {
+          const parsed = JSON.parse(localSaved);
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+            mergeData(parsed, [], null);
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal membaca localStorage:', e);
+      }
+
+      // 2. Muat dari Server Lokal /api/telemetry
+      try {
+        const tRes = await fetch('/api/telemetry?v=' + Date.now());
+        if (tRes.ok) {
+          const tData = await tRes.json();
+          if (tData.readings && Object.keys(tData.readings).length > 0) {
+            mergeData(tData.readings, tData.history, tData.lastUpdated);
+            console.log(`📡 Membaca ${Object.keys(tData.readings).length} titik telemetri dari server lokal.`);
+          }
+        }
+      } catch (e) {
+        // Server lokal offline
+      }
+
+      // 3. Coba muat dari Supabase Cloud
       if (supabaseClient) {
         try {
           const { data, error } = await supabaseClient
@@ -2038,13 +2092,15 @@
             .order('updated_at', { ascending: false });
 
           if (!error && Array.isArray(data) && data.length > 0) {
-            telemetryReadings = {};
-            telemetryHistory = [];
+            const cloudReadings = {};
+            const cloudHistory = [];
+            let cloudLastUpdated = null;
+            
             data.forEach(row => {
               if (row.node_id === '__SCADA_CUSTOM_NODES__' || row.node_id === '__SCADA_PIPE_OVERRIDES__' || row.gauge_type === 'custom_nodes_catalog' || row.gauge_type === 'pipe_overrides_catalog' || row.gauge_type === 'custom_junction') {
                 return; // Lewati record katalog sistem & placeholder titik kustom yang belum diukur
               }
-              telemetryReadings[row.node_id] = {
+              cloudReadings[row.node_id] = {
                 nodeId: row.node_id,
                 nodeLabel: row.node_label || row.node_id,
                 pressure_bar: Number(row.pressure_bar),
@@ -2055,7 +2111,7 @@
                 notes: row.notes || '',
                 timestamp: row.updated_at || new Date().toISOString()
               };
-              telemetryHistory.push({
+              cloudHistory.push({
                 id: 'TEL-' + row.node_id,
                 nodeId: row.node_id,
                 nodeLabel: row.node_label || row.node_id,
@@ -2064,60 +2120,37 @@
                 notes: row.notes || '',
                 timestamp: row.updated_at || new Date().toISOString()
               });
+              if (!cloudLastUpdated || new Date(row.updated_at) > new Date(cloudLastUpdated)) {
+                cloudLastUpdated = row.updated_at;
+              }
             });
-            try {
-              localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
-            } catch (e) {}
-            console.log(`⚡ Berhasil memuat ${data.length} titik telemetri dari Supabase Cloud.`);
-            loadedFromCloud = true;
+            
+            mergeData(cloudReadings, cloudHistory, cloudLastUpdated);
+            console.log(`⚡ Membaca ${Object.keys(cloudReadings).length} titik telemetri dari Supabase Cloud.`);
           }
         } catch (err) {
           console.warn('Gagal memuat telemetri dari Supabase Cloud:', err);
         }
       }
 
-      // 2. Jika cloud belum ada data / offline, coba muat dari Server Lokal /api/telemetry
-      if (!loadedFromCloud) {
-        try {
-          const tRes = await fetch('/api/telemetry');
-          if (tRes.ok) {
-            const tData = await tRes.json();
-            if (tData.readings && Object.keys(tData.readings).length > 0) {
-              telemetryReadings = tData.readings;
-              telemetryHistory = tData.history || [];
-              window._lastTelemetryUpdate = tData.lastUpdated;
-              try {
-                localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
-              } catch (e) {}
-              console.log(`📡 Berhasil memuat ${Object.keys(telemetryReadings).length} titik telemetri dari server lokal.`);
-              
-              // Jika Supabase aktif, sinkronkan data server lokal ke Supabase
-              if (supabaseClient) {
-                syncLocalReadingsToSupabase(telemetryReadings);
-              }
-              return;
-            }
-          }
-        } catch (e) {
-          // Server lokal offline
-        }
-
-        // 3. Fallback ke LocalStorage (data offline di HP / browser)
-        try {
-          const localSaved = localStorage.getItem('scada_subang_telemetry_readings');
-          if (localSaved) {
-            const parsed = JSON.parse(localSaved);
-            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-              telemetryReadings = parsed;
-              console.log(`📱 Berhasil memulihkan ${Object.keys(telemetryReadings).length} titik telemetri dari memori lokal.`);
-              if (supabaseClient) {
-                syncLocalReadingsToSupabase(telemetryReadings);
-              }
-            }
-          }
-        } catch (e) {
-          console.warn('Gagal membaca localStorage:', e);
-        }
+      // Tetapkan state gabungan
+      telemetryReadings = mergedReadings;
+      
+      // Urutkan histori berdasarkan timestamp descending (terbaru dulu)
+      mergedHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      telemetryHistory = mergedHistory.slice(0, 100); // Batasi 100
+      
+      window._lastTelemetryUpdate = latestUpdated || new Date().toISOString();
+      
+      try {
+        localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
+      } catch (e) {}
+      
+      console.log(`✅ Berhasil menggabungkan total ${Object.keys(telemetryReadings).length} titik telemetri.`);
+      
+      // Jika Supabase aktif, sinkronkan data yang mungkin tidak tersinkron
+      if (supabaseClient && Object.keys(telemetryReadings).length > 0) {
+        syncLocalReadingsToSupabase(telemetryReadings);
       }
     }
 
@@ -2306,7 +2339,7 @@
       if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
       _autoRefreshTimer = setInterval(async () => {
         try {
-          const res = await fetch('/api/telemetry');
+          const res = await fetch('/api/telemetry?v=' + Date.now());
           if (res.ok) {
             const tData = await res.json();
             if (tData.readings && tData.lastUpdated) {
@@ -4589,7 +4622,7 @@
 
       let serverOverrides = null;
       try {
-        const res = await fetch('/api/pipe-overrides');
+        const res = await fetch('/api/pipe-overrides?v=' + Date.now());
         if (res.ok) {
           const data = await res.json();
           if (data && typeof data === 'object') {
@@ -4993,7 +5026,7 @@
       // 2. Coba dari server lokal jika aktif
       let serverNodes = null;
       try {
-        const res = await fetch('/api/custom-nodes');
+        const res = await fetch('/api/custom-nodes?v=' + Date.now());
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
