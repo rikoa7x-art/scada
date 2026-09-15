@@ -65,7 +65,7 @@ async function deleteTelemetryFromSupabase(nodeId) {
     // Saat reset_all (nodeId = null): hapus semua row telemetri KECUALI katalog __SCADA_CUSTOM_NODES__ dan __SCADA_PIPE_OVERRIDES__
     const url = nodeId
       ? `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.${encodeURIComponent(nodeId)}`
-      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=not.in.(__SCADA_CUSTOM_NODES__,__SCADA_PIPE_OVERRIDES__)`;
+      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=neq.${encodeURIComponent('__SCADA_CUSTOM_NODES__')}&node_id=neq.${encodeURIComponent('__SCADA_PIPE_OVERRIDES__')}`;
     await fetch(url, {
       method: 'DELETE',
       headers: {
@@ -147,7 +147,7 @@ async function syncCustomNodesCatalogToSupabase(customNodes) {
       updated_at: new Date().toISOString()
     };
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?on_conflict=node_id`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
@@ -363,10 +363,13 @@ async function writeTelemetrySafe(data) {
       } catch (err) {
         reject(err);
       } finally {
+        // Penting: set isWritingTelemetry = false SEBELUM memanggil item berikutnya
+        // agar item berikutnya dapat mendeteksi bahwa slot tulis sudah bebas
         isWritingTelemetry = false;
         if (writeQueue.length > 0) {
           const next = writeQueue.shift();
-          next();
+          // Jalankan tanpa await — doWrite akan mengelola state-nya sendiri secara async
+          next().catch(err => console.error('[Server] Error pada antrian penulisan telemetri:', err.message));
         }
       }
     };

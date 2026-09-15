@@ -2162,6 +2162,10 @@
     // State Global Aplikasi SCADA Subang
 
     // ================= SUPABASE CLOUD BACKEND & REALTIME SYNC =================
+    // CATATAN KEAMANAN: Supabase anon key di bawah adalah PUBLIC key (bukan secret).
+    // Ini adalah desain yang benar — anon key aman untuk diekspos di client-side karena
+    // keamanan data diatur oleh Row Level Security (RLS) di sisi Supabase, bukan key-nya.
+    // Referensi: https://supabase.com/docs/guides/api/api-keys
     const SUPABASE_CONFIG = {
       url: 'https://nbjfxzulzxxujudntdab.supabase.co',
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iamZ4enVsenh4dWp1ZG50ZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTE2MzIsImV4cCI6MjEwNDc4NzYzMn0.LlIr9TLE3sE7X9xsohQcFrsU0OM8lisy1ymUvV-kdLo'
@@ -2235,7 +2239,7 @@
                     renderNetwork();
                     console.log(`⚡ Realtime custom nodes diperbarui dari Supabase (${customNodes.length} titik).`);
                   }
-                } catch (e) {}
+                } catch (e) { console.warn('⚠️ [Realtime] Error memproses update custom nodes dari Supabase:', e.message); }
                 return;
               }
 
@@ -2250,7 +2254,7 @@
                     renderNetwork();
                     console.log(`⚡ Realtime pipe overrides diperbarui dari Supabase (${Object.keys(pipeOverrides).length} pipa).`);
                   }
-                } catch (e) {}
+                } catch (e) { console.warn('⚠️ [Realtime] Error memproses update pipe overrides dari Supabase:', e.message); }
                 return;
               }
 
@@ -3987,7 +3991,7 @@
       // 3. Reset di server lokal
       try {
         await fetch('/api/telemetry?action=reset_all', { method: 'DELETE' });
-      } catch (e) {}
+      } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat reset telemetri — data tetap terhapus dari Supabase & lokal.'); }
 
       renderNetwork();
     }
@@ -4058,7 +4062,7 @@
             const data = await res.json();
             if (Array.isArray(data)) apiPumps = data;
           }
-        } catch (e) {}
+        } catch (e) { /* Server lokal offline — pompa dimuat dari localStorage saja */ }
 
         let localPumps = [];
         try {
@@ -4141,7 +4145,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pumpObj)
         });
-      } catch (e) {}
+      } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat simpan pompa.'); }
     }
 
     /**
@@ -4155,7 +4159,7 @@
 
       try {
         await fetch(`/api/pumps?id=${encodeURIComponent(pumpId)}`, { method: 'DELETE' });
-      } catch (e) {}
+      } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat hapus pompa.'); }
     }
 
     /**
@@ -4194,7 +4198,7 @@
       if (!confirm('Apakah Anda yakin ingin me-reset konfigurasi pompa ke kondisi default wilayah ini?')) return;
       try {
         await fetch('/api/pumps?action=reset_all', { method: 'DELETE' });
-      } catch (e) {}
+      } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat reset pompa.'); }
       localStorage.removeItem('prodist_scada_pumps');
       customPumps = [];
       await loadPumpsData();
@@ -4710,6 +4714,10 @@
     let pendingImportFileName = '';
     let pendingImportExt = '';
     
+    // ⚠️ CATATAN KEAMANAN: Password di bawah disimpan sebagai plaintext di HTML client-side.
+    // Ini HANYA cocok untuk aplikasi INTRANET/lokal terbatas (bukan internet publik).
+    // Untuk deployment publik/internet, ganti dengan autentikasi via Supabase Auth
+    // atau simpan hash SHA-256 password dan bandingkan di sisi client.
     const SCADA_USERS = [
       { username: 'agung', password: 'subang', areaId: 'subang_kota' },
       { username: 'yudi', password: 'jalancagak', areaId: 'jalancagak' },
@@ -5592,7 +5600,7 @@
             try {
               localStorage.setItem('scada_subang_telemetry_readings', JSON.stringify(telemetryReadings));
               localStorage.setItem('scada_subang_telemetry_history', JSON.stringify(telemetryHistory.slice(0, 50)));
-            } catch (err) {}
+            } catch (err) { console.warn('⚠️ localStorage penuh saat menyimpan data impor telemetri:', err.message); }
 
             // Sinkronkan ke Supabase Cloud
             if (supabaseClient) {
@@ -5679,7 +5687,7 @@
             serverOverrides = data;
           }
         }
-      } catch (e) {}
+      } catch (e) { /* Server lokal offline — pipe overrides dimuat dari cloud/localStorage saja */ }
 
       let localOverrides = null;
       try {
@@ -5687,7 +5695,7 @@
         if (raw) {
           localOverrides = JSON.parse(raw);
         }
-      } catch (e) {}
+      } catch (e) { console.warn('⚠️ Error membaca pipe overrides dari localStorage:', e.message); }
 
       pipeOverrides = Object.assign({}, cloudOverrides || {}, serverOverrides || {}, localOverrides || {});
       savePipeOverridesToStorage();
@@ -5732,7 +5740,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(overrideData)
         });
-      } catch (e) {}
+      } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat simpan override pipa.'); }
     }
 
     async function deletePipeOverrideFromServer(pipeId) {
@@ -5763,7 +5771,7 @@
         await fetch(`/api/pipe-overrides?pipeId=${encodeURIComponent(pipeId)}`, {
           method: 'DELETE'
         });
-      } catch (e) {}
+      } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat hapus override pipa.'); }
     }
 
     function applyPipeOverrides() {
@@ -6016,7 +6024,7 @@
       // 2. Reset di server lokal
       try {
         await fetch('/api/pipe-overrides?action=reset_all', { method: 'DELETE' });
-      } catch (e) {}
+      } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat reset override pipa.'); }
 
       applyPipeOverrides();
       renderNetwork();
@@ -6045,7 +6053,7 @@
                 cloudNodes = parsed;
                 console.log(`⚡ Berhasil memuat ${cloudNodes.length} titik junction kustom dari katalog Supabase Cloud.`);
               }
-            } catch (e) {}
+            } catch (e) { console.warn('⚠️ Error parsing katalog custom nodes dari Supabase:', e.message); }
           }
 
           // B. Jika katalog belum ada, coba baca baris individual bertipe custom_junction
@@ -6061,7 +6069,7 @@
                 try {
                   const parsed = JSON.parse(row.notes);
                   if (parsed && parsed.id) cloudNodes.push(parsed);
-                } catch (e) {}
+                } catch (e) { /* Lewati baris Supabase dengan notes tidak valid */ }
               });
               if (cloudNodes.length > 0) {
                 console.log(`⚡ Berhasil memulihkan ${cloudNodes.length} titik kustom individual dari Supabase Cloud.`);
@@ -6715,13 +6723,13 @@
         // Hapus dari server lokal
         try {
           await fetch(`/api/telemetry?nodeId=${encodeURIComponent(nodeId)}`, { method: 'DELETE' });
-        } catch (e) {}
+        } catch (e) { console.log('ℹ️ [SCADA] Server lokal offline saat hapus telemetri node kustom.'); }
 
         // Hapus dari Supabase jika ada
         if (supabaseClient) {
           try {
             await supabaseClient.from('scada_telemetry').delete().eq('node_id', nodeId);
-          } catch (e) {}
+          } catch (e) { console.warn('⚠️ Gagal hapus telemetri dari Supabase saat hapus custom node:', e.message); }
         }
       }
 
