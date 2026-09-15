@@ -696,8 +696,8 @@
       "length": 145.5,
       "straightLength": 145.5,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.676593,
@@ -734,8 +734,8 @@
       "length": 242.7,
       "straightLength": 242.3,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6782634965391034,
@@ -780,8 +780,8 @@
       "length": 341.1,
       "straightLength": 340.5,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.677922497617077,
@@ -826,8 +826,8 @@
       "length": 138.5,
       "straightLength": 130.8,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6757060944550215,
@@ -888,8 +888,8 @@
       "length": 128.3,
       "straightLength": 113.5,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6765026449401095,
@@ -934,8 +934,8 @@
       "length": 70.7,
       "straightLength": 71,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6767609812678135,
@@ -976,8 +976,8 @@
       "length": 109.1,
       "straightLength": 91.5,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.676686421440289,
@@ -1010,8 +1010,8 @@
       "length": 136,
       "straightLength": 135.3,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.67662246168463,
@@ -1052,8 +1052,8 @@
       "length": 43.1,
       "straightLength": 38,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.676212202971011,
@@ -1090,8 +1090,8 @@
       "length": 110.3,
       "straightLength": 107.8,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.674912167038564,
@@ -1132,8 +1132,8 @@
       "length": 212.3,
       "straightLength": 205.3,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675785954318478,
@@ -1198,8 +1198,8 @@
       "length": 148.8,
       "straightLength": 126,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675487625177264,
@@ -1272,8 +1272,8 @@
       "length": 67.2,
       "straightLength": 63.3,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6764732521984635,
@@ -1314,8 +1314,8 @@
       "length": 569.2,
       "straightLength": 568.6,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.677011430423401,
@@ -1400,8 +1400,8 @@
       "length": 256.2,
       "straightLength": 255.7,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675295835741403,
@@ -1470,8 +1470,8 @@
       "length": 370,
       "straightLength": 367.5,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6744326485333545,
@@ -1548,8 +1548,8 @@
       "length": 42.2,
       "straightLength": 42.2,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675487625177264,
@@ -1570,8 +1570,8 @@
       "length": 263.4,
       "straightLength": 252.3,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675871204048985,
@@ -1616,8 +1616,8 @@
       "length": 145.7,
       "straightLength": 110.2,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6782634965391034,
@@ -1658,8 +1658,8 @@
       "length": 145.9,
       "straightLength": 141.7,
       "diameter": 90,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.677922497617077,
@@ -1708,8 +1708,8 @@
       "length": 225,
       "straightLength": 213.7,
       "diameter": 50,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.679123,
@@ -1754,8 +1754,8 @@
       "length": 345.4,
       "straightLength": 340,
       "diameter": 50,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.679137283819017,
@@ -1812,8 +1812,8 @@
       "length": 155.2,
       "straightLength": 139.4,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6774243840705445,
@@ -1858,8 +1858,8 @@
       "length": 43,
       "straightLength": 42.9,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6782634965391034,
@@ -1888,8 +1888,8 @@
       "length": 347.8,
       "straightLength": 325.9,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.678328,
@@ -1982,8 +1982,8 @@
       "length": 77.8,
       "straightLength": 76.6,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.67662246168463,
@@ -2016,8 +2016,8 @@
       "length": 103.5,
       "straightLength": 102,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.677293769625701,
@@ -2050,8 +2050,8 @@
       "length": 106.4,
       "straightLength": 106.4,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675988433657321,
@@ -2072,8 +2072,8 @@
       "length": 194.5,
       "straightLength": 184.4,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6767609812678135,
@@ -2134,8 +2134,8 @@
       "length": 160.6,
       "straightLength": 139.1,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.677293769625701,
@@ -2232,8 +2232,8 @@
       "length": 194.5,
       "straightLength": 177.7,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.6782634965391034,
@@ -2286,8 +2286,8 @@
       "length": 124.9,
       "straightLength": 116,
       "diameter": 225,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675464,
@@ -2320,8 +2320,8 @@
       "length": 1266.8,
       "straightLength": 1214.4,
       "diameter": 225,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.676217503006944,
@@ -2510,8 +2510,8 @@
       "length": 763.6,
       "straightLength": 737,
       "diameter": 225,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.668902105953404,
@@ -2636,8 +2636,8 @@
       "length": 485.2,
       "straightLength": 472,
       "diameter": 225,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.665161717882977,
@@ -2710,8 +2710,8 @@
       "length": 271.1,
       "straightLength": 267.3,
       "diameter": 90,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.662263227045751,
@@ -2780,8 +2780,8 @@
       "length": 335.3,
       "straightLength": 233.5,
       "diameter": 90,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.660579522410465,
@@ -2890,8 +2890,8 @@
       "length": 271.5,
       "straightLength": 263.1,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.662263227045751,
@@ -2992,8 +2992,8 @@
       "length": 347.3,
       "straightLength": 335.8,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.662263227045751,
@@ -3094,8 +3094,8 @@
       "length": 439.8,
       "straightLength": 329,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.660579522410465,
@@ -3244,8 +3244,8 @@
       "length": 676.9,
       "straightLength": 606.2,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.668902105953404,
@@ -3386,8 +3386,8 @@
       "length": 60.7,
       "straightLength": 60.9,
       "diameter": 225,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.675651,
@@ -3444,8 +3444,8 @@
       "length": 679.3,
       "straightLength": 649.9,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.674335,
@@ -3622,8 +3622,8 @@
       "length": 438,
       "straightLength": 402,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.671805896826563,
@@ -3812,8 +3812,8 @@
       "length": 316.8,
       "straightLength": 290.6,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.668206813103962,
@@ -3934,8 +3934,8 @@
       "length": 622,
       "straightLength": 576.8,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.667322335921066,
@@ -4076,8 +4076,8 @@
       "length": 383,
       "straightLength": 386.7,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.662782720398249,
@@ -4154,8 +4154,8 @@
       "length": 718.2,
       "straightLength": 711.3,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.659545835741403,
@@ -4252,8 +4252,8 @@
       "length": 419.4,
       "straightLength": 414.9,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.653500920182654,
@@ -4330,8 +4330,8 @@
       "length": 65.4,
       "straightLength": 65.3,
       "diameter": 100,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.656428785795302,
@@ -4360,8 +4360,8 @@
       "length": 147.5,
       "straightLength": 147.9,
       "diameter": 90,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.656743194706548,
@@ -4402,8 +4402,8 @@
       "length": 296.9,
       "straightLength": 295,
       "diameter": 90,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.657521132184091,
@@ -4468,8 +4468,8 @@
       "length": 196.9,
       "straightLength": 174.9,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.653500920182654,
@@ -4534,8 +4534,8 @@
       "length": 302.1,
       "straightLength": 282.5,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.656743194706548,
@@ -4596,8 +4596,8 @@
       "length": 407.8,
       "straightLength": 387.8,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.657521132184091,
@@ -4690,8 +4690,8 @@
       "length": 522.1,
       "straightLength": 505,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.659545835741403,
@@ -4864,8 +4864,8 @@
       "length": 480.3,
       "straightLength": 461.5,
       "diameter": 63,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.660579522410465,
@@ -5010,8 +5010,8 @@
       "length": 202.7,
       "straightLength": 176.9,
       "diameter": 150,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.674335,
@@ -5080,7 +5080,7 @@
       "length": 9.8,
       "straightLength": 9.8,
       "diameter": 150,
-      "roughness": 150,
+      "roughness": 140,
       "material": "PVC",
       "routeCoordinates": [
         [
@@ -5102,7 +5102,7 @@
       "length": 374.3,
       "straightLength": 320.5,
       "diameter": 150,
-      "roughness": 150,
+      "roughness": 140,
       "material": "PVC",
       "routeCoordinates": [
         [
@@ -5184,7 +5184,7 @@
       "length": 378.3,
       "straightLength": 327.9,
       "diameter": 150,
-      "roughness": 150,
+      "roughness": 140,
       "material": "PVC",
       "routeCoordinates": [
         [
@@ -5262,7 +5262,7 @@
       "length": 107.9,
       "straightLength": 106.5,
       "diameter": 50,
-      "roughness": 150,
+      "roughness": 140,
       "material": "PVC",
       "routeCoordinates": [
         [
@@ -5296,7 +5296,7 @@
       "length": 122.4,
       "straightLength": 121.6,
       "diameter": 100,
-      "roughness": 150,
+      "roughness": 140,
       "material": "PVC",
       "routeCoordinates": [
         [

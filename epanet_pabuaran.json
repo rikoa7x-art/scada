@@ -2911,8 +2911,8 @@
       "length": 8.44,
       "straightLength": 7.3,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.397833892451989,
@@ -2933,8 +2933,8 @@
       "length": 4.78,
       "straightLength": 3.9,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.397899289505522,
@@ -2955,8 +2955,8 @@
       "length": 6.16,
       "straightLength": 3.3,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.397899289505522,
@@ -2977,8 +2977,8 @@
       "length": 10.61,
       "straightLength": 9,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.39792731681418,
@@ -2999,8 +2999,8 @@
       "length": 3360.48,
       "straightLength": 2029.6,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.397933515161289,
@@ -3125,8 +3125,8 @@
       "length": 22.25,
       "straightLength": 21.6,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.379681449045582,
@@ -3147,8 +3147,8 @@
       "length": 718.04,
       "straightLength": 236.8,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.379487503662905,
@@ -3205,8 +3205,8 @@
       "length": 377.25,
       "straightLength": 136.6,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.377866231654271,
@@ -3235,8 +3235,8 @@
       "length": 794.53,
       "straightLength": 207.4,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.37686883675669,
@@ -3297,8 +3297,8 @@
       "length": 1225.16,
       "straightLength": 1176.2,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.375848534924136,
@@ -3403,8 +3403,8 @@
       "length": 4.3,
       "straightLength": 2.1,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.3652900548666524,
@@ -3425,8 +3425,8 @@
       "length": 16.29,
       "straightLength": 7.6,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365272447967617,
@@ -3447,8 +3447,8 @@
       "length": 6.1,
       "straightLength": 5.6,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.3652111831454805,
@@ -3469,8 +3469,8 @@
       "length": 1.92,
       "straightLength": 1.1,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365161326875271,
@@ -3491,8 +3491,8 @@
       "length": 11.89,
       "straightLength": 10.8,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365272447967617,
@@ -3513,8 +3513,8 @@
       "length": 4.04,
       "straightLength": 1.8,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365175879516305,
@@ -3535,8 +3535,8 @@
       "length": 5.94,
       "straightLength": 5.3,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365161326875271,
@@ -3557,8 +3557,8 @@
       "length": 2.85,
       "straightLength": 1.2,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365209117029768,
@@ -3579,8 +3579,8 @@
       "length": 5.35,
       "straightLength": 2.8,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365175879516305,
@@ -3601,8 +3601,8 @@
       "length": 587.74,
       "straightLength": 525,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.365199235606842,
@@ -3679,8 +3679,8 @@
       "length": 112.42,
       "straightLength": 54,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.360503044446237,
@@ -3713,8 +3713,8 @@
       "length": 156.74,
       "straightLength": 62.6,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.330578951740525,
@@ -3743,8 +3743,8 @@
       "length": 944.93,
       "straightLength": 823.6,
       "diameter": 100,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.330097906106322,
@@ -3861,8 +3861,8 @@
       "length": 86.6,
       "straightLength": 82.5,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.332369375743402,
@@ -3883,8 +3883,8 @@
       "length": 122.67,
       "straightLength": 117.1,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.331629616490791,
@@ -3917,8 +3917,8 @@
       "length": 566.03,
       "straightLength": 283,
       "diameter": 100,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.331629616490791,
@@ -3979,8 +3979,8 @@
       "length": 240.07,
       "straightLength": 94,
       "diameter": 100,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.330578951740525,
@@ -4021,8 +4021,8 @@
       "length": 870.67,
       "straightLength": 846.2,
       "diameter": 100,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.331298678653927,
@@ -4163,8 +4163,8 @@
       "length": 302.82,
       "straightLength": 115.5,
       "diameter": 100,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.323695103375447,
@@ -4209,8 +4209,8 @@
       "length": 442.55,
       "straightLength": 364.2,
       "diameter": 100,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.331298678653927,
@@ -4263,8 +4263,8 @@
       "length": 824.97,
       "straightLength": 665.2,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355049756627328,
@@ -4421,8 +4421,8 @@
       "length": 2075.76,
       "straightLength": 1861.5,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.349067633019719,
@@ -4679,8 +4679,8 @@
       "length": 193.45,
       "straightLength": 145.2,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.349067633019719,
@@ -4713,8 +4713,8 @@
       "length": 65.91,
       "straightLength": 62.7,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355612368916231,
@@ -4747,8 +4747,8 @@
       "length": 1.88,
       "straightLength": 0.6,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355612368916231,
@@ -4769,8 +4769,8 @@
       "length": 41.79,
       "straightLength": 39.4,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.35561695030322,
@@ -4795,8 +4795,8 @@
       "length": 14.49,
       "straightLength": 13.9,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.35561695030322,
@@ -4817,8 +4817,8 @@
       "length": 46.5,
       "straightLength": 44.5,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355741366400953,
@@ -4839,8 +4839,8 @@
       "length": 62.96,
       "straightLength": 22.2,
       "diameter": 32,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355741366400953,
@@ -4865,8 +4865,8 @@
       "length": 62.23,
       "straightLength": 17.1,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355263824180331,
@@ -4887,8 +4887,8 @@
       "length": 98.1,
       "straightLength": 25.5,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355357607866996,
@@ -4917,8 +4917,8 @@
       "length": 18.68,
       "straightLength": 18.6,
       "diameter": 32,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.355357607866996,
@@ -4939,8 +4939,8 @@
       "length": 37.88,
       "straightLength": 36.1,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.3559362999259195,
@@ -4961,8 +4961,8 @@
       "length": 71.8,
       "straightLength": 17.4,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.3559362999259195,
@@ -4987,8 +4987,8 @@
       "length": 112.86,
       "straightLength": 76.5,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356622250339162,
@@ -5029,8 +5029,8 @@
       "length": 1.03,
       "straightLength": 1,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356622250339162,
@@ -5051,8 +5051,8 @@
       "length": 62.62,
       "straightLength": 18,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356613446889644,
@@ -5073,8 +5073,8 @@
       "length": 6.32,
       "straightLength": 6.2,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356613446889644,
@@ -5095,8 +5095,8 @@
       "length": 39.84,
       "straightLength": 12.6,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356558021090142,
@@ -5117,8 +5117,8 @@
       "length": 30.35,
       "straightLength": 12.5,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356558021090142,
@@ -5139,8 +5139,8 @@
       "length": 69.18,
       "straightLength": 68.1,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356558021090142,
@@ -5169,8 +5169,8 @@
       "length": 29.23,
       "straightLength": 15.4,
       "diameter": 250,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.3566552183592835,
@@ -5195,8 +5195,8 @@
       "length": 132.25,
       "straightLength": 125,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.360059368556908,
@@ -5229,8 +5229,8 @@
       "length": 317.76,
       "straightLength": 257.9,
       "diameter": 150,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.358938096548276,
@@ -5287,8 +5287,8 @@
       "length": 2.85,
       "straightLength": 1.3,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.358938096548276,
@@ -5309,8 +5309,8 @@
       "length": 28.1,
       "straightLength": 26.1,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.358948516957914,
@@ -5331,8 +5331,8 @@
       "length": 39.49,
       "straightLength": 36.4,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.358948516957914,
@@ -5353,8 +5353,8 @@
       "length": 111.13,
       "straightLength": 42,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.358714956052414,
@@ -5375,8 +5375,8 @@
       "length": 118.43,
       "straightLength": 40.6,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.359274334421092,
@@ -5409,8 +5409,8 @@
       "length": 536.87,
       "straightLength": 189.4,
       "diameter": 100,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.360503044446237,
@@ -5467,8 +5467,8 @@
       "length": 526.9,
       "straightLength": 321.8,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.360079221233879,
@@ -5545,8 +5545,8 @@
       "length": 223.26,
       "straightLength": 84,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.360079221233879,
@@ -5587,8 +5587,8 @@
       "length": 8.8,
       "straightLength": 8.4,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.361879436828564,
@@ -5609,8 +5609,8 @@
       "length": 216.76,
       "straightLength": 192.8,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.361804158352091,
@@ -5651,8 +5651,8 @@
       "length": 109.91,
       "straightLength": 26.8,
       "diameter": 50,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.361804158352091,
@@ -5673,8 +5673,8 @@
       "length": 2271.68,
       "straightLength": 1777.7,
       "diameter": 63,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.361879436828564,
@@ -5879,8 +5879,8 @@
       "length": 1644.33,
       "straightLength": 345.1,
       "diameter": 225,
-      "roughness": 0.011,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.379487503662905,
@@ -5945,8 +5945,8 @@
       "length": 1572.55,
       "straightLength": 841,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.3786136265518865,
@@ -6011,8 +6011,8 @@
       "length": 333.81,
       "straightLength": 160.7,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.371538976893224,
@@ -6041,8 +6041,8 @@
       "length": 1155.58,
       "straightLength": 1076.5,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.371538976893224,
@@ -6111,8 +6111,8 @@
       "length": 4154.49,
       "straightLength": 1188.8,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.379681449045582,
@@ -6257,8 +6257,8 @@
       "length": 1241.83,
       "straightLength": 286.2,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.375848534924136,
@@ -6319,8 +6319,8 @@
       "length": 681.03,
       "straightLength": 261,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.374434323641343,
@@ -6373,8 +6373,8 @@
       "length": 1790.26,
       "straightLength": 1684.5,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.374434323641343,
@@ -6547,8 +6547,8 @@
       "length": 182.72,
       "straightLength": 170.9,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.359295714227049,
@@ -6585,8 +6585,8 @@
       "length": 149.84,
       "straightLength": 140.9,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.357755919041996,
@@ -6615,8 +6615,8 @@
       "length": 74.75,
       "straightLength": 24.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.357763734349224,
@@ -6645,8 +6645,8 @@
       "length": 309.35,
       "straightLength": 130.5,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.359295714227049,
@@ -6671,8 +6671,8 @@
       "length": 0.55,
       "straightLength": 0.1,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.375097546781849,
@@ -6693,8 +6693,8 @@
       "length": 339.86,
       "straightLength": 103.7,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.375097097626257,
@@ -6731,8 +6731,8 @@
       "length": 77.97,
       "straightLength": 71.9,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.375097097626257,
@@ -6757,8 +6757,8 @@
       "length": 192.26,
       "straightLength": 185.6,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.374453637331617,
@@ -6791,8 +6791,8 @@
       "length": 313.15,
       "straightLength": 58.4,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.374453637331617,
@@ -6865,8 +6865,8 @@
       "length": 18.92,
       "straightLength": 5.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.374379167335197,
@@ -6887,8 +6887,8 @@
       "length": 74.17,
       "straightLength": 24.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.374379167335197,
@@ -6909,8 +6909,8 @@
       "length": 928.78,
       "straightLength": 186.7,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356493342685558,
@@ -7003,8 +7003,8 @@
       "length": 187.58,
       "straightLength": 76.9,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.357082275491867,
@@ -7029,8 +7029,8 @@
       "length": 299.06,
       "straightLength": 162.3,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.356493342685558,
@@ -7063,8 +7063,8 @@
       "length": 113.01,
       "straightLength": 44.9,
       "diameter": 225,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.398007176677628,
@@ -7105,8 +7105,8 @@
       "length": 1409.67,
       "straightLength": 1313.4,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.3976479420387635,
@@ -7203,8 +7203,8 @@
       "length": 42.86,
       "straightLength": 35.9,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411591258603626,
@@ -7225,8 +7225,8 @@
       "length": 54.64,
       "straightLength": 42,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4132918514889825,
@@ -7263,8 +7263,8 @@
       "length": 22.54,
       "straightLength": 21.3,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4132918514889825,
@@ -7285,8 +7285,8 @@
       "length": 21.88,
       "straightLength": 20.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413482742613671,
@@ -7307,8 +7307,8 @@
       "length": 51.36,
       "straightLength": 19.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413482742613671,
@@ -7329,8 +7329,8 @@
       "length": 51.93,
       "straightLength": 23.6,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413893091158404,
@@ -7355,8 +7355,8 @@
       "length": 138.05,
       "straightLength": 54.1,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413703278007138,
@@ -7381,8 +7381,8 @@
       "length": 6.39,
       "straightLength": 6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413703278007138,
@@ -7403,8 +7403,8 @@
       "length": 79.55,
       "straightLength": 39.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413756997015416,
@@ -7433,8 +7433,8 @@
       "length": 43.12,
       "straightLength": 19.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413756997015416,
@@ -7455,8 +7455,8 @@
       "length": 78.97,
       "straightLength": 74,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413893091158404,
@@ -7477,8 +7477,8 @@
       "length": 71.39,
       "straightLength": 15.3,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413942408441916,
@@ -7531,8 +7531,8 @@
       "length": 41.1,
       "straightLength": 38.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413942408441916,
@@ -7553,8 +7553,8 @@
       "length": 30.86,
       "straightLength": 12.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413600151884244,
@@ -7575,8 +7575,8 @@
       "length": 8.59,
       "straightLength": 4.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413600151884244,
@@ -7597,8 +7597,8 @@
       "length": 5.52,
       "straightLength": 4.9,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413633838553314,
@@ -7619,8 +7619,8 @@
       "length": 53.66,
       "straightLength": 28.3,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413589641643502,
@@ -7641,8 +7641,8 @@
       "length": 14.54,
       "straightLength": 7.2,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41400187664171,
@@ -7663,8 +7663,8 @@
       "length": 10.21,
       "straightLength": 9.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41400187664171,
@@ -7685,8 +7685,8 @@
       "length": 44.2,
       "straightLength": 16.9,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414086497554398,
@@ -7711,8 +7711,8 @@
       "length": 35,
       "straightLength": 32.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414086497554398,
@@ -7733,8 +7733,8 @@
       "length": 0.44,
       "straightLength": 0.1,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414285473479656,
@@ -7755,8 +7755,8 @@
       "length": 89.23,
       "straightLength": 36.4,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414284485337352,
@@ -7785,8 +7785,8 @@
       "length": 649.34,
       "straightLength": 592.7,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.447451840709268,
@@ -7831,8 +7831,8 @@
       "length": 600,
       "straightLength": 553.5,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.442487593494026,
@@ -7881,8 +7881,8 @@
       "length": 0.21,
       "straightLength": 0.2,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.447451840709268,
@@ -7903,8 +7903,8 @@
       "length": 3316.71,
       "straightLength": 3143,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414284485337352,
@@ -8041,8 +8041,8 @@
       "length": 0.31,
       "straightLength": 0.3,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4424848985605125,
@@ -8063,8 +8063,8 @@
       "length": 97,
       "straightLength": 25.3,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.44267561002295,
@@ -8085,8 +8085,8 @@
       "length": 97.5,
       "straightLength": 26.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.442796253213747,
@@ -8107,8 +8107,8 @@
       "length": 85.85,
       "straightLength": 27.2,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4424848985605125,
@@ -8141,8 +8141,8 @@
       "length": 8.83,
       "straightLength": 2.4,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.442665818431142,
@@ -8163,8 +8163,8 @@
       "length": 130.68,
       "straightLength": 130.1,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.442665818431142,
@@ -8197,8 +8197,8 @@
       "length": 34.58,
       "straightLength": 7.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.443835689074338,
@@ -8219,8 +8219,8 @@
       "length": 77.82,
       "straightLength": 18.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.443835689074338,
@@ -8245,8 +8245,8 @@
       "length": 969.89,
       "straightLength": 216.2,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412917165897913,
@@ -8323,8 +8323,8 @@
       "length": 533.71,
       "straightLength": 326.3,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.413735796871667,
@@ -8381,8 +8381,8 @@
       "length": 230.35,
       "straightLength": 70.2,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416555415987735,
@@ -8419,8 +8419,8 @@
       "length": 256.93,
       "straightLength": 86.3,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4163450315105495,
@@ -8469,8 +8469,8 @@
       "length": 7.77,
       "straightLength": 3.4,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415743163023312,
@@ -8491,8 +8491,8 @@
       "length": 320.45,
       "straightLength": 82.4,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415716573012522,
@@ -8561,8 +8561,8 @@
       "length": 103.36,
       "straightLength": 60.1,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416117758783277,
@@ -8591,8 +8591,8 @@
       "length": 257.72,
       "straightLength": 253.9,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416555415987735,
@@ -8629,8 +8629,8 @@
       "length": 298.31,
       "straightLength": 281.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418837755190045,
@@ -8667,8 +8667,8 @@
       "length": 160.91,
       "straightLength": 59.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.421357248542525,
@@ -8693,8 +8693,8 @@
       "length": 5.05,
       "straightLength": 2.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420916716742316,
@@ -8715,8 +8715,8 @@
       "length": 91.25,
       "straightLength": 38.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420899918323333,
@@ -8741,8 +8741,8 @@
       "length": 389.13,
       "straightLength": 125.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420596917964024,
@@ -8839,8 +8839,8 @@
       "length": 178.83,
       "straightLength": 155.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420916716742316,
@@ -8913,8 +8913,8 @@
       "length": 248.94,
       "straightLength": 230.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420899918323333,
@@ -8955,8 +8955,8 @@
       "length": 106.96,
       "straightLength": 101.5,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420596917964024,
@@ -8989,8 +8989,8 @@
       "length": 265.36,
       "straightLength": 59.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4143287720782824,
@@ -9039,8 +9039,8 @@
       "length": 131.34,
       "straightLength": 118.3,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4163450315105495,
@@ -9077,8 +9077,8 @@
       "length": 157.19,
       "straightLength": 39.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415284126012897,
@@ -9107,8 +9107,8 @@
       "length": 1.17,
       "straightLength": 0.4,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4152864616219505,
@@ -9129,8 +9129,8 @@
       "length": 131.42,
       "straightLength": 106.9,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415284126012897,
@@ -9171,8 +9171,8 @@
       "length": 200.41,
       "straightLength": 130.2,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415716573012522,
@@ -9213,8 +9213,8 @@
       "length": 100.06,
       "straightLength": 53,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414532419221662,
@@ -9247,8 +9247,8 @@
       "length": 57.23,
       "straightLength": 56.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414068441499784,
@@ -9277,8 +9277,8 @@
       "length": 77.69,
       "straightLength": 18.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414068441499784,
@@ -9311,8 +9311,8 @@
       "length": 18.75,
       "straightLength": 4.8,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414548139667223,
@@ -9333,8 +9333,8 @@
       "length": 452.9,
       "straightLength": 445.5,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415743163023312,
@@ -9403,8 +9403,8 @@
       "length": 243.25,
       "straightLength": 198.2,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419748193565884,
@@ -9449,8 +9449,8 @@
       "length": 139.03,
       "straightLength": 137.6,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.421532598883904,
@@ -9483,8 +9483,8 @@
       "length": 1199.64,
       "straightLength": 231.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.422769842865198,
@@ -9697,8 +9697,8 @@
       "length": 73.83,
       "straightLength": 72,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.42116222518644,
@@ -9731,8 +9731,8 @@
       "length": 68.33,
       "straightLength": 60.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420515171647101,
@@ -9761,8 +9761,8 @@
       "length": 60.22,
       "straightLength": 20.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.420515171647101,
@@ -9787,8 +9787,8 @@
       "length": 229.92,
       "straightLength": 103.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.42116222518644,
@@ -9825,8 +9825,8 @@
       "length": 208.15,
       "straightLength": 98.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.42032895174052,
@@ -9851,8 +9851,8 @@
       "length": 88.48,
       "straightLength": 83.5,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.42032895174052,
@@ -9881,8 +9881,8 @@
       "length": 274.92,
       "straightLength": 69.6,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419532419221658,
@@ -9923,8 +9923,8 @@
       "length": 112.63,
       "straightLength": 65.2,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419986874845084,
@@ -9957,8 +9957,8 @@
       "length": 197.9,
       "straightLength": 97.1,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419986874845084,
@@ -9999,8 +9999,8 @@
       "length": 93.36,
       "straightLength": 24.6,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416883479228834,
@@ -10025,8 +10025,8 @@
       "length": 6.84,
       "straightLength": 6.5,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419532419221658,
@@ -10047,8 +10047,8 @@
       "length": 281.53,
       "straightLength": 126.3,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419474388319746,
@@ -10085,8 +10085,8 @@
       "length": 237.06,
       "straightLength": 67.1,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419579580558353,
@@ -10123,8 +10123,8 @@
       "length": 116.39,
       "straightLength": 47.4,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419972322204051,
@@ -10165,8 +10165,8 @@
       "length": 0.86,
       "straightLength": 0.2,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419579760220576,
@@ -10187,8 +10187,8 @@
       "length": 44.87,
       "straightLength": 11.1,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419579580558353,
@@ -10213,8 +10213,8 @@
       "length": 16.5,
       "straightLength": 9.3,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419602577324416,
@@ -10235,8 +10235,8 @@
       "length": 120.65,
       "straightLength": 109.4,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419523346278798,
@@ -10277,8 +10277,8 @@
       "length": 115.47,
       "straightLength": 112.8,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418544456591396,
@@ -10307,8 +10307,8 @@
       "length": 16.41,
       "straightLength": 16.3,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417531251417121,
@@ -10329,8 +10329,8 @@
       "length": 128.81,
       "straightLength": 43.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417531251417121,
@@ -10367,8 +10367,8 @@
       "length": 292.56,
       "straightLength": 223.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417839012825685,
@@ -10441,8 +10441,8 @@
       "length": 81.46,
       "straightLength": 38.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419833443296402,
@@ -10463,8 +10463,8 @@
       "length": 143.17,
       "straightLength": 57,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419833443296402,
@@ -10493,8 +10493,8 @@
       "length": 283.96,
       "straightLength": 191.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417839012825685,
@@ -10559,8 +10559,8 @@
       "length": 4.6,
       "straightLength": 4.2,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41502792766578,
@@ -10581,8 +10581,8 @@
       "length": 55.69,
       "straightLength": 53.2,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414990018934195,
@@ -10607,8 +10607,8 @@
       "length": 46.77,
       "straightLength": 21.5,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414513105531403,
@@ -10629,8 +10629,8 @@
       "length": 80.24,
       "straightLength": 78.4,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414513105531403,
@@ -10659,8 +10659,8 @@
       "length": 54.46,
       "straightLength": 23.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41502792766578,
@@ -10681,8 +10681,8 @@
       "length": 124.86,
       "straightLength": 107.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415209656016477,
@@ -10727,8 +10727,8 @@
       "length": 53.26,
       "straightLength": 17.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415209656016477,
@@ -10753,8 +10753,8 @@
       "length": 126.22,
       "straightLength": 51,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414990018934195,
@@ -10787,8 +10787,8 @@
       "length": 58.31,
       "straightLength": 50,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414596199315089,
@@ -10809,8 +10809,8 @@
       "length": 95.65,
       "straightLength": 90.3,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416629796153022,
@@ -10847,8 +10847,8 @@
       "length": 110.67,
       "straightLength": 89.1,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415818082175311,
@@ -10889,8 +10889,8 @@
       "length": 72.37,
       "straightLength": 17.4,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415818082175311,
@@ -10939,8 +10939,8 @@
       "length": 90.43,
       "straightLength": 85.9,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4170022359661845,
@@ -10969,8 +10969,8 @@
       "length": 0.64,
       "straightLength": 0.2,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417001517317236,
@@ -10991,8 +10991,8 @@
       "length": 247.33,
       "straightLength": 89.2,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4170022359661845,
@@ -11033,8 +11033,8 @@
       "length": 58.69,
       "straightLength": 34,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416629796153022,
@@ -11059,8 +11059,8 @@
       "length": 6.64,
       "straightLength": 4.1,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416919501506958,
@@ -11081,8 +11081,8 @@
       "length": 53.82,
       "straightLength": 48,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416955254291726,
@@ -11119,8 +11119,8 @@
       "length": 90.71,
       "straightLength": 24.2,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416919501506958,
@@ -11153,8 +11153,8 @@
       "length": 83.59,
       "straightLength": 21.6,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416955254291726,
@@ -11191,8 +11191,8 @@
       "length": 173.23,
       "straightLength": 165.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4167866412841805,
@@ -11249,8 +11249,8 @@
       "length": 2.64,
       "straightLength": 0.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4167866412841805,
@@ -11271,8 +11271,8 @@
       "length": 7.08,
       "straightLength": 6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41678861756876,
@@ -11293,8 +11293,8 @@
       "length": 183.37,
       "straightLength": 150.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416842606070394,
@@ -11367,8 +11367,8 @@
       "length": 121.05,
       "straightLength": 47,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418187467730452,
@@ -11397,8 +11397,8 @@
       "length": 103.7,
       "straightLength": 70.5,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418187467730452,
@@ -11431,8 +11431,8 @@
       "length": 106.38,
       "straightLength": 68,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418802631223092,
@@ -11461,8 +11461,8 @@
       "length": 52.91,
       "straightLength": 26.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419391204704941,
@@ -11483,8 +11483,8 @@
       "length": 139.11,
       "straightLength": 92.3,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419391204704941,
@@ -11533,8 +11533,8 @@
       "length": 132.07,
       "straightLength": 87.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418802631223092,
@@ -11571,8 +11571,8 @@
       "length": 264.37,
       "straightLength": 58.3,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41678861756876,
@@ -11637,8 +11637,8 @@
       "length": 16.99,
       "straightLength": 16.8,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4167066915896,
@@ -11659,8 +11659,8 @@
       "length": 37.86,
       "straightLength": 9.5,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416555595649972,
@@ -11681,8 +11681,8 @@
       "length": 29.32,
       "straightLength": 28.9,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416555595649972,
@@ -11703,8 +11703,8 @@
       "length": 71.49,
       "straightLength": 19.7,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417456601758492,
@@ -11725,8 +11725,8 @@
       "length": 193.5,
       "straightLength": 184.4,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.419474388319746,
@@ -11755,8 +11755,8 @@
       "length": 41.93,
       "straightLength": 40.5,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417820238122137,
@@ -11781,8 +11781,8 @@
       "length": 96.69,
       "straightLength": 38.5,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417820238122137,
@@ -11803,8 +11803,8 @@
       "length": 58.53,
       "straightLength": 58,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417456601758492,
@@ -11829,8 +11829,8 @@
       "length": 5.84,
       "straightLength": 5.8,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416935491445874,
@@ -11851,8 +11851,8 @@
       "length": 120.51,
       "straightLength": 77.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416935491445874,
@@ -11889,8 +11889,8 @@
       "length": 142.93,
       "straightLength": 121.3,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411910428564089,
@@ -11915,8 +11915,8 @@
       "length": 172.07,
       "straightLength": 145.5,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412990737583134,
@@ -11945,8 +11945,8 @@
       "length": 147.71,
       "straightLength": 51.4,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412990737583134,
@@ -11967,8 +11967,8 @@
       "length": 168.14,
       "straightLength": 43.1,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412624855441554,
@@ -12009,8 +12009,8 @@
       "length": 108.34,
       "straightLength": 24,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412778376821369,
@@ -12043,8 +12043,8 @@
       "length": 8.35,
       "straightLength": 3.5,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412624855441554,
@@ -12065,8 +12065,8 @@
       "length": 92.97,
       "straightLength": 27.9,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412597456950725,
@@ -12107,8 +12107,8 @@
       "length": 176.15,
       "straightLength": 165.5,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412597456950725,
@@ -12145,8 +12145,8 @@
       "length": 116.11,
       "straightLength": 90.8,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411114075707464,
@@ -12179,8 +12179,8 @@
       "length": 9.8,
       "straightLength": 9.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410308110921268,
@@ -12201,8 +12201,8 @@
       "length": 147.65,
       "straightLength": 87.3,
       "diameter": 32,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41022546629316,
@@ -12259,8 +12259,8 @@
       "length": 39.52,
       "straightLength": 22.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41022546629316,
@@ -12297,8 +12297,8 @@
       "length": 65.12,
       "straightLength": 62.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410032329390536,
@@ -12331,8 +12331,8 @@
       "length": 112.27,
       "straightLength": 45.9,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410032329390536,
@@ -12369,8 +12369,8 @@
       "length": 87.62,
       "straightLength": 29.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411114075707464,
@@ -12391,8 +12391,8 @@
       "length": 251.67,
       "straightLength": 209.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410901894607936,
@@ -12437,8 +12437,8 @@
       "length": 0.95,
       "straightLength": 0.9,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41091033873298,
@@ -12459,8 +12459,8 @@
       "length": 43.39,
       "straightLength": 43,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410901894607936,
@@ -12481,8 +12481,8 @@
       "length": 190.4,
       "straightLength": 72.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411591258603626,
@@ -12511,8 +12511,8 @@
       "length": 1.92,
       "straightLength": 1.8,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4110436481113355,
@@ -12533,8 +12533,8 @@
       "length": 46.9,
       "straightLength": 20.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411027209016841,
@@ -12555,8 +12555,8 @@
       "length": 63.81,
       "straightLength": 55.3,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411027209016841,
@@ -12589,8 +12589,8 @@
       "length": 174.28,
       "straightLength": 69,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411392731833932,
@@ -12627,8 +12627,8 @@
       "length": 39.75,
       "straightLength": 38.4,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4110436481113355,
@@ -12649,8 +12649,8 @@
       "length": 0.5,
       "straightLength": 0.5,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411388419940313,
@@ -12671,8 +12671,8 @@
       "length": 153.55,
       "straightLength": 59.5,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412120004561221,
@@ -12705,8 +12705,8 @@
       "length": 143.73,
       "straightLength": 36,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.409436659250393,
@@ -12735,8 +12735,8 @@
       "length": 0.43,
       "straightLength": 0.4,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.409433155836827,
@@ -12757,8 +12757,8 @@
       "length": 303.58,
       "straightLength": 241.4,
       "diameter": 150,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.409436659250393,
@@ -12807,8 +12807,8 @@
       "length": 43.24,
       "straightLength": 41.6,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4096961813488535,
@@ -12829,8 +12829,8 @@
       "length": 125.74,
       "straightLength": 40.9,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4100706872777,
@@ -12851,8 +12851,8 @@
       "length": 104.99,
       "straightLength": 42.2,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410346378977327,
@@ -12873,8 +12873,8 @@
       "length": 84.94,
       "straightLength": 81.4,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410891653860536,
@@ -12903,8 +12903,8 @@
       "length": 61.98,
       "straightLength": 23.6,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417497115592487,
@@ -12925,8 +12925,8 @@
       "length": 539.02,
       "straightLength": 142.8,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.417497115592487,
@@ -13011,8 +13011,8 @@
       "length": 328.27,
       "straightLength": 309.4,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418292570137926,
@@ -13069,8 +13069,8 @@
       "length": 528.41,
       "straightLength": 494.3,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.421069878797657,
@@ -13127,8 +13127,8 @@
       "length": 468.12,
       "straightLength": 117.3,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.41767390323172,
@@ -13209,8 +13209,8 @@
       "length": 243.56,
       "straightLength": 239.1,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.418232652782554,
@@ -13247,8 +13247,8 @@
       "length": 156.22,
       "straightLength": 153,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.416084521269814,
@@ -13277,8 +13277,8 @@
       "length": 880.23,
       "straightLength": 466.7,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411623418143695,
@@ -13407,8 +13407,8 @@
       "length": 827.58,
       "straightLength": 253.5,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415729957849028,
@@ -13529,8 +13529,8 @@
       "length": 310.89,
       "straightLength": 250.7,
       "diameter": 90,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.415729957849028,
@@ -13603,8 +13603,8 @@
       "length": 5.99,
       "straightLength": 5.7,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411623418143695,
@@ -13625,8 +13625,8 @@
       "length": 232.92,
       "straightLength": 110.5,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411674621880654,
@@ -13659,8 +13659,8 @@
       "length": 49.31,
       "straightLength": 45.6,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.411674621880654,
@@ -13685,8 +13685,8 @@
       "length": 17.42,
       "straightLength": 17.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410891653860536,
@@ -13707,8 +13707,8 @@
       "length": 62.36,
       "straightLength": 61.9,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410736066365023,
@@ -13729,8 +13729,8 @@
       "length": 61.75,
       "straightLength": 13.1,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4107368748450755,
@@ -13759,8 +13759,8 @@
       "length": 77.83,
       "straightLength": 75.9,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4106713879604245,
@@ -13781,8 +13781,8 @@
       "length": 83.94,
       "straightLength": 30,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4099893002852655,
@@ -13803,8 +13803,8 @@
       "length": 24.35,
       "straightLength": 23.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4099893002852655,
@@ -13825,8 +13825,8 @@
       "length": 94.54,
       "straightLength": 29.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4096961813488535,
@@ -13863,8 +13863,8 @@
       "length": 79.07,
       "straightLength": 27.7,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4106713879604245,
@@ -13889,8 +13889,8 @@
       "length": 9.76,
       "straightLength": 3.3,
       "diameter": 100,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410868836756696,
@@ -13911,8 +13911,8 @@
       "length": 169.08,
       "straightLength": 165.1,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410868836756696,
@@ -13953,8 +13953,8 @@
       "length": 47.34,
       "straightLength": 46.4,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410346378977327,
@@ -13975,8 +13975,8 @@
       "length": 120.17,
       "straightLength": 79.3,
       "diameter": 63,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410763105531392,
@@ -14005,8 +14005,8 @@
       "length": 4.11,
       "straightLength": 1.2,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410763105531392,
@@ -14027,8 +14027,8 @@
       "length": 47.15,
       "straightLength": 46.7,
       "diameter": 50,
-      "roughness": 0.007,
-      "material": "Cast Iron",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.410755559717519,
@@ -14049,8 +14049,8 @@
       "length": 1000,
       "straightLength": 48.9,
       "diameter": 12,
-      "roughness": 100,
-      "material": "Steel",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412120004561221,
@@ -14071,8 +14071,8 @@
       "length": 1000,
       "straightLength": 37.6,
       "diameter": 12,
-      "roughness": 100,
-      "material": "Steel",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412557994140802,
@@ -14093,8 +14093,8 @@
       "length": 1000,
       "straightLength": 81.1,
       "diameter": 12,
-      "roughness": 100,
-      "material": "Steel",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.412120004561221,
@@ -14115,8 +14115,8 @@
       "length": 1000,
       "straightLength": 1.7,
       "diameter": 12,
-      "roughness": 100,
-      "material": "Steel",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.414532419221662,
@@ -14137,8 +14137,8 @@
       "length": 1000,
       "straightLength": 1501.7,
       "diameter": 90,
-      "roughness": 100,
-      "material": "Steel",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.4527617580646295,
@@ -14159,8 +14159,8 @@
       "length": 300,
       "straightLength": 633.1,
       "diameter": 90,
-      "roughness": 100,
-      "material": "Steel",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.466263249261179,
@@ -14181,8 +14181,8 @@
       "length": 100,
       "straightLength": 172.5,
       "diameter": 90,
-      "roughness": 100,
-      "material": "Steel",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.471946019652852,
@@ -14203,8 +14203,8 @@
       "length": 1400,
       "straightLength": 2201.2,
       "diameter": 90,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.471946019652852,
@@ -14225,8 +14225,8 @@
       "length": 1600,
       "straightLength": 732.1,
       "diameter": 90,
-      "roughness": 120,
-      "material": "DCI",
+      "roughness": 140,
+      "material": "PVC",
       "routeCoordinates": [
         [
           -6.491689695542168,
