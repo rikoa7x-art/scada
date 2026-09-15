@@ -104,10 +104,11 @@
   function hydraulicInterpolateNodes(updatedNodes, nodeMap, pipes) {
     // Definisi "node yang headnya sudah diketahui"
     const isKnown = (n) => n && (
-      n.hasTelemetry    ||
+      n.hasTelemetry         ||
       n.type === 'reservoir' ||
       n.type === 'tank'      ||
       n.isPumpBoosted        ||
+      n.isPumpZoneAnchored   ||   // node yang headnya ditetapkan dari Q pompa aktual
       n.hasEpanetPressure
     );
 
@@ -552,12 +553,70 @@
       });
     }
 
+    // 2a.5: Anchor Head Node Hilir Pertama dari Debit Pompa Aktual
+    //
+    //  MASALAH yang diselesaikan:
+    //  Pompa diset kapasitas 40 L/s, tapi pipa DN250 sepanjang 100m
+    //  menghasilkan 238 L/s dari Hazen-Williams karena beda head besar.
+    //
+    //  AKAR MASALAH:
+    //  Engine menghitung debit pipa murni dari (ΔH ÷ resistansi pipa),
+    //  tanpa mempertimbangkan kapasitas fisik pompa. Pipa DN250 100m
+    //  resistansinya sangat rendah → beda head 50m → Q = 238 L/s.
+    //  Kapasitas pompa 40 L/s TIDAK PERNAH masuk ke perhitungan pipa.
+    //
+    //  FIX (pendekatan EPANET operating point):
+    //  Gunakan Q aktual pompa untuk menghitung head loss di pipa pertama:
+    //    ΔH_pipa = R × Q_pompa^1.852
+    //  Tetapkan head node hilir = H_pompa_discharge - ΔH_pipa
+    //  → Node ini menjadi "boundary baru" (isPumpZoneAnchored = true)
+    //  → hydraulicInterpolateNodes interpolasi seluruh zona dari boundary ini
+    //  → Debit di semua pipa zona pompa kini konsisten dengan kapasitas pompa
+    solvedPumps.forEach(pump => {
+      if (pump.status !== 'on') return;
+      const dischargeNode = nodeMap.get(pump.endNodeId);
+      if (!dischargeNode || !dischargeNode.isPumpBoosted) return;
+
+      const Q_m3s = Math.max(0.001, (pump.discharge_Lps || 0) / 1000);
+
+      // Temukan semua pipa yang langsung terhubung ke discharge node pompa
+      pipes.forEach(pipe => {
+        let downstreamId = null;
+        if (pipe.startNodeId === pump.endNodeId) downstreamId = pipe.endNodeId;
+        else if (pipe.endNodeId === pump.endNodeId) downstreamId = pipe.startNodeId;
+        if (!downstreamId) return;
+
+        const downNode = nodeMap.get(downstreamId);
+        if (!downNode) return;
+        // Jangan timpa data telemetri atau reservoir — itu data nyata lapangan
+        if (downNode.hasTelemetry || downNode.type === 'reservoir' || downNode.type === 'tank') return;
+        // Jangan timpa node yang juga discharge pompa lain
+        if (downNode.isPumpBoosted) return;
+
+        // Hitung head loss pipa menggunakan Q aktual pompa
+        const C = getRoughnessC(pipe.material, pipe.roughness);
+        const R = computePipeResistance(pipe.length, pipe.diameter, C);
+        const hf = R * Math.pow(Q_m3s, HW_EXPONENT);
+
+        const anchoredHead = Math.max(downNode.elevation, dischargeNode.totalHead - hf);
+
+        downNode.totalHead          = anchoredHead;
+        downNode.pressure           = Math.max(0, Math.round(((anchoredHead - downNode.elevation) / HEAD_PER_BAR) * 100) / 100);
+        downNode.hasEpanetPressure  = false;  // override EPANET statis
+        downNode.isPumpZoneAnchored = true;   // dikenali sebagai boundary fixed oleh interpolasi
+        downNode.anchorPumpId       = pump.id || pump.label || 'pump';
+        nodeMap.set(downstreamId, downNode);
+      });
+    });
+
     // 2b. Interpolasi Hidrolis Head untuk Node Tanpa Data
-    //     Setelah zona pompa di-reset (langkah 2a), hydraulicInterpolateNodes
-    //     akan menghitung head secara konsisten menggunakan:
-    //       - Head pompa aktual sebagai boundary upstream
+    //     Setelah zona pompa di-reset (2a) dan node hilir pertama di-anchor (2a.5),
+    //     hydraulicInterpolateNodes menghitung head secara konsisten menggunakan:
+    //       - Head pompa aktual (isPumpBoosted) sebagai boundary upstream
+    //       - Head node anchor (isPumpZoneAnchored) sebagai boundary kedua ← BARU
     //       - Telemetri lapangan sebagai boundary lainnya
-    //     → Debit pipa dalam zona pompa kini konsisten (tidak ada lompatan Q)
+    //     → Debit pipa dalam zona pompa kini = kapasitas pompa, bukan ratusan L/s
+
     hydraulicInterpolateNodes(updatedNodes, nodeMap, pipes);
 
 
