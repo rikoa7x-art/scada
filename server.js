@@ -61,10 +61,10 @@ async function syncTelemetryToSupabase(reading) {
 async function deleteTelemetryFromSupabase(nodeId) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
   try {
-    // Saat reset_all (nodeId = null): hapus semua row telemetri KECUALI katalog __SCADA_CUSTOM_NODES__
+    // Saat reset_all (nodeId = null): hapus semua row telemetri KECUALI katalog __SCADA_CUSTOM_NODES__ dan __SCADA_PIPE_OVERRIDES__
     const url = nodeId
       ? `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.${encodeURIComponent(nodeId)}`
-      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=neq.__SCADA_CUSTOM_NODES__`;
+      : `${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=not.in.(__SCADA_CUSTOM_NODES__,__SCADA_PIPE_OVERRIDES__)`;
     await fetch(url, {
       method: 'DELETE',
       headers: {
@@ -93,8 +93,8 @@ async function pullTelemetrySnapshotFromSupabase() {
         const readings = {};
         const history = [];
         rows.forEach(r => {
-          if (r.node_id === '__SCADA_CUSTOM_NODES__' || r.gauge_type === 'custom_nodes_catalog' || r.gauge_type === 'custom_junction') {
-            return; // Lewati record katalog kustom & placeholder titik kustom
+          if (r.node_id === '__SCADA_CUSTOM_NODES__' || r.node_id === '__SCADA_PIPE_OVERRIDES__' || r.gauge_type === 'custom_nodes_catalog' || r.gauge_type === 'pipe_overrides_catalog' || r.gauge_type === 'custom_junction') {
+            return; // Lewati record katalog kustom & pipe overrides & placeholder titik kustom
           }
           readings[r.node_id] = {
             nodeId: r.node_id,
@@ -205,6 +205,65 @@ async function pullCustomNodesSnapshotFromSupabase() {
     }
   } catch (err) {
     console.warn('[Server] Gagal memuat snapshot custom nodes dari Supabase:', err.message);
+  }
+  return null;
+}
+
+// ================= SUPABASE SYNC UNTUK OVERRIDE / MODIFIKASI PIPA =================
+async function syncPipeOverridesCatalogToSupabase(overrides) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try {
+    const catalogRow = {
+      node_id: '__SCADA_PIPE_OVERRIDES__',
+      node_label: 'KATALOG_OVERRIDE_PIPA',
+      pressure_bar: 0,
+      pressure_m: 0,
+      confidence: 1,
+      officer_name: 'Sistem SCADA',
+      gauge_type: 'pipe_overrides_catalog',
+      notes: JSON.stringify(overrides || {}),
+      updated_at: new Date().toISOString()
+    };
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?on_conflict=node_id`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(catalogRow)
+    });
+
+    if (res.ok) {
+      console.log(`⚡ [Server] Sinkron katalog override pipa (${Object.keys(overrides || {}).length} modifikasi) ke Supabase Cloud sukses.`);
+    } else {
+      console.warn(`[Server] Supabase pipe overrides sync response: ${res.status}`);
+    }
+  } catch (err) {
+    console.warn('[Server] Supabase pipe overrides sync gagal:', err.message);
+  }
+}
+
+async function pullPipeOverridesSnapshotFromSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scada_telemetry?node_id=eq.__SCADA_PIPE_OVERRIDES__`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0 && rows[0].notes) {
+        const parsed = JSON.parse(rows[0].notes);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('[Server] Gagal memuat snapshot pipe overrides dari Supabase:', err.message);
   }
   return null;
 }
@@ -673,6 +732,7 @@ const server = http.createServer(async (req, res) => {
         };
 
         await writePipeOverridesSafe(overrides);
+        await syncPipeOverridesCatalogToSupabase(overrides);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, override: overrides[data.pipeId] }));
         return;
@@ -684,6 +744,7 @@ const server = http.createServer(async (req, res) => {
 
         if (action === 'reset_all') {
           await writePipeOverridesSafe({});
+          await syncPipeOverridesCatalogToSupabase({});
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Seluruh modifikasi pipa berhasil di-reset ke default' }));
           return;
@@ -699,6 +760,7 @@ const server = http.createServer(async (req, res) => {
         if (overrides[pipeId]) {
           delete overrides[pipeId];
           await writePipeOverridesSafe(overrides);
+          await syncPipeOverridesCatalogToSupabase(overrides);
         }
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -813,6 +875,21 @@ server.listen(PORT, '0.0.0.0', async () => {
     }
   } catch (e) {
     console.warn('[Server] Gagal cek snapshot custom nodes Supabase:', e.message);
+  }
+
+  // Jika data override pipa lokal kosong, coba muat snapshot dari Supabase Cloud
+  try {
+    const localOverrides = await readPipeOverridesSafe();
+    if (!localOverrides || Object.keys(localOverrides).length === 0) {
+      console.log('📡 Mengecek cadangan override pipa di Supabase Cloud...');
+      const cloudOverrides = await pullPipeOverridesSnapshotFromSupabase();
+      if (cloudOverrides && Object.keys(cloudOverrides).length > 0) {
+        await writePipeOverridesSafe(cloudOverrides);
+        console.log(`✅ Berhasil memuat ${Object.keys(cloudOverrides).length} override pipa dari Supabase Cloud ke server lokal.`);
+      }
+    }
+  } catch (e) {
+    console.warn('[Server] Gagal cek snapshot pipe overrides Supabase:', e.message);
   }
 
   if (process.argv.includes('--open')) {
