@@ -1489,11 +1489,20 @@
       <button class="btn btn-dark" onclick="window.open('epanet.html', '_blank')" title="Buka aplikasi perencanaan EPANET lama">
         <span>📐</span> EPANET
       </button>
+
+      <!-- Logout Button (tersembunyi sampai user login) -->
+      <button id="btn-logout" class="btn btn-dark" onclick="doLogout()" title="Logout" style="display:none; border-color: rgba(244,63,94,0.5); color: #f87171; gap: 6px;">
+        <span>👤</span> <span id="logged-in-user-label" style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span> <span style="opacity:0.6; font-size:10px;">▸ Logout</span>
+      </button>
     </div>
 
     <div class="mobile-header-actions">
       <button class="btn btn-dark btn-sm" onclick="openAreaManagerModal()" title="Pilih Wilayah" style="padding: 5px 9px; font-size: 11.5px; border-color: rgba(56, 189, 248, 0.4);">
         <span>🗺️</span> <span id="mobile-current-area-label" style="color: #38bdf8; font-weight: 700; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Subang</span>
+      </button>
+      <!-- Logout Button Mobile (tersembunyi sampai login) -->
+      <button id="btn-logout-mobile" class="btn btn-dark btn-sm" onclick="doLogout()" title="Logout" style="display:none; padding: 5px 9px; font-size: 11.5px; border-color: rgba(244,63,94,0.45); color: #f87171;">
+        <span>👤</span> <span id="logged-in-user-label-mobile" style="max-width:55px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;"></span>
       </button>
       <button class="btn btn-dark btn-sm" onclick="openMobileMenuModal()" title="Menu Lengkap" style="padding: 5px 9px; font-size: 13px; border-color: rgba(255, 255, 255, 0.2);">
         <span>⚙️</span>
@@ -2611,7 +2620,30 @@
     window.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
       initMap();
-      showLoginModal();
+
+      // Cek sesi login tersimpan di localStorage
+      const savedSession = (() => {
+        try { return JSON.parse(localStorage.getItem('scada_session')); } catch(e) { return null; }
+      })();
+
+      if (savedSession && savedSession.username && savedSession.areaId) {
+        // Sesi masih ada — langsung masuk tanpa login ulang
+        console.log(`✅ Sesi ditemukan: ${savedSession.username} (${savedSession.areaId})`);
+        updateLogoutButton(savedSession.username);
+        if (savedSession.areaId === 'subang_kota') {
+          await loadSubangNetwork();
+        } else {
+          const pref = predefinedAreas.find(pa => pa.id === savedSession.areaId);
+          if (pref) {
+            await loadPredefinedArea(pref.id, pref.file, pref.name);
+          } else {
+            await loadSubangNetwork();
+          }
+        }
+        startAutoRefresh();
+      } else {
+        showLoginModal();
+      }
     });
 
     function showLoginModal() {
@@ -2621,22 +2653,36 @@
       loginOverlay.innerHTML = `
         <div style="background:var(--bg-card);padding:30px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.5);border:1px solid var(--border-color);width:320px;text-align:center;">
           <img src="logo.jpg" alt="Logo" style="width:80px;height:80px;border-radius:12px;margin-bottom:15px;object-fit:cover;border:2px solid #38bdf8;">
-          <h2 style="color:#fff;margin-bottom:20px;font-size:20px;">PRODIST SCADA Login</h2>
+          <h2 style="color:#fff;margin-bottom:4px;font-size:20px;">PRODIST SCADA Login</h2>
+          <p style="color:var(--text-muted);font-size:11px;margin-bottom:20px;">Sesi akan tersimpan otomatis</p>
           <input type="text" id="login-user" placeholder="Username" style="width:100%;padding:10px;margin-bottom:15px;border-radius:6px;border:1px solid #38bdf840;background:#0b1320;color:#fff;box-sizing:border-box;">
           <input type="password" id="login-pass" placeholder="Password" style="width:100%;padding:10px;margin-bottom:20px;border-radius:6px;border:1px solid #38bdf840;background:#0b1320;color:#fff;box-sizing:border-box;" onkeypress="if(event.key==='Enter') document.getElementById('login-btn').click();">
-          <button id="login-btn" class="btn btn-manual" style="width:100%;justify-content:center;padding:10px;font-size:14px;">Login & Masuk Wilayah</button>
+          <button id="login-btn" class="btn btn-manual" style="width:100%;justify-content:center;padding:10px;font-size:14px;">Login &amp; Masuk Wilayah</button>
           <p id="login-error" style="color:#f43f5e;margin-top:15px;font-size:12px;display:none;">Username atau Password salah!</p>
         </div>
       `;
       document.body.appendChild(loginOverlay);
+
+      // Fokus otomatis ke input username
+      setTimeout(() => { const el = document.getElementById('login-user'); if (el) el.focus(); }, 100);
 
       document.getElementById('login-btn').onclick = async () => {
         const u = document.getElementById('login-user').value.trim();
         const p = document.getElementById('login-pass').value.trim();
         const found = SCADA_USERS.find(user => user.username === u && user.password === p);
         if (found) {
+          // Simpan sesi ke localStorage agar tidak login ulang saat buka kembali
+          try {
+            localStorage.setItem('scada_session', JSON.stringify({
+              username: found.username,
+              areaId: found.areaId,
+              loginAt: new Date().toISOString()
+            }));
+          } catch(e) { console.warn('Gagal menyimpan sesi:', e); }
+
           loginOverlay.remove();
-          // Muat data wilayah berdasarkan user
+          updateLogoutButton(found.username);
+
           if (found.areaId === 'subang_kota') {
             await loadSubangNetwork();
           } else {
@@ -2649,9 +2695,41 @@
           }
           startAutoRefresh();
         } else {
-          document.getElementById('login-error').style.display = 'block';
+          const errEl = document.getElementById('login-error');
+          if (errEl) errEl.style.display = 'block';
         }
       };
+    }
+
+    /** Tampilkan info user yang login dan aktifkan tombol Logout di header */
+    function updateLogoutButton(username) {
+      // Desktop header
+      const btn = document.getElementById('btn-logout');
+      if (btn) {
+        btn.title = `Login sebagai: ${username}\nKlik untuk Logout`;
+        btn.style.display = 'inline-flex';
+        const userLabel = document.getElementById('logged-in-user-label');
+        if (userLabel) userLabel.textContent = username;
+      }
+      // Mobile header (small button)
+      const mobileBtn = document.getElementById('btn-logout-mobile');
+      if (mobileBtn) {
+        mobileBtn.style.display = 'inline-flex';
+        const mLabel = document.getElementById('logged-in-user-label-mobile');
+        if (mLabel) mLabel.textContent = username;
+      }
+      // Mobile menu sheet (dalam openMobileMenuModal)
+      const mobileMenuUser = document.getElementById('mobile-menu-username');
+      if (mobileMenuUser) mobileMenuUser.textContent = username;
+      // Simpan ke window agar bisa diisi saat menu mobile dibuka
+      window._scadaLoggedInUser = username;
+    }
+
+    /** Logout: hapus sesi tersimpan, reload halaman */
+    function doLogout() {
+      if (!confirm('Logout dari PRODIST SCADA?\n\nData telemetri yang sudah tersimpan tidak akan hilang.')) return;
+      try { localStorage.removeItem('scada_session'); } catch(e) {}
+      window.location.reload();
     }
 
     // Inisialisasi Peta Leaflet Berpusat di Kota Subang
@@ -5083,22 +5161,24 @@
     // Untuk deployment publik/internet, ganti dengan autentikasi via Supabase Auth
     // atau simpan hash SHA-256 password dan bandingkan di sisi client.
     const SCADA_USERS = [
-      { username: 'agung', password: 'subang', areaId: 'subang_kota' },
-      { username: 'yudi', password: 'jalancagak', areaId: 'jalancagak' },
-      { username: 'ambo', password: 'pabuaran', areaId: 'pabuaran' },
-      { username: 'rohman', password: 'cisalak', areaId: 'cisalak' },
-      { username: 'nunu', password: 'kalijati', areaId: 'kalijati' },
-      { username: 'tedy', password: 'tanjungsiang', areaId: 'tanjungsiang' },
-      { username: 'yudi', password: 'sagalaherang', areaId: 'sagalaherang' }
+      { username: 'agung',  password: 'subang',       areaId: 'subang_kota' },
+      { username: 'yudi',   password: 'jalancagak',   areaId: 'jalancagak' },
+      { username: 'ambo',   password: 'pabuaran',     areaId: 'pabuaran' },
+      { username: 'rohman', password: 'cisalak',      areaId: 'cisalak' },
+      { username: 'nunu',   password: 'kalijati',     areaId: 'kalijati' },
+      { username: 'tedy',   password: 'tanjungsiang', areaId: 'tanjungsiang' },
+      { username: 'yudi',   password: 'sagalaherang', areaId: 'sagalaherang' },
+      { username: 'yudi',   password: 'kasomalang',   areaId: 'kasomalang' }
     ];
 
     const predefinedAreas = [
-      { id: 'jalancagak', name: 'Jalancagak', file: 'epanet_jalancagak.json' },
+      { id: 'jalancagak',  name: 'Jalancagak',  file: 'epanet_jalancagak.json' },
       { id: 'sagalaherang', name: 'Sagalaherang', file: 'epanet_sagalaherang.json' },
-      { id: 'pabuaran', name: 'Pabuaran', file: 'epanet_pabuaran.json' },
-      { id: 'cisalak', name: 'Cisalak', file: 'epanet_cisalak.json' },
-      { id: 'kalijati', name: 'Kalijati', file: 'kalijati_epanet.json' },
-      { id: 'tanjungsiang', name: 'Tanjungsiang', file: 'epanet_tanjungsiang.json' }
+      { id: 'pabuaran',    name: 'Pabuaran',    file: 'epanet_pabuaran.json' },
+      { id: 'cisalak',     name: 'Cisalak',     file: 'epanet_cisalak.json' },
+      { id: 'kalijati',    name: 'Kalijati',    file: 'kalijati_epanet.json' },
+      { id: 'tanjungsiang', name: 'Tanjungsiang', file: 'epanet_tanjungsiang.json' },
+      { id: 'kasomalang',  name: 'Kasomalang',  file: 'epanet_kasomalang.json' }
     ];
 
     // Inisialisasi storage wilayah dari localStorage
@@ -5989,6 +6069,11 @@
       if (modal) {
         modal.classList.add('active');
         syncModalOpenState();
+        // Isi username di menu logout mobile sheet
+        const mobileMenuUser = document.getElementById('mobile-menu-username');
+        if (mobileMenuUser && window._scadaLoggedInUser) {
+          mobileMenuUser.textContent = window._scadaLoggedInUser;
+        }
       }
     }
 
@@ -7280,6 +7365,10 @@
         </button>
         <button class="btn btn-dark" style="justify-content: flex-start; padding: 10px 14px;" onclick="window.open('epanet.html', '_blank')">
           <span>📐</span> <div><b>Buka EPANET Designer</b><br><small style="opacity: 0.8;">Perencanaan teknis jaringan pipa</small></div>
+        </button>
+        <!-- Logout di menu mobile -->
+        <button class="btn btn-dark" id="mobile-menu-logout-btn" style="justify-content: flex-start; padding: 10px 14px; border-color: rgba(244,63,94,0.4); color: #f87171;" onclick="closeMobileMenuModal(); doLogout();">
+          <span>🚪</span> <div><b>Logout — <span id="mobile-menu-username"></span></b><br><small style="opacity: 0.8;">Keluar dari sesi SCADA saat ini</small></div>
         </button>
       </div>
     </div>
