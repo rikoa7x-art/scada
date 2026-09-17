@@ -706,6 +706,120 @@
       };
     });
 
+    // 3b. Penegakan Kontinuitas Massa & Pembatasan Debit pada Zona Pompa
+    //
+    // MASALAH yang diselesaikan:
+    // Ketika pompa aktif (misal kapasitas Q = 30 L/s, Head = 30 m), rumus Hazen-Williams
+    // murni menghitung debit pipa dari ΔHead dan diameter pipa (Q ~ ΔH^0.54 × D^2.63 / L^0.54).
+    // Pada pipa berdiameter besar (misal DN250) atau pipa pendek (L = 66m / 233m), resistansi pipa
+    // sangat kecil sehingga beda head statis / telemetri menghasilkan debit pipa fiktif
+    // hingga 153 L/s (atau ratusan L/s), padahal pompa hanya mampu memasok 30 L/s!
+    //
+    // SOLUSI (Kaidah Kontinuitas Massa & EPANET mass balance):
+    // 1. Pipa suction yang terhubung tunggal ke pompa dibatasi maksimum sebesar Q_pompa (30 L/s).
+    // 2. Sepanjang jalur pipa transmisi / distribusi utama hilir discharge pompa, debit dibatasi
+    //    maksimum sebesar debit yang dipasok oleh pompa (Q_pompa).
+    // 3. Pada titik percabangan (branch), debit dibagi proporsional ke cabang-cabang hilir
+    //    sehingga total debit cabang tidak melebihi debit pasokan pompa.
+    // 4. Kecepatan (v), headloss (hf), dan status hidrolik pipa dihitung ulang agar konsisten.
+    const activePumps = (solvedPumps || []).filter(p => p.status === 'on' && p.discharge_Lps > 0);
+    if (activePumps.length > 0) {
+      const pipeAdj = new Map();
+      updatedNodes.forEach(n => pipeAdj.set(n.id, []));
+      updatedPipes.forEach(p => {
+        if (p.status && p.status.code === 'PUMP_PIPE') return;
+        pipeAdj.get(p.startNodeId)?.push({ pipe: p, other: p.endNodeId });
+        pipeAdj.get(p.endNodeId)?.push({ pipe: p, other: p.startNodeId });
+      });
+
+      activePumps.forEach(pump => {
+        const qPump = pump.discharge_Lps;
+        const dischargeId = pump.endNodeId;
+        const suctionId = pump.startNodeId;
+
+        // 1. Sisi hisap (suction): pipa yang menyuplai hisap pompa dibatasi maksimum sebesar kapasitas pompa
+        const suctionNode = nodeMap.get(suctionId);
+        if (suctionNode && suctionNode.type !== 'reservoir' && suctionNode.type !== 'tank') {
+          const suctionConns = (pipeAdj.get(suctionId) || []).filter(c => c.other !== dischargeId);
+          if (suctionConns.length === 1) {
+            const conn = suctionConns[0];
+            if (conn.pipe.discharge_Lps > qPump) {
+              conn.pipe.discharge_Lps = qPump;
+              conn.pipe.discharge_m3h = Math.round(qPump * 3.6 * 10) / 10;
+              const nomD = Number(conn.pipe.diameter) || 0;
+              const D = getInternalDiameterMeters(nomD);
+              const area = Math.PI * Math.pow(D / 2.0, 2);
+              conn.pipe.velocity_mps = area > 0 ? Math.round(((qPump / 1000.0) / area) * 1000) / 1000 : 0;
+              const C = getRoughnessC(conn.pipe.material, conn.pipe.roughness);
+              const R = computePipeResistance(conn.pipe.length, conn.pipe.diameter, C);
+              conn.pipe.headloss_m = Math.round((R * Math.pow(qPump / 1000.0, HW_EXPONENT)) * 100) / 100;
+              conn.pipe.status = evaluatePipeStatus(conn.pipe.velocity_mps);
+            }
+          }
+        }
+
+        // 2. Sisi tekan (discharge): telusuri downstream ke jaringan pipa
+        const queue = [{ nodeId: dischargeId, availableFlow: qPump }];
+        const visitedNodes = new Set([dischargeId, suctionId]);
+
+        while (queue.length > 0) {
+          const { nodeId, availableFlow } = queue.shift();
+          const conns = (pipeAdj.get(nodeId) || []).filter(c => !visitedNodes.has(c.other));
+          if (conns.length === 0) continue;
+
+          if (conns.length === 1) {
+            // Jalur pipa tunggal / trunk line
+            const conn = conns[0];
+            visitedNodes.add(conn.other);
+            const targetQ = (conn.pipe.discharge_Lps > availableFlow || conn.pipe.discharge_Lps === 0)
+              ? availableFlow
+              : conn.pipe.discharge_Lps;
+
+            conn.pipe.discharge_Lps = targetQ;
+            conn.pipe.discharge_m3h = Math.round(targetQ * 3.6 * 10) / 10;
+            const nomD = Number(conn.pipe.diameter) || 0;
+            const D = getInternalDiameterMeters(nomD);
+            const area = Math.PI * Math.pow(D / 2.0, 2);
+            conn.pipe.velocity_mps = area > 0 ? Math.round(((targetQ / 1000.0) / area) * 1000) / 1000 : 0;
+            const C = getRoughnessC(conn.pipe.material, conn.pipe.roughness);
+            const R = computePipeResistance(conn.pipe.length, conn.pipe.diameter, C);
+            conn.pipe.headloss_m = Math.round((R * Math.pow(targetQ / 1000.0, HW_EXPONENT)) * 100) / 100;
+            conn.pipe.status = evaluatePipeStatus(conn.pipe.velocity_mps);
+
+            queue.push({ nodeId: conn.other, availableFlow: targetQ });
+          } else {
+            // Percabangan: total debit seluruh cabang hilir dibatasi oleh availableFlow
+            const totalBranchQ = conns.reduce((sum, c) => sum + (c.pipe.discharge_Lps || 0), 0);
+            conns.forEach(c => visitedNodes.add(c.other));
+
+            if (totalBranchQ > availableFlow) {
+              const ratio = availableFlow / totalBranchQ;
+              conns.forEach(c => {
+                const scaledQ = Math.round(c.pipe.discharge_Lps * ratio * 100) / 100;
+                c.pipe.discharge_Lps = scaledQ;
+                c.pipe.discharge_m3h = Math.round(scaledQ * 3.6 * 10) / 10;
+                const nomD = Number(c.pipe.diameter) || 0;
+                const D = getInternalDiameterMeters(nomD);
+                const area = Math.PI * Math.pow(D / 2.0, 2);
+                c.pipe.velocity_mps = area > 0 ? Math.round(((scaledQ / 1000.0) / area) * 1000) / 1000 : 0;
+                const C = getRoughnessC(c.pipe.material, c.pipe.roughness);
+                const R = computePipeResistance(c.pipe.length, c.pipe.diameter, C);
+                c.pipe.headloss_m = Math.round((R * Math.pow(scaledQ / 1000.0, HW_EXPONENT)) * 100) / 100;
+                c.pipe.status = evaluatePipeStatus(c.pipe.velocity_mps);
+
+                queue.push({ nodeId: c.other, availableFlow: scaledQ });
+              });
+            } else {
+              conns.forEach(c => queue.push({ nodeId: c.other, availableFlow: c.pipe.discharge_Lps }));
+            }
+          }
+        }
+      });
+
+      leakWarningsCount = updatedPipes.filter(p => p.status && p.status.code === 'LEAK_WARNING').length;
+      activePipesCount = updatedPipes.filter(p => p.discharge_Lps > 0).length;
+    }
+
     // 4. Hitung Kontribusi Pompa terhadap Pasokan Air
     // Pompa dari reservoir masuk ke totalDischarge jika:
     // - Pipa langsung dari reservoir ke jaringan tidak mengalir (Q=0), ATAU
