@@ -706,22 +706,20 @@
       };
     });
 
-    // 3b. Penegakan Kontinuitas Massa & Pembatasan Debit pada Zona Pompa
+    // 3b. Penegakan Kontinuitas Massa & Distribusi Aliran Proporsional pada Zona Pompa
     //
     // MASALAH yang diselesaikan:
-    // Ketika pompa aktif (misal kapasitas Q = 30 L/s, Head = 30 m), rumus Hazen-Williams
-    // murni menghitung debit pipa dari ΔHead dan diameter pipa (Q ~ ΔH^0.54 × D^2.63 / L^0.54).
-    // Pada pipa berdiameter besar (misal DN250) atau pipa pendek (L = 66m / 233m), resistansi pipa
-    // sangat kecil sehingga beda head statis / telemetri menghasilkan debit pipa fiktif
-    // hingga 153 L/s (atau ratusan L/s), padahal pompa hanya mampu memasok 30 L/s!
-    //
-    // SOLUSI (Kaidah Kontinuitas Massa & EPANET mass balance):
-    // 1. Pipa suction yang terhubung tunggal ke pompa dibatasi maksimum sebesar Q_pompa (30 L/s).
-    // 2. Sepanjang jalur pipa transmisi / distribusi utama hilir discharge pompa, debit dibatasi
-    //    maksimum sebesar debit yang dipasok oleh pompa (Q_pompa).
-    // 3. Pada titik percabangan (branch), debit dibagi proporsional ke cabang-cabang hilir
-    //    sehingga total debit cabang tidak melebihi debit pasokan pompa.
-    // 4. Kecepatan (v), headloss (hf), dan status hidrolik pipa dihitung ulang agar konsisten.
+    // 1. Pada pipa tunggal / trunk line dekat discharge pompa, rumus Hazen-Williams dengan
+    //    gradien head statis/kasar dapat menghasilkan debit awal yang terlalu kecil (misal 1 - 10 L/s)
+    //    ataupun terlalu besar (misal 150 L/s). Karena pompa mendorong air sebesar Q_pompa (misal 30 L/s),
+    //    secara hukum kontinuitas massa (Kirchhoff Law) pipa tunggal transmisi dari discharge pompa
+    //    HARUS mengalirkan debit penuh dari pompa (30 L/s)!
+    // 2. Pada titik percabangan (branches), aliran dari pompa didistribusikan secara proporsional
+    //    ke seluruh cabang hilir berdasarkan konduktansi hidrolis pipa (D^2.63 / L^0.54).
+    // 3. Pada jaringan multi-pompa (seperti Ciseuti dengan Pompa 2 dan Pompa PMP4), proteksi batas
+    //    disematkan agar pompa satu tidak merambat balik (back-flow) ke node discharge pompa lainnya.
+    // 4. Kecepatan aliran (v), kehilangan tekanan (head loss hf), arah aliran, serta head/tekanan
+    //    simpul hilir diperbarui agar 100% konsisten secara fisika hidrolika.
     const activePumps = (solvedPumps || []).filter(p => p.status === 'on' && p.discharge_Lps > 0);
     if (activePumps.length > 0) {
       const pipeAdj = new Map();
@@ -732,7 +730,41 @@
         pipeAdj.get(p.endNodeId)?.push({ pipe: p, other: p.startNodeId });
       });
 
-      activePumps.forEach(pump => {
+      const allDischarges = new Set(activePumps.map(p => p.endNodeId));
+      const allSuctions = new Set(activePumps.map(p => p.startNodeId));
+      const globalRoutedPipes = new Map(); // pipeId -> { flow, fromNodeId, toNodeId }
+
+      const updatePipeRecord = (pipe, targetQ, fromId, toId) => {
+        targetQ = Math.max(0, Math.round(targetQ * 100) / 100);
+        pipe.discharge_Lps = targetQ;
+        pipe.discharge_m3h = Math.round(targetQ * 3.6 * 10) / 10;
+        const nomD = Number(pipe.diameter) || 0;
+        const D = getInternalDiameterMeters(nomD);
+        const area = Math.PI * Math.pow(D / 2.0, 2);
+        pipe.velocity_mps = area > 0 ? Math.round(((targetQ / 1000.0) / area) * 1000) / 1000 : 0;
+        const C = getRoughnessC(pipe.material, pipe.roughness);
+        const R = computePipeResistance(pipe.length, pipe.diameter, C);
+        pipe.headloss_m = Math.round((R * Math.pow(targetQ / 1000.0, HW_EXPONENT)) * 100) / 100;
+        pipe.status = evaluatePipeStatus(pipe.velocity_mps);
+        pipe.flowDirection = (pipe.startNodeId === fromId) ? 'forward' : 'backward';
+
+        // Perbarui head dan tekanan simpul hilir berdasarkan kehilangan tekanan pipa
+        const upNode = nodeMap.get(fromId);
+        const downNode = nodeMap.get(toId);
+        if (upNode && downNode && !downNode.hasTelemetry && downNode.type !== 'reservoir' && downNode.type !== 'tank' && !downNode.isPumpBoosted) {
+          const upHead = (upNode.totalHead > 0) ? upNode.totalHead : upNode.elevation;
+          if (upHead > 0) {
+            const newHead = Math.round((upHead - pipe.headloss_m) * 100) / 100;
+            downNode.totalHead = newHead;
+            downNode.pressure = Math.max(0, Math.round(((downNode.totalHead - downNode.elevation) / HEAD_PER_BAR) * 100) / 100);
+          }
+        }
+      };
+
+      // Urutkan pompa dari debit terbesar ke terkecil
+      const sortedPumps = [...activePumps].sort((a, b) => (b.discharge_Lps || 0) - (a.discharge_Lps || 0));
+
+      sortedPumps.forEach(pump => {
         const qPump = pump.discharge_Lps;
         const dischargeId = pump.endNodeId;
         const suctionId = pump.startNodeId;
@@ -744,74 +776,75 @@
           if (suctionConns.length === 1) {
             const conn = suctionConns[0];
             if (conn.pipe.discharge_Lps > qPump) {
-              conn.pipe.discharge_Lps = qPump;
-              conn.pipe.discharge_m3h = Math.round(qPump * 3.6 * 10) / 10;
-              const nomD = Number(conn.pipe.diameter) || 0;
-              const D = getInternalDiameterMeters(nomD);
-              const area = Math.PI * Math.pow(D / 2.0, 2);
-              conn.pipe.velocity_mps = area > 0 ? Math.round(((qPump / 1000.0) / area) * 1000) / 1000 : 0;
-              const C = getRoughnessC(conn.pipe.material, conn.pipe.roughness);
-              const R = computePipeResistance(conn.pipe.length, conn.pipe.diameter, C);
-              conn.pipe.headloss_m = Math.round((R * Math.pow(qPump / 1000.0, HW_EXPONENT)) * 100) / 100;
-              conn.pipe.status = evaluatePipeStatus(conn.pipe.velocity_mps);
+              updatePipeRecord(conn.pipe, qPump, conn.other, suctionId);
+              globalRoutedPipes.set(conn.pipe.id, { flow: qPump, fromNodeId: conn.other, toNodeId: suctionId });
             }
           }
         }
 
         // 2. Sisi tekan (discharge): telusuri downstream ke jaringan pipa
+        // Lindungi node hisap dan node discharge pompa aktif lainnya dari back-flow
+        const forbiddenNodes = new Set([...allSuctions]);
+        allDischarges.forEach(id => {
+          if (id !== dischargeId) forbiddenNodes.add(id);
+        });
+
         const queue = [{ nodeId: dischargeId, availableFlow: qPump }];
-        const visitedNodes = new Set([dischargeId, suctionId]);
+        const visitedNodes = new Set([dischargeId, ...forbiddenNodes]);
+        const visitedPipesInRun = new Set();
 
         while (queue.length > 0) {
           const { nodeId, availableFlow } = queue.shift();
-          const conns = (pipeAdj.get(nodeId) || []).filter(c => !visitedNodes.has(c.other));
+          const nodeObj = nodeMap.get(nodeId);
+          const nodeDemand = (nodeObj && nodeObj.demand > 0) ? nodeObj.demand : 0;
+          const netFlow = Math.max(0, Math.round((availableFlow - nodeDemand) * 100) / 100);
+
+          if (netFlow <= 0.001) continue;
+
+          // Cari sambungan keluar yang belum dilewati pada perambatan ini
+          const conns = (pipeAdj.get(nodeId) || []).filter(c =>
+            !visitedPipesInRun.has(c.pipe.id) &&
+            !visitedNodes.has(c.other) &&
+            !globalRoutedPipes.has(c.pipe.id)
+          );
+
           if (conns.length === 0) continue;
 
           if (conns.length === 1) {
-            // Jalur pipa tunggal / trunk line
+            // Jalur pipa tunggal / trunk line: seluruh sisa debit masuk ke pipa ini
             const conn = conns[0];
             visitedNodes.add(conn.other);
-            const targetQ = (conn.pipe.discharge_Lps > availableFlow || conn.pipe.discharge_Lps === 0)
-              ? availableFlow
-              : conn.pipe.discharge_Lps;
+            visitedPipesInRun.add(conn.pipe.id);
+            updatePipeRecord(conn.pipe, netFlow, nodeId, conn.other);
+            globalRoutedPipes.set(conn.pipe.id, { flow: netFlow, fromNodeId: nodeId, toNodeId: conn.other });
 
-            conn.pipe.discharge_Lps = targetQ;
-            conn.pipe.discharge_m3h = Math.round(targetQ * 3.6 * 10) / 10;
-            const nomD = Number(conn.pipe.diameter) || 0;
-            const D = getInternalDiameterMeters(nomD);
-            const area = Math.PI * Math.pow(D / 2.0, 2);
-            conn.pipe.velocity_mps = area > 0 ? Math.round(((targetQ / 1000.0) / area) * 1000) / 1000 : 0;
-            const C = getRoughnessC(conn.pipe.material, conn.pipe.roughness);
-            const R = computePipeResistance(conn.pipe.length, conn.pipe.diameter, C);
-            conn.pipe.headloss_m = Math.round((R * Math.pow(targetQ / 1000.0, HW_EXPONENT)) * 100) / 100;
-            conn.pipe.status = evaluatePipeStatus(conn.pipe.velocity_mps);
-
-            queue.push({ nodeId: conn.other, availableFlow: targetQ });
+            queue.push({ nodeId: conn.other, availableFlow: netFlow });
           } else {
-            // Percabangan: total debit seluruh cabang hilir dibatasi oleh availableFlow
-            const totalBranchQ = conns.reduce((sum, c) => sum + (c.pipe.discharge_Lps || 0), 0);
-            conns.forEach(c => visitedNodes.add(c.other));
+            // Percabangan: bagi netFlow ke cabang-cabang hilir
+            conns.forEach(c => {
+              visitedNodes.add(c.other);
+              visitedPipesInRun.add(c.pipe.id);
+            });
 
-            if (totalBranchQ > availableFlow) {
-              const ratio = availableFlow / totalBranchQ;
-              conns.forEach(c => {
-                const scaledQ = Math.round(c.pipe.discharge_Lps * ratio * 100) / 100;
-                c.pipe.discharge_Lps = scaledQ;
-                c.pipe.discharge_m3h = Math.round(scaledQ * 3.6 * 10) / 10;
-                const nomD = Number(c.pipe.diameter) || 0;
-                const D = getInternalDiameterMeters(nomD);
-                const area = Math.PI * Math.pow(D / 2.0, 2);
-                c.pipe.velocity_mps = area > 0 ? Math.round(((scaledQ / 1000.0) / area) * 1000) / 1000 : 0;
-                const C = getRoughnessC(c.pipe.material, c.pipe.roughness);
-                const R = computePipeResistance(c.pipe.length, c.pipe.diameter, C);
-                c.pipe.headloss_m = Math.round((R * Math.pow(scaledQ / 1000.0, HW_EXPONENT)) * 100) / 100;
-                c.pipe.status = evaluatePipeStatus(c.pipe.velocity_mps);
+            // Hitung konduktansi pipa (D^2.63 / L^0.54)
+            let totalCond = 0;
+            const conds = conns.map(c => {
+              const nomD = Number(c.pipe.diameter) || 100;
+              const D = getInternalDiameterMeters(nomD);
+              const L = Math.max(1.0, Number(c.pipe.length) || 10.0);
+              const cond = Math.pow(D, 2.63) / Math.pow(L, 0.54);
+              totalCond += cond;
+              return cond;
+            });
 
-                queue.push({ nodeId: c.other, availableFlow: scaledQ });
-              });
-            } else {
-              conns.forEach(c => queue.push({ nodeId: c.other, availableFlow: c.pipe.discharge_Lps }));
-            }
+            conns.forEach((c, idx) => {
+              const frac = totalCond > 0 ? (conds[idx] / totalCond) : (1.0 / conns.length);
+              const branchQ = Math.round(netFlow * frac * 100) / 100;
+              updatePipeRecord(c.pipe, branchQ, nodeId, c.other);
+              globalRoutedPipes.set(c.pipe.id, { flow: branchQ, fromNodeId: nodeId, toNodeId: c.other });
+
+              queue.push({ nodeId: c.other, availableFlow: branchQ });
+            });
           }
         }
       });
