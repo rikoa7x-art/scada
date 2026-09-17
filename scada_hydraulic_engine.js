@@ -108,11 +108,10 @@
       n.type === 'reservoir' ||
       n.type === 'tank'      ||
       n.isPumpBoosted        ||
-      n.isPumpZoneAnchored   ||   // node yang headnya ditetapkan dari Q pompa aktual
       n.hasEpanetPressure
     );
 
-    // Bangun adjacency list berbobot resistansi
+    // Bangun adjacency list berbobot resistansi dan panjang
     const adjacency = new Map();
     updatedNodes.forEach(n => adjacency.set(n.id, []));
     pipes.forEach(p => {
@@ -121,8 +120,9 @@
       if (!adjacency.has(p.endNodeId))   adjacency.set(p.endNodeId, []);
       const C = getRoughnessC(p.material, p.roughness);
       const R = computePipeResistance(p.length, p.diameter, C);
-      adjacency.get(p.startNodeId).push({ nodeId: p.endNodeId,   R });
-      adjacency.get(p.endNodeId).push(  { nodeId: p.startNodeId, R });
+      const L = Math.max(1.0, Number(p.length) || 10.0);
+      adjacency.get(p.startNodeId).push({ nodeId: p.endNodeId, R, L });
+      adjacency.get(p.endNodeId).push(  { nodeId: p.startNodeId, R, L });
     });
 
     updatedNodes.forEach(n => {
@@ -133,38 +133,41 @@
       // Tujuan: temukan semua "boundary node" (known head) yang paling
       // dekat secara hidrolis (minimum accumulated resistance), bukan jarak fisik.
       const dist     = new Map([[n.id, 0]]);
+      const distL    = new Map([[n.id, 0]]); // Simpan jarak fisik kumulatif
       const visited  = new Set();
-      const pq       = [{ nodeId: n.id, R: 0 }];
-      // boundaryMap: nodeId → {head, R: accumulated resistance dari n ke boundary ini}
+      const pq       = [{ nodeId: n.id, R: 0, L: 0 }];
+      // boundaryMap: nodeId → {head, R: accumulated resistance, L: accumulated length}
       const boundaryMap = new Map();
 
       while (pq.length > 0) {
         // Priority queue sederhana — sufficient untuk skala jaringan SCADA
         pq.sort((a, b) => a.R - b.R);
-        const { nodeId: cur, R: curR } = pq.shift();
+        const { nodeId: cur, R: curR, L: curL } = pq.shift();
         if (visited.has(cur)) continue;
         visited.add(cur);
 
-        for (const { nodeId: nbr, R: edgeR } of (adjacency.get(cur) || [])) {
+        for (const { nodeId: nbr, R: edgeR, L: edgeL } of (adjacency.get(cur) || [])) {
           const newR = curR + edgeR;
+          const newL = curL + edgeL;
           if (dist.has(nbr) && dist.get(nbr) <= newR) continue;
           dist.set(nbr, newR);
+          distL.set(nbr, newL);
 
           const nbrNode = nodeMap.get(nbr);
           if (!nbrNode) continue;
 
           if (isKnown(nbrNode)) {
-            // Boundary ditemukan — catat dengan accumulated resistance
+            // Boundary ditemukan — catat dengan accumulated resistance & length
             // Update jika menemukan path lebih pendek ke boundary yang sama
             const prev = boundaryMap.get(nbr);
             if (!prev || newR < prev.R) {
-              boundaryMap.set(nbr, { head: nbrNode.totalHead, R: newR });
+              boundaryMap.set(nbr, { head: nbrNode.totalHead, R: newR, L: newL });
             }
             // PENTING: jangan ekspansi melewati boundary node
             // (mencegah "shortcut" antar dua boundary yang tidak melalui n)
           } else {
             // Node belum diketahui — lanjut ekspansi Dijkstra
-            pq.push({ nodeId: nbr, R: newR });
+            pq.push({ nodeId: nbr, R: newR, L: newL });
           }
         }
       }
@@ -182,11 +185,16 @@
         return;
 
       } else if (boundaries.length === 1) {
-        // Satu boundary: propagasi satu arah berbasis resistansi.
-        // Estimasi Q referensi 5 L/s = 0.005 m³/s untuk hitung head loss tipis.
-        // hf = R × Q^1.852
-        const Q_ref = 0.005;
-        const hf    = boundaries[0].R * Math.pow(Q_ref, HW_EXPONENT);
+        // Satu boundary: propagasi satu arah untuk dead-end / cabang tunggal.
+        // Dulu ini menggunakan Q_ref konstan 5 L/s, yang menyebabkan aliran Q
+        // selalu terkunci di 5 L/s berapapun diameternya.
+        // SEKARANG: gunakan asumsi head loss statis (misal 0.5 meter per 100 meter = 0.005)
+        // Dengan mematok head loss per meter secara independen dari resistansi R,
+        // hitungan Q (debit) di tahap akhir akan bervariasi mengikuti diameter pipa!
+        // (Rumus Hazen-Williams yang diputar: Q akan proporsional dengan D^2.63)
+        const fixed_gradient_m_per_m = 0.005; // Drop 0.5m setiap 100m panjang pipa
+        // Karena boundaries[0].L menyimpan jarak kumulatif L ke boundary
+        const hf = boundaries[0].L * fixed_gradient_m_per_m;
         interpolatedHead = boundaries[0].head - hf;
 
       } else {
@@ -211,7 +219,9 @@
         interpolatedHead = sumWeightedHead / sumConductance;
       }
 
-      n.totalHead      = Math.max(n.elevation, interpolatedHead);
+      n.totalHead      = interpolatedHead;
+      // Pressure boleh di-clamp ke 0 untuk tampilan UI, tapi totalHead HARUS
+      // tetap mempertahankan gradien head aslinya untuk perhitungan aliran pipa.
       n.pressure       = Math.max(0, Math.round(((n.totalHead - n.elevation) / HEAD_PER_BAR) * 100) / 100);
       n.isInterpolated = true;   // flag untuk debugging
       n.boundaryCount  = boundaries.length;
@@ -553,76 +563,56 @@
       });
     }
 
-    // 2a.5: Anchor Head Node Hilir Pertama dari Debit Pompa Aktual
-    //
-    //  MASALAH yang diselesaikan:
-    //  Pompa diset kapasitas 40 L/s, tapi pipa DN250 sepanjang 100m
-    //  menghasilkan 238 L/s dari Hazen-Williams karena beda head besar.
-    //
-    //  AKAR MASALAH:
-    //  Engine menghitung debit pipa murni dari (ΔH ÷ resistansi pipa),
-    //  tanpa mempertimbangkan kapasitas fisik pompa. Pipa DN250 100m
-    //  resistansinya sangat rendah → beda head 50m → Q = 238 L/s.
-    //  Kapasitas pompa 40 L/s TIDAK PERNAH masuk ke perhitungan pipa.
-    //
-    //  FIX (pendekatan EPANET operating point):
-    //  Gunakan Q aktual pompa untuk menghitung head loss di pipa pertama:
-    //    ΔH_pipa = R × Q_pompa^1.852
-    //  Tetapkan head node hilir = H_pompa_discharge - ΔH_pipa
-    //  → Node ini menjadi "boundary baru" (isPumpZoneAnchored = true)
-    //  → hydraulicInterpolateNodes interpolasi seluruh zona dari boundary ini
-    //  → Debit di semua pipa zona pompa kini konsisten dengan kapasitas pompa
-    solvedPumps.forEach(pump => {
-      if (pump.status !== 'on') return;
-      const dischargeNode = nodeMap.get(pump.endNodeId);
-      if (!dischargeNode || !dischargeNode.isPumpBoosted) return;
-
-      const Q_m3s = Math.max(0.001, (pump.discharge_Lps || 0) / 1000);
-
-      // Temukan semua pipa yang langsung terhubung ke discharge node pompa
-      pipes.forEach(pipe => {
-        let downstreamId = null;
-        if (pipe.startNodeId === pump.endNodeId) downstreamId = pipe.endNodeId;
-        else if (pipe.endNodeId === pump.endNodeId) downstreamId = pipe.startNodeId;
-        if (!downstreamId) return;
-
-        const downNode = nodeMap.get(downstreamId);
-        if (!downNode) return;
-        // Jangan timpa data telemetri atau reservoir — itu data nyata lapangan
-        if (downNode.hasTelemetry || downNode.type === 'reservoir' || downNode.type === 'tank') return;
-        // Jangan timpa node yang juga discharge pompa lain
-        if (downNode.isPumpBoosted) return;
-
-        // Hitung head loss pipa menggunakan Q aktual pompa
-        const C = getRoughnessC(pipe.material, pipe.roughness);
-        const R = computePipeResistance(pipe.length, pipe.diameter, C);
-        const hf = R * Math.pow(Q_m3s, HW_EXPONENT);
-
-        const anchoredHead = Math.max(downNode.elevation, dischargeNode.totalHead - hf);
-
-        downNode.totalHead          = anchoredHead;
-        downNode.pressure           = Math.max(0, Math.round(((anchoredHead - downNode.elevation) / HEAD_PER_BAR) * 100) / 100);
-        downNode.hasEpanetPressure  = false;  // override EPANET statis
-        downNode.isPumpZoneAnchored = true;   // dikenali sebagai boundary fixed oleh interpolasi
-        downNode.anchorPumpId       = pump.id || pump.label || 'pump';
-        nodeMap.set(downstreamId, downNode);
-      });
-    });
-
     // 2b. Interpolasi Hidrolis Head untuk Node Tanpa Data
-    //     Setelah zona pompa di-reset (2a) dan node hilir pertama di-anchor (2a.5),
-    //     hydraulicInterpolateNodes menghitung head secara konsisten menggunakan:
-    //       - Head pompa aktual (isPumpBoosted) sebagai boundary upstream
-    //       - Head node anchor (isPumpZoneAnchored) sebagai boundary kedua ← BARU
-    //       - Telemetri lapangan sebagai boundary lainnya
-    //     → Debit pipa dalam zona pompa kini = kapasitas pompa, bukan ratusan L/s
-
+    //     Gunakan Conductance-Weighted Interpolation (Dijkstra) untuk memetakan
+    //     gradien head di seluruh jaringan, mendistribusikan aliran proporsional
+    //     dengan kapasitas pipa.
+    //       - Discharge pompa (isPumpBoosted) → boundary upstream
+    //       - Reservoir/Tank/Telemetri        → boundary downstream
+    //       - Dead-end branches               → fallback ke fixed gradient
     hydraulicInterpolateNodes(updatedNodes, nodeMap, pipes);
 
 
     let totalDischargeLps = 0;
     let leakWarningsCount = 0;
     let activePipesCount = 0;
+
+    // Bangun set pipa suction pompa yang harus ditandai sebagai pipa pompa (Q = 0):
+    // 1. Pipa pasangan langsung startNodeId <-> endNodeId dari pompa aktif (contoh: R2 -> J34)
+    // 2. Pipa yang terhubung langsung ke reservoir yang memiliki pompa aktif
+    //    (menangani pompa dengan endNodeId kustom / cnode_* di UI seperti B2 & B4 di Jalancagak).
+    //
+    // PENTING: Reservoir gravitasi murni TANPA pompa (seperti R1 & R2 di Subang, Kasomalang, dll.)
+    // TIDAK boleh diblokir karena mereka adalah sumber utama aliran gravitasi jaringan!
+    const pumpPipePairs = new Set();
+    const activePumpReservoirs = new Set();
+
+    solvedPumps.forEach(pump => {
+      if (pump.status === 'on') {
+        const a = pump.startNodeId;
+        const b = pump.endNodeId;
+        if (a && b) {
+          pumpPipePairs.add(a < b ? `${a}|${b}` : `${b}|${a}`);
+        }
+        const sNode = nodeMap.get(a);
+        if (sNode && (sNode.type === 'reservoir' || sNode.type === 'tank')) {
+          activePumpReservoirs.add(a);
+        }
+      }
+    });
+
+    // Tandai pipa langsung dari reservoir HANYA jika reservoir tersebut memiliki pompa aktif
+    const reservoirPumpPipes = new Set();
+    pipes.forEach(p => {
+      const sIsPumped = activePumpReservoirs.has(p.startNodeId);
+      const eIsPumped = activePumpReservoirs.has(p.endNodeId);
+      if (sIsPumped || eIsPumped) {
+        const key = p.startNodeId < p.endNodeId
+          ? `${p.startNodeId}|${p.endNodeId}`
+          : `${p.endNodeId}|${p.startNodeId}`;
+        reservoirPumpPipes.add(key);
+      }
+    });
 
     // 3. Evaluasi Aliran Seluruh Ruas Pipa
     const updatedPipes = pipes.map(p => {
@@ -631,6 +621,25 @@
 
       if (!startNode || !endNode) {
         return { ...p, discharge_Lps: 0, velocity_mps: 0, status: evaluatePipeStatus(0) };
+      }
+
+      // Pipa suction pompa aktif atau pipa langsung dari reservoir berpenggerak pompa: Q = 0
+      const pairKey = p.startNodeId < p.endNodeId
+        ? `${p.startNodeId}|${p.endNodeId}`
+        : `${p.endNodeId}|${p.startNodeId}`;
+      if (pumpPipePairs.has(pairKey) || reservoirPumpPipes.has(pairKey)) {
+        return {
+          ...p,
+          head1: Math.round(((startNode.totalHead || startNode.elevation)) * 100) / 100,
+          head2: Math.round(((endNode.totalHead || endNode.elevation)) * 100) / 100,
+          discharge_Lps: 0,
+          discharge_m3h: 0,
+          velocity_mps: 0,
+          headloss_m: 0,
+          flowDirection: 'pump',
+          status: { code: 'PUMP_PIPE', label: 'Pipa Suction/Discharge Pompa', color: '#8B5CF6', severity: 'info' }
+        };
+
       }
 
       const head1 = startNode.totalHead || startNode.elevation;
@@ -769,4 +778,5 @@
   };
 
 });
+
 
