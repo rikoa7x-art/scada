@@ -249,4 +249,52 @@
   background: linear-gradient(90deg, rgba(241, 245, 249, 0) 0%, rgba(241, 245, 249, 0.9) 100%);
 }
 
+/* ======================================================
+   COLLAPSIBLE DASHBOARD INFORMASI (EXPAND / COLLAPSE)
+   ====================================================== */
+.collapsible-dashboard {
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.22s ease,
+              transform 0.22s ease,
+              margin 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
 
+.collapsible-dashboard.is-collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  transform: translateY(-8px);
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-top-width: 0 !important;
+  border-bottom-width: 0 !important;
+  pointer-events: none;
+}
+
+/* Rotasi Chevron / Ikon Animasi */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Floating Toggle Handle Pill */
+#btnToggleDashboard {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  user-select: none;
+}
+
+#btnToggleDashboard:hover {
+  background-color: #1e293b;
+  border-color: #38bdf8;
+}
+
+/* Efek Glow Halus saat Panel Collapsed */
+#btnToggleDashboard.active-glow {
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+}

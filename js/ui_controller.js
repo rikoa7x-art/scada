@@ -248,6 +248,12 @@ const UIController = (() => {
 
     // Tab Switcher (Peta, Tabel Pipa, Profil Hidrolis)
     setupTabs();
+
+    // Toggle Sembunyikan / Buka Dashboard Informasi (Mode EPANET & KPI Strip)
+    setupDashboardToggle();
+
+    // Tombol Layar Penuh (Fullscreen Map)
+    setupMapFullscreen();
   }
 
   /**
@@ -300,6 +306,130 @@ const UIController = (() => {
     tabs.forEach(tabId => {
       document.getElementById(`btn-${tabId}`)?.addEventListener('click', () => activateTab(tabId));
       document.getElementById(mobileBtnMap[tabId])?.addEventListener('click', () => activateTab(tabId));
+    });
+  }
+
+  /**
+   * Setup Fitur Sembunyikan / Tampilkan Dashboard Informasi (Mode EPANET & KPI Strip)
+   */
+  function setupDashboardToggle() {
+    const STORAGE_KEY = 'pdam_spam_dashboard_collapsed';
+    const container = document.getElementById('collapsibleDashboard');
+    const btnToggle = document.getElementById('btnToggleDashboard');
+    const btnHeaderToggle = document.getElementById('btnHeaderToggleDashboard');
+    const btnMobileToggle = document.getElementById('btnToggleDashboardMobileMenu');
+    const chevron = document.getElementById('toggleDashboardChevron');
+    const headerChevron = document.getElementById('headerToggleDashIcon');
+    const textLabel = document.getElementById('toggleDashboardText');
+    const miniKpi = document.getElementById('toggleDashboardMiniKpi');
+    const mobileStatusLabel = document.getElementById('labelDashboardStatusMobile');
+
+    if (!container) return;
+
+    // Baca preferensi tersimpan
+    let isCollapsed = false;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved !== null) {
+        isCollapsed = saved === 'true';
+      } else {
+        // Default di mobile (< 768px): sembunyikan dashboard agar peta langsung luas dan nyaman
+        isCollapsed = window.innerWidth < 768;
+      }
+    } catch (e) {
+      console.warn('Gagal membaca storage preferensi dashboard:', e);
+      isCollapsed = window.innerWidth < 768;
+    }
+
+    function applyState(collapsed, triggerResize = true) {
+      isCollapsed = collapsed;
+      if (isCollapsed) {
+        container.classList.add('is-collapsed');
+        btnToggle?.classList.add('active-glow');
+        chevron?.classList.add('rotate-180');
+        headerChevron?.classList.add('rotate-180');
+        if (textLabel) textLabel.textContent = 'Buka Info';
+        miniKpi?.classList.remove('hidden');
+        if (mobileStatusLabel) {
+          mobileStatusLabel.textContent = 'Tersembunyi';
+          mobileStatusLabel.className = 'text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-bold';
+        }
+      } else {
+        container.classList.remove('is-collapsed');
+        btnToggle?.classList.remove('active-glow');
+        chevron?.classList.remove('rotate-180');
+        headerChevron?.classList.remove('rotate-180');
+        if (textLabel) textLabel.textContent = 'Sembunyikan Info';
+        miniKpi?.classList.add('hidden');
+        if (mobileStatusLabel) {
+          mobileStatusLabel.textContent = 'Terbuka';
+          mobileStatusLabel.className = 'text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold';
+        }
+      }
+
+      try {
+        localStorage.setItem(STORAGE_KEY, isCollapsed ? 'true' : 'false');
+      } catch (e) {
+        console.warn('Gagal menyimpan status dashboard:', e);
+      }
+
+      if (triggerResize) {
+        setTimeout(() => MapManager.getMap()?.invalidateSize(), 80);
+        setTimeout(() => MapManager.getMap()?.invalidateSize(), 340);
+      }
+    }
+
+    // Terapkan kondisi awal
+    applyState(isCollapsed, true);
+
+    // Event Listener Toggle
+    function toggle() {
+      applyState(!isCollapsed, true);
+    }
+
+    btnToggle?.addEventListener('click', toggle);
+    btnHeaderToggle?.addEventListener('click', toggle);
+    btnMobileToggle?.addEventListener('click', () => {
+      toggle();
+      document.getElementById('mobileActionMenu')?.classList.add('hidden');
+    });
+
+    // Handle perputaran layar HP (orientasi berubah)
+    window.addEventListener('resize', () => {
+      setTimeout(() => MapManager.getMap()?.invalidateSize(), 200);
+    });
+  }
+
+  /**
+   * Setup Tombol Layar Penuh (Fullscreen Map)
+   */
+  function setupMapFullscreen() {
+    const btnFullscreen = document.getElementById('btnMapFullscreen');
+    if (!btnFullscreen) return;
+
+    btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => {});
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+      setTimeout(() => MapManager.getMap()?.invalidateSize(), 200);
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      setTimeout(() => MapManager.getMap()?.invalidateSize(), 200);
+    });
+    document.addEventListener('webkitfullscreenchange', () => {
+      setTimeout(() => MapManager.getMap()?.invalidateSize(), 200);
     });
   }
 
@@ -745,6 +875,12 @@ const UIController = (() => {
     document.getElementById('kpiTotalDebit').textContent = `${summary.totalFlowLps.toFixed(1)} L/s`;
     document.getElementById('kpiTotalDebitM3h').textContent = `${(summary.totalFlowLps * 3.6).toFixed(0)} m³/jam`;
     document.getElementById('kpiCriticalPipes').textContent = summary.criticalPipes;
+
+    // Update juga preview di mini pill saat dashboard tersembunyi
+    const miniKpi = document.getElementById('toggleDashboardMiniKpi');
+    if (miniKpi) {
+      miniKpi.textContent = `💧 ${summary.totalFlowLps.toFixed(1)} L/s`;
+    }
 
     const criticalBadge = document.getElementById('kpiCriticalBadge');
     if (criticalBadge) {

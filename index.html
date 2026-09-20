@@ -142,6 +142,12 @@
           </label>
         </div>
 
+        <!-- Tombol Toggle Dashboard Informasi (Sembunyikan / Tampilkan Mode & KPI) -->
+        <button id="btnHeaderToggleDashboard" class="flex items-center gap-1 bg-slate-800/90 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer active-press" title="Sembunyikan / Tampilkan Panel Informasi Dashboard">
+          <svg id="headerToggleDashIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+          <span class="text-[11px] hidden lg:inline">Panel Info</span>
+        </button>
+
         <!-- Mobile Menu Toggle Button (Titik Tiga) -->
         <button id="btnMobileMenuToggle" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 active-press" title="Buka Menu Aksi Tambahan">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
@@ -150,52 +156,64 @@
 
     </div>
 
-    <!-- Sub-Header: Mode Switcher & Cloud Quick Sync Responsive -->
-    <div class="mt-2 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
-      <div class="flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 text-xs w-full sm:w-auto">
-        <button id="btnModeDemand" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold transition-all bg-emerald-600 text-white shadow-xs flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode EPANET: Input Demand">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-          <span>Demand (EPANET)</span>
-        </button>
-        <button id="btnModePressure" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode Lapangan: Input Tekanan Manometer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span>Tekanan Lapangan</span>
-        </button>
+    <!-- COLLAPSIBLE CONTAINER FOR DASHBOARD INFO (Sub-Header & KPI Strip) -->
+    <div id="collapsibleDashboard" class="collapsible-dashboard">
+      <!-- Sub-Header: Mode Switcher & Cloud Quick Sync Responsive -->
+      <div class="mt-2 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+        <div class="flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 text-xs w-full sm:w-auto">
+          <button id="btnModeDemand" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold transition-all bg-emerald-600 text-white shadow-xs flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode EPANET: Input Demand">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            <span>Demand (EPANET)</span>
+          </button>
+          <button id="btnModePressure" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode Lapangan: Input Tekanan Manometer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Tekanan Lapangan</span>
+          </button>
+        </div>
+
+        <!-- Quick Cloud Sync Button -->
+        <div class="flex items-center gap-2">
+          <button id="btnSyncCloud" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded-lg border border-slate-700 font-medium transition-colors cursor-pointer active-press" title="Tarik pembaruan data tekanan terkini dari server Supabase">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span class="text-[11px]">Sync Cloud</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Quick Cloud Sync Button -->
-      <div class="flex items-center gap-2">
-        <button id="btnSyncCloud" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded-lg border border-slate-700 font-medium transition-colors cursor-pointer active-press" title="Tarik pembaruan data tekanan terkini dari server Supabase">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-          <span class="text-[11px]">Sync Cloud</span>
-        </button>
+      <!-- SUMMARY KPI STRIP RESPONSIVE -->
+      <div class="mt-2 pt-2 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 text-xs">
+        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+          <span class="text-slate-400 text-[11px]">Junction:</span>
+          <span id="kpiMeasuredNodes" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0 / 0</span>
+        </div>
+        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+          <span class="text-slate-400 text-[11px]">Pipa Hitung:</span>
+          <span id="kpiCalculatedPipes" class="font-bold text-sky-400 font-mono text-xs sm:text-sm">0 / 0</span>
+        </div>
+        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+          <span class="text-slate-400 text-[11px]">Total Debit:</span>
+          <div class="text-right">
+            <span id="kpiTotalDebit" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0.0 L/s</span>
+            <span id="kpiTotalDebitM3h" class="text-[9px] sm:text-[10px] text-slate-400 ml-0.5 sm:ml-1">(0 m³/h)</span>
+          </div>
+        </div>
+        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+          <span class="text-slate-400 text-[11px]">Pipa Waspada:</span>
+          <div class="flex items-center gap-1.5">
+            <span id="kpiCriticalBadge" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="kpiCriticalPipes" class="font-bold text-white font-mono text-xs sm:text-sm">0</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- SUMMARY KPI STRIP RESPONSIVE -->
-    <div class="mt-2 pt-2 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 text-xs">
-      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-        <span class="text-slate-400 text-[11px]">Junction:</span>
-        <span id="kpiMeasuredNodes" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0 / 0</span>
-      </div>
-      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-        <span class="text-slate-400 text-[11px]">Pipa Hitung:</span>
-        <span id="kpiCalculatedPipes" class="font-bold text-sky-400 font-mono text-xs sm:text-sm">0 / 0</span>
-      </div>
-      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-        <span class="text-slate-400 text-[11px]">Total Debit:</span>
-        <div class="text-right">
-          <span id="kpiTotalDebit" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0.0 L/s</span>
-          <span id="kpiTotalDebitM3h" class="text-[9px] sm:text-[10px] text-slate-400 ml-0.5 sm:ml-1">(0 m³/h)</span>
-        </div>
-      </div>
-      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-        <span class="text-slate-400 text-[11px]">Pipa Waspada:</span>
-        <div class="flex items-center gap-1.5">
-          <span id="kpiCriticalBadge" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span id="kpiCriticalPipes" class="font-bold text-white font-mono text-xs sm:text-sm">0</span>
-        </div>
-      </div>
+    <!-- PULL / TOGGLE PILL TAB (Attached to bottom of header, thumb-friendly for touchscreens) -->
+    <div class="flex justify-center -mb-3 pt-1 relative z-30 pointer-events-none">
+      <button id="btnToggleDashboard" class="pointer-events-auto bg-slate-800/95 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-0.5 rounded-full border border-slate-600 shadow-md text-[10px] sm:text-[11px] font-semibold flex items-center gap-1.5 transition-all active-press cursor-pointer backdrop-blur-xs" title="Klik untuk sembunyikan atau tampilkan dashboard informasi">
+        <svg id="toggleDashboardChevron" xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 transition-transform duration-300 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+        <span id="toggleDashboardText">Sembunyikan Info</span>
+        <span id="toggleDashboardMiniKpi" class="hidden font-mono text-emerald-400 font-bold ml-1 border-l border-slate-600 pl-1.5">0.0 L/s</span>
+      </button>
     </div>
   </header>
 
@@ -231,6 +249,15 @@
             <option value="tanjungsiang">SPAM Tanjungsiang (272 Simpul)</option>
           </select>
         </div>
+
+        <!-- Toggle Tampilan Dashboard Informasi Mobile -->
+        <button id="btnToggleDashboardMobileMenu" class="w-full flex items-center justify-between bg-slate-100 hover:bg-slate-200 text-slate-800 p-2.5 rounded-xl border border-slate-300 font-bold active-press cursor-pointer transition-colors">
+          <div class="flex items-center gap-2">
+            <span>📊</span>
+            <span>Dashboard Info & KPI</span>
+          </div>
+          <span id="labelDashboardStatusMobile" class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">Terbuka</span>
+        </button>
 
         <!-- Supabase Cloud Sync Actions Mobile -->
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
@@ -363,18 +390,25 @@
       <!-- Container Leaflet Map -->
       <div id="map" class="w-full h-full z-0"></div>
 
-      <!-- FLOATING PIPE FLOW LABEL SELECTOR (Kanan Atas) -->
-      <div class="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg border border-slate-200 text-xs">
-        <div class="flex items-center gap-1 text-blue-600 font-bold">
-          <span class="text-sm">💧</span>
+      <!-- FLOATING MAP CONTROLS (Kanan Atas) -->
+      <div class="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 flex items-center gap-1.5">
+        <!-- Floating Pipe Flow Label Selector -->
+        <div class="flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl shadow-lg border border-slate-200 text-xs">
+          <span class="text-xs sm:text-sm">💧</span>
           <span class="text-slate-700 font-semibold text-[11px] hidden sm:inline">Debit:</span>
+          <select id="selectPipeFlowUnit" class="bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-800 rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 text-[11px] sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors" title="Pilih format angka debit pada garis pipa atau sembunyikan">
+            <option value="lps" selected>L/s</option>
+            <option value="m3h">m³/jam</option>
+            <option value="both">Lengkap</option>
+            <option value="off">Off</option>
+          </select>
         </div>
-        <select id="selectPipeFlowUnit" class="bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-800 rounded-lg px-2 py-1 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors" title="Pilih satuan atau sembunyikan angka debit pada garis pipa">
-          <option value="lps" selected>Liter / Detik (L/s)</option>
-          <option value="m3h">m³ / Jam</option>
-          <option value="both">Lengkap (L/s & m³/h)</option>
-          <option value="off">Sembunyikan Label</option>
-        </select>
+
+        <!-- Tombol Fullscreen Map (Layar Penuh) -->
+        <button id="btnMapFullscreen" class="bg-white/95 hover:bg-slate-100 backdrop-blur-md p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl shadow-lg border border-slate-200 text-slate-700 hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-1 text-xs active-press" title="Tampilan Peta Layar Penuh (Fullscreen)">
+          <svg id="iconFullscreen" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          <span class="hidden md:inline font-semibold">Layar Penuh</span>
+        </button>
       </div>
 
       <!-- FLOATING BUTTON TRIGGER SIDEBAR INPUT (Khusus Layar Mobile) -->
