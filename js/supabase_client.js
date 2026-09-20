@@ -324,10 +324,11 @@ const SupabaseClient = (() => {
    */
   async function saveRegionTopology(regionId, networkData) {
     const config = AppConfig.supabase;
-    const specialNodeId = `__SCADA_NETWORK_${regionId.toUpperCase()}__`;
+    const safeRegion = (regionId || 'bunihayu').toString().toUpperCase();
+    const specialNodeId = `__SCADA_NETWORK_${safeRegion}__`;
     const payload = {
       node_id: specialNodeId,
-      node_label: `JARINGAN_${regionId.toUpperCase()}`,
+      node_label: `JARINGAN_${safeRegion}`,
       pressure_bar: 0,
       pressure_m: 0,
       confidence: 1.0,
@@ -365,7 +366,8 @@ const SupabaseClient = (() => {
    */
   async function fetchRegionTopology(regionId) {
     const config = AppConfig.supabase;
-    const specialNodeId = `__SCADA_NETWORK_${regionId.toUpperCase()}__`;
+    const safeRegion = (regionId || 'bunihayu').toString().toUpperCase();
+    const specialNodeId = `__SCADA_NETWORK_${safeRegion}__`;
 
     try {
       const res = await fetch(`${config.url}/rest/v1/${config.tableName}?node_id=eq.${encodeURIComponent(specialNodeId)}&select=notes`, {
@@ -393,10 +395,11 @@ const SupabaseClient = (() => {
    */
   async function saveRegionDemands(regionId, demandsMap) {
     const config = AppConfig.supabase;
-    const specialNodeId = `__SCADA_DEMANDS_${regionId.toUpperCase()}__`;
+    const safeRegion = (regionId || 'bunihayu').toString().toUpperCase();
+    const specialNodeId = `__SCADA_DEMANDS_${safeRegion}__`;
     const payload = {
       node_id: specialNodeId,
-      node_label: `DEMAND_${regionId.toUpperCase()}`,
+      node_label: `DEMAND_${safeRegion}`,
       pressure_bar: 0,
       pressure_m: 0,
       confidence: 1.0,
@@ -434,7 +437,8 @@ const SupabaseClient = (() => {
    */
   async function fetchRegionDemands(regionId) {
     const config = AppConfig.supabase;
-    const specialNodeId = `__SCADA_DEMANDS_${regionId.toUpperCase()}__`;
+    const safeRegion = (regionId || 'bunihayu').toString().toUpperCase();
+    const specialNodeId = `__SCADA_DEMANDS_${safeRegion}__`;
 
     try {
       const res = await fetch(`${config.url}/rest/v1/${config.tableName}?node_id=eq.${encodeURIComponent(specialNodeId)}&select=notes`, {

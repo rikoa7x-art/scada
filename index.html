@@ -698,14 +698,14 @@
 
       <!-- Modal Footer -->
       <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-        <button id="btnDeletePressureModal" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold transition-colors">
+        <button id="btnDeletePressureModal" type="button" onclick="UIController.deletePressureFromModal()" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold transition-colors active-press">
           Reset Titik
         </button>
         <div class="flex gap-2">
-          <button onclick="UIController.closePressureModal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors">
+          <button type="button" onclick="UIController.closePressureModal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors active-press">
             Batal
           </button>
-          <button id="btnSavePressureModal" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors">
+          <button id="btnSavePressureModal" type="button" onclick="UIController.savePressureFromModal()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors active-press">
             Simpan Nilai
           </button>
         </div>
@@ -908,12 +908,12 @@
 
   <!-- SUPABASE & JAVASCRIPT MODULES -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=1.2.0"></script>
-  <script src="js/supabase_client.js?v=1.2.0"></script>
-  <script src="js/hydraulic_engine.js?v=1.2.0"></script>
-  <script src="js/map_manager.js?v=1.2.0"></script>
-  <script src="js/chart_controller.js?v=1.2.0"></script>
-  <script src="js/ui_controller.js?v=1.2.0"></script>
-  <script src="js/app.js?v=1.2.0"></script>
+  <script src="js/config.js?v=1.2.1"></script>
+  <script src="js/supabase_client.js?v=1.2.1"></script>
+  <script src="js/hydraulic_engine.js?v=1.2.1"></script>
+  <script src="js/map_manager.js?v=1.2.1"></script>
+  <script src="js/chart_controller.js?v=1.2.1"></script>
+  <script src="js/ui_controller.js?v=1.2.1"></script>
+  <script src="js/app.js?v=1.2.1"></script>
 </body>
 </html>

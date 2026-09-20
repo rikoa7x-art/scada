@@ -203,7 +203,7 @@ const HydraulicEngine = (() => {
    * @param {Object} sourceConfig - Konfigurasi sumber { systemMode, pump, reservoir }
    * @returns {Object} { nodes: Map, pipes: Map, summary: Object }
    */
-  function solveNetworkHydraulics(networkData, nodeMeasurements = {}, sourceConfig = {}) {
+  function solveNetworkHydraulics(networkData, nodeMeasurements = {}, sourceConfig = {}, userDemands = {}) {
     const nodesMap = new Map();
     const pipesMap = new Map();
 
@@ -236,6 +236,9 @@ const HydraulicEngine = (() => {
       }
 
       const totalHead = pressureM !== null ? (elev + pressureM) : null;
+      const nodeDemand = (userDemands && userDemands[node.id] !== undefined)
+        ? Number(userDemands[node.id]) || 0
+        : (Number(node.demand) || 0);
 
       nodesMap.set(node.id, {
         ...node,
@@ -245,7 +248,7 @@ const HydraulicEngine = (() => {
         pressureUnit: unit,
         isMeasured: isMeasured,
         totalHead: totalHead,
-        demand: Number(node.demand) || 0
+        demand: nodeDemand
       });
     });
 
@@ -402,26 +405,29 @@ const HydraulicEngine = (() => {
 
     if (pump) {
       const pumpEndNode = nodesMap.get(pump.endNodeId);
-      currentHead = (resHead + pumpHeadAdd);
+      if (pumpEndNode) {
+        currentHead = (resHead + pumpHeadAdd);
+        const pEndElev = Number(pumpEndNode.elevation) || 0;
 
-      sequenceSteps.push({
-        stepNumber: 2,
-        type: 'pump',
-        nodeId: pumpEndNode.id,
-        nodeLabel: `${pump.label} &rarr; ${pumpEndNode.label}`,
-        nodeType: isPumpActive ? 'Pompa Transmisi' : 'Bypass Pompa (Gravitasi)',
-        elevation: pumpEndNode.elevation,
-        pressureBar: Math.max(0, (currentHead - pumpEndNode.elevation) / 10.19716),
-        pressureM: Math.max(0, currentHead - pumpEndNode.elevation),
-        totalHead: currentHead,
-        cumulativeDistance: 0,
-        flowRateLps: isPumpActive ? pumpFlow : resFlow,
-        description: isPumpActive
-          ? `Menaikkan Head +${pumpHeadAdd.toFixed(1)} m (Head keluar: ${currentHead.toFixed(1)} m, Kapasitas: ${pumpFlow.toFixed(1)} L/s)`
-          : `Pompa Dimatikan (Bypass Gravitasi Murni, Head Tambahan: +0 m, Debit: ${resFlow.toFixed(1)} L/s)`
-      });
+        sequenceSteps.push({
+          stepNumber: 2,
+          type: 'pump',
+          nodeId: pumpEndNode.id,
+          nodeLabel: `${pump.label || 'Pompa'} &rarr; ${pumpEndNode.label || pumpEndNode.id}`,
+          nodeType: isPumpActive ? 'Pompa Transmisi' : 'Bypass Pompa (Gravitasi)',
+          elevation: pEndElev,
+          pressureBar: Math.max(0, (currentHead - pEndElev) / 10.19716),
+          pressureM: Math.max(0, currentHead - pEndElev),
+          totalHead: currentHead,
+          cumulativeDistance: 0,
+          flowRateLps: isPumpActive ? pumpFlow : resFlow,
+          description: isPumpActive
+            ? `Menaikkan Head +${pumpHeadAdd.toFixed(1)} m (Head keluar: ${currentHead.toFixed(1)} m, Kapasitas: ${pumpFlow.toFixed(1)} L/s)`
+            : `Pompa Dimatikan (Bypass Gravitasi Murni, Head Tambahan: +0 m, Debit: ${resFlow.toFixed(1)} L/s)`
+        });
 
-      currentNodeId = pumpEndNode.id;
+        currentNodeId = pumpEndNode.id;
+      }
     }
 
     // 3. Penelusuran Berantai dari Node Pemompaan ke Seluruh Cabang
@@ -434,6 +440,13 @@ const HydraulicEngine = (() => {
         visitedEdges.add(edgeKey);
 
         const endNode = nodesMap.get(pipe.endNodeId);
+        if (!endNode) return;
+
+        const startNode = nodesMap.get(pipe.startNodeId);
+        const startLabel = startNode?.label || pipe.startNodeId;
+        const endLabel = endNode.label || pipe.endNodeId;
+        const endElev = Number(endNode.elevation) || 0;
+
         const endState = nodesStateMap?.get(pipe.endNodeId);
         const pipeCalc = pipesStateMap?.get(pipe.id)?.calculation;
 
@@ -443,25 +456,23 @@ const HydraulicEngine = (() => {
         const isCalc = pipeCalc && pipeCalc.status === 'calculated';
         const flowQ = isCalc ? pipeCalc.flowRateLps : (pipeCalc?.flowRateLps || 0);
         const hLoss = isCalc ? pipeCalc.headLoss : 0;
-        const endHead = endState?.totalHead !== null ? endState.totalHead : (headIn - hLoss);
-        const endPressM = endHead - endNode.elevation;
+        const endHead = (endState?.totalHead !== null && endState?.totalHead !== undefined) ? endState.totalHead : (headIn - hLoss);
+        const endPressM = endHead - endElev;
         const endPressBar = endPressM / 10.19716;
-
-        const startNode = nodesMap.get(pipe.startNodeId);
 
         sequenceSteps.push({
           stepNumber: sequenceSteps.length + 1,
           type: 'pipe',
           pipeId: pipe.id,
-          pipeLabel: `${startNode.label} &rarr; ${endNode.label}`,
+          pipeLabel: `${startLabel} &rarr; ${endLabel}`,
           startNodeId: pipe.startNodeId,
           endNodeId: pipe.endNodeId,
-          startNodeLabel: startNode.label,
-          endNodeLabel: endNode.label,
+          startNodeLabel: startLabel,
+          endNodeLabel: endLabel,
           diameter: pipe.diameter,
           length: pipe.length,
           roughness: pipe.roughness || 140,
-          elevation: endNode.elevation,
+          elevation: endElev,
           totalHead: endHead,
           headLoss: hLoss,
           pressureM: endPressM,

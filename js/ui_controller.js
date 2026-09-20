@@ -718,7 +718,13 @@ const UIController = (() => {
     const unitSelect = document.getElementById('modalPressureUnit');
 
     if (demandInput) {
-      demandInput.value = nodeState && nodeState.demand !== undefined ? nodeState.demand : (node.demand || 0);
+      let d = 0;
+      if (nodeState && nodeState.demand !== undefined && nodeState.demand !== null) {
+        d = nodeState.demand;
+      } else if (node && node.demand !== undefined && node.demand !== null) {
+        d = node.demand;
+      }
+      demandInput.value = d;
     }
 
     if (nodeState && nodeState.pressureValue !== null && nodeState.pressureValue !== undefined) {
@@ -731,7 +737,9 @@ const UIController = (() => {
 
     updateModalHeadPreview();
     modal.classList.remove('hidden');
-    if (demandInput) demandInput.focus();
+    if (demandInput) {
+      setTimeout(() => demandInput.focus(), 100);
+    }
   }
 
   /**
@@ -765,31 +773,65 @@ const UIController = (() => {
   }
 
   /**
-   * Simpan Tekanan dan Demand dari Modal
+   * Simpan Tekanan dan Demand dari Modal (100% Tangguh & Responsif)
    */
   function savePressureFromModal() {
-    if (!activeNode) return;
-    const demandVal = parseFloat(document.getElementById('modalDemandInput')?.value);
-    const pressInput = document.getElementById('modalPressureInput');
-    const unit = document.getElementById('modalPressureUnit')?.value || 'bar';
-    const pressVal = pressInput && pressInput.value !== '' ? parseFloat(pressInput.value) : null;
-
-    if (onSavePressureCallback) {
-      onSavePressureCallback(activeNode.id, pressVal, unit, isNaN(demandVal) ? 0 : demandVal);
+    if (!activeNode) {
+      closePressureModal();
+      return;
     }
-    closePressureModal();
+
+    const nodeId = activeNode.id;
+    const nodeLabel = activeNode.label || nodeId;
+
+    try {
+      const demandInput = document.getElementById('modalDemandInput');
+      const pressInput = document.getElementById('modalPressureInput');
+      const unitSelect = document.getElementById('modalPressureUnit');
+
+      const rawDemand = demandInput ? demandInput.value : '';
+      const demandVal = rawDemand !== '' ? parseFloat(rawDemand) : 0;
+      const safeDemand = isNaN(demandVal) ? 0 : demandVal;
+
+      const unit = unitSelect?.value || 'bar';
+      const pressVal = (pressInput && pressInput.value !== '') ? parseFloat(pressInput.value) : null;
+      const safePressure = (pressVal !== null && !isNaN(pressVal)) ? pressVal : null;
+
+      if (typeof onSavePressureCallback === 'function') {
+        onSavePressureCallback(nodeId, safePressure, unit, safeDemand);
+      }
+
+      showToast(`💾 Titik ${nodeLabel} disimpan: Demand = ${safeDemand} L/s`, 'success');
+    } catch (err) {
+      console.error('Error saving pressure/demand from modal:', err);
+      showToast(`Terjadi kesalahan saat menyimpan data titik ${nodeLabel}`, 'error');
+    } finally {
+      closePressureModal();
+    }
   }
 
   /**
    * Hapus Tekanan dari Modal
    */
   function deletePressureFromModal() {
-    if (!activeNode) return;
-    if (confirm(`Hapus data tekanan pada junction ${activeNode.label}?`)) {
-      if (onDeletePressureCallback) {
-        onDeletePressureCallback(activeNode.id);
-      }
+    if (!activeNode) {
       closePressureModal();
+      return;
+    }
+
+    const nodeId = activeNode.id;
+    const nodeLabel = activeNode.label || nodeId;
+
+    if (confirm(`Hapus data tekanan pada junction ${nodeLabel}?`)) {
+      try {
+        if (typeof onDeletePressureCallback === 'function') {
+          onDeletePressureCallback(nodeId);
+        }
+      } catch (err) {
+        console.error('Error deleting pressure from modal:', err);
+      } finally {
+        closePressureModal();
+      }
     }
   }
 
@@ -1325,6 +1367,8 @@ const UIController = (() => {
     isDashboardCollapsed: () => isDashboardCollapsed,
     openPressureModal,
     closePressureModal,
+    savePressureFromModal,
+    deletePressureFromModal,
     openSourceSettingsModal,
     closeSourceSettingsModal,
     updateSourceBadge,
@@ -1341,4 +1385,8 @@ const UIController = (() => {
 
 // Expose global shortcut untuk inline HTML onclick
 window.toggleDashboard = () => UIController.toggleDashboard();
+window.savePressureFromModal = () => UIController.savePressureFromModal();
+window.deletePressureFromModal = () => UIController.deletePressureFromModal();
+window.closePressureModal = () => UIController.closePressureModal();
+
 

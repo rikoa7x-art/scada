@@ -263,6 +263,8 @@ const App = (() => {
       networkData.nodes.forEach(node => {
         if (userDemands[node.id] === undefined) {
           userDemands[node.id] = Number(node.demand) || 0;
+        } else {
+          node.demand = userDemands[node.id];
         }
       });
 
@@ -476,7 +478,7 @@ const App = (() => {
     if (currentMode === 'demand') {
       currentHydraulicResult = HydraulicEngine.solveNetworkByDemand(networkData, userDemands, sourceConfig);
     } else {
-      currentHydraulicResult = HydraulicEngine.solveNetworkHydraulics(networkData, nodeMeasurements, sourceConfig);
+      currentHydraulicResult = HydraulicEngine.solveNetworkHydraulics(networkData, nodeMeasurements, sourceConfig, userDemands);
     }
 
     if (!currentHydraulicResult) return;
@@ -552,51 +554,69 @@ const App = (() => {
    * Simpan Tekanan dan Demand pada Junction (Otomatis Sync ke Supabase)
    */
   async function saveNodeData(nodeId, pressure, unit = 'bar', demand = 0) {
-    const dVal = Number(demand) || 0;
-    userDemands[nodeId] = dVal;
+    try {
+      const dVal = Number(demand) || 0;
+      userDemands[nodeId] = dVal;
 
-    const node = networkData?.nodes.find(n => n.id === nodeId);
-    const nodeLabel = node ? node.label : nodeId;
+      const node = networkData?.nodes.find(n => n.id === nodeId);
+      if (node) {
+        node.demand = dVal;
+      }
+      const nodeLabel = node ? node.label : nodeId;
 
-    let pNum = null;
-    let pBar = null;
+      let pNum = null;
+      let pBar = null;
 
-    if (pressure !== null && !isNaN(pressure)) {
-      pNum = Number(pressure);
-      pBar = unit === 'm' ? (pNum / 10.19716) : pNum;
-      nodeMeasurements[nodeId] = {
-        pressure: pNum,
-        unit: unit,
-        timestamp: new Date().toISOString()
-      };
-    } else if (nodeMeasurements[nodeId]) {
-      pNum = nodeMeasurements[nodeId].pressure;
-      pBar = nodeMeasurements[nodeId].unit === 'm' ? (pNum / 10.19716) : pNum;
-    }
+      if (pressure !== null && !isNaN(pressure)) {
+        pNum = Number(pressure);
+        pBar = unit === 'm' ? (pNum / 10.19716) : pNum;
+        nodeMeasurements[nodeId] = {
+          pressure: pNum,
+          unit: unit,
+          timestamp: new Date().toISOString()
+        };
+      } else if (nodeMeasurements[nodeId]) {
+        pNum = nodeMeasurements[nodeId].pressure;
+        pBar = nodeMeasurements[nodeId].unit === 'm' ? (pNum / 10.19716) : pNum;
+      }
 
-    // 1. Simpan lokal
-    saveMeasurementsToStorage();
-    recalculateAndRender();
+      // 1. Simpan lokal
+      saveMeasurementsToStorage();
+      try {
+        recalculateAndRender();
+      } catch (calcErr) {
+        console.warn('recalculateAndRender warning:', calcErr);
+      }
 
-    // 2. Sinkronkan ke Supabase Cloud (Demand + Tekanan)
-    const officer = localStorage.getItem('pdam_officer_name') || AppConfig.supabase?.defaultOfficer || 'Petugas Lapangan';
-    const noteText = `Wilayah: ${getCurrentRegion().name}`;
+      // 2. Sinkronkan ke Supabase Cloud (Demand + Tekanan)
+      const officer = localStorage.getItem('pdam_officer_name') || AppConfig.supabase?.defaultOfficer || 'Petugas Lapangan';
+      const safeRegion = currentRegionId || 'bunihayu';
+      const currentRegionObj = getCurrentRegion();
+      const noteText = `Wilayah: ${currentRegionObj?.name || safeRegion}`;
 
-    SupabaseClient.upsertTelemetry(nodeId, nodeLabel, pBar !== null ? pBar : 0, officer, noteText, dVal)
-      .then(res => {
-        if (res?.success) {
-          const info = [];
-          if (dVal > 0) info.push(`Demand: ${dVal} L/s`);
-          if (pBar !== null) info.push(`Tekanan: ${pBar.toFixed(2)} bar`);
-          UIController.showToast(`✅ ${nodeLabel} tersimpan & tersinkron ke Supabase Cloud (${info.join(', ') || 'OK'})`, 'success');
-        }
-      })
-      .catch(err => {
-        console.warn('Gagal sinkron ke Supabase:', err);
+      SupabaseClient.upsertTelemetry(nodeId, nodeLabel, pBar !== null ? pBar : 0, officer, noteText, dVal)
+        .then(res => {
+          if (res?.success) {
+            const info = [];
+            if (dVal > 0) info.push(`Demand: ${dVal} L/s`);
+            if (pBar !== null) info.push(`Tekanan: ${pBar.toFixed(2)} bar`);
+            UIController.showToast(`✅ ${nodeLabel} tersimpan & tersinkron ke Supabase Cloud (${info.join(', ') || 'OK'})`, 'success');
+          }
+        })
+        .catch(err => {
+          console.warn('Gagal sinkron ke Supabase:', err);
+        });
+
+      // 3. Cadangkan katalog demand wilayah ke Supabase Cloud
+      SupabaseClient.saveRegionDemands(safeRegion, userDemands).catch(err => {
+        console.warn('Gagal simpan katalog demand ke Supabase:', err);
       });
 
-    // 3. Cadangkan katalog demand wilayah ke Supabase Cloud
-    SupabaseClient.saveRegionDemands(currentRegionId, userDemands);
+      return { success: true, demand: dVal, pressure: pBar };
+    } catch (err) {
+      console.error('saveNodeData error:', err);
+      return { success: false, error: err.message };
+    }
   }
 
   /**
