@@ -117,9 +117,21 @@ const SupabaseClient = (() => {
       const rows = await res.json();
       setStatus('connected');
 
-      // Filter atau petakan ke objek nodeMeasurements
+      // Filter atau petakan ke objek nodeMeasurements dan demands
       const resultMap = {};
+      const demandMap = {};
       const nodeIdSet = new Set(nodeIds);
+
+      // Periksa apakah ada katalog demand khusus wilayah
+      const catalogDemandRow = rows.find(r => r.node_id === `__SCADA_DEMANDS_${regionId.toUpperCase()}__`);
+      if (catalogDemandRow && catalogDemandRow.notes) {
+        try {
+          const parsed = JSON.parse(catalogDemandRow.notes);
+          if (parsed && typeof parsed === 'object') {
+            Object.assign(demandMap, parsed);
+          }
+        } catch (e) {}
+      }
 
       rows.forEach(row => {
         // Abaikan baris metadata khusus
@@ -127,6 +139,18 @@ const SupabaseClient = (() => {
 
         // Jika nodeIds ditentukan, hanya ambil yang relevan
         if (nodeIdSet.size > 0 && !nodeIdSet.has(row.node_id)) return;
+
+        // Ekstrak demand jika tersimpan di JSON notes
+        if (row.notes) {
+          try {
+            if (row.notes.startsWith('{') && row.notes.endsWith('}')) {
+              const parsedNotes = JSON.parse(row.notes);
+              if (parsedNotes && parsedNotes.demand !== undefined && parsedNotes.demand !== null) {
+                demandMap[row.node_id] = Number(parsedNotes.demand);
+              }
+            }
+          } catch (e) {}
+        }
 
         if (row.pressure_bar !== null && !isNaN(row.pressure_bar)) {
           resultMap[row.node_id] = {
@@ -140,7 +164,10 @@ const SupabaseClient = (() => {
         }
       });
 
-      return resultMap;
+      return {
+        measurements: resultMap,
+        demands: demandMap
+      };
     } catch (err) {
       console.warn('SupabaseClient.getTelemetryForRegion error:', err);
       setStatus('offline');
@@ -149,15 +176,23 @@ const SupabaseClient = (() => {
   }
 
   /**
-   * Upsert (Simpan/Perbarui) satu data telemetry junction ke Supabase
+   * Upsert (Simpan/Perbarui) data telemetry & demand junction ke Supabase
    */
-  async function upsertTelemetry(nodeId, nodeLabel, pressureBar, officerName = null, notes = null) {
+  async function upsertTelemetry(nodeId, nodeLabel, pressureBar, officerName = null, notes = null, demand = null) {
     const config = AppConfig.supabase;
-    const pBar = Number(pressureBar);
+    const pBar = pressureBar !== null && !isNaN(pressureBar) ? Number(pressureBar) : 0;
     const pMeters = Math.round(pBar * 10.19716 * 100) / 100;
     const officer = officerName || config.defaultOfficer || 'Petugas Lapangan PDAM';
     const noteText = notes || 'Input Manual Petugas Lapangan';
     const nowIso = new Date().toISOString();
+
+    let notePayload = noteText;
+    if (demand !== null && demand !== undefined) {
+      notePayload = JSON.stringify({
+        demand: Number(demand) || 0,
+        text: typeof noteText === 'string' ? noteText : 'Input Petugas'
+      });
+    }
 
     const payload = {
       node_id: nodeId,
@@ -167,7 +202,7 @@ const SupabaseClient = (() => {
       confidence: 1.0,
       officer_name: officer,
       gauge_type: 'manual',
-      notes: noteText,
+      notes: notePayload,
       updated_at: nowIso
     };
 
@@ -353,6 +388,75 @@ const SupabaseClient = (() => {
     }
   }
 
+  /**
+   * Simpan katalog demand seluruh simpul wilayah ke Supabase Cloud
+   */
+  async function saveRegionDemands(regionId, demandsMap) {
+    const config = AppConfig.supabase;
+    const specialNodeId = `__SCADA_DEMANDS_${regionId.toUpperCase()}__`;
+    const payload = {
+      node_id: specialNodeId,
+      node_label: `DEMAND_${regionId.toUpperCase()}`,
+      pressure_bar: 0,
+      pressure_m: 0,
+      confidence: 1.0,
+      officer_name: 'Sistem SCADA Cloud',
+      gauge_type: 'demands_catalog',
+      notes: JSON.stringify(demandsMap),
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      setStatus('syncing');
+      const res = await fetch(`${config.url}/rest/v1/${config.tableName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': config.anonKey,
+          'Authorization': `Bearer ${config.anonKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setStatus('connected');
+      return true;
+    } catch (err) {
+      console.warn('SupabaseClient.saveRegionDemands error:', err);
+      setStatus('offline');
+      return false;
+    }
+  }
+
+  /**
+   * Ambil katalog demand wilayah dari Supabase Cloud
+   */
+  async function fetchRegionDemands(regionId) {
+    const config = AppConfig.supabase;
+    const specialNodeId = `__SCADA_DEMANDS_${regionId.toUpperCase()}__`;
+
+    try {
+      const res = await fetch(`${config.url}/rest/v1/${config.tableName}?node_id=eq.${encodeURIComponent(specialNodeId)}&select=notes`, {
+        method: 'GET',
+        headers: {
+          'apikey': config.anonKey,
+          'Authorization': `Bearer ${config.anonKey}`
+        }
+      });
+
+      if (!res.ok) return null;
+      const rows = await res.json();
+      if (rows && rows.length > 0 && rows[0].notes) {
+        return JSON.parse(rows[0].notes);
+      }
+      return null;
+    } catch (err) {
+      console.warn('SupabaseClient.fetchRegionDemands error:', err);
+      return null;
+    }
+  }
+
   return {
     init,
     onStatusChange,
@@ -363,6 +467,8 @@ const SupabaseClient = (() => {
     deleteTelemetry,
     subscribeToTelemetry,
     saveRegionTopology,
-    fetchRegionTopology
+    fetchRegionTopology,
+    saveRegionDemands,
+    fetchRegionDemands
   };
 })();

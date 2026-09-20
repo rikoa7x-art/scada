@@ -132,27 +132,66 @@ const App = (() => {
     const nodeIdsMap = new Map(networkData.nodes.map(n => [n.id, n]));
 
     if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      // 1. Cek apakah ini pembaruan katalog demand wilayah
+      if (newRow && newRow.node_id === `__SCADA_DEMANDS_${currentRegionId.toUpperCase()}__`) {
+        if (newRow.notes) {
+          try {
+            const parsed = JSON.parse(newRow.notes);
+            if (parsed && typeof parsed === 'object') {
+              Object.assign(userDemands, parsed);
+              saveMeasurementsToStorage();
+              recalculateAndRender();
+              UIController.showToast('📡 Pembaruan Demand Wilayah disinkronkan secara Real-Time!', 'info');
+              return;
+            }
+          } catch (e) {}
+        }
+      }
+
+      // 2. Pembaruan titik simpul individual
       if (newRow && newRow.node_id && nodeIdsMap.has(newRow.node_id)) {
         const node = nodeIdsMap.get(newRow.node_id);
         const incomingPressure = Number(newRow.pressure_bar);
+        let demandUpdated = false;
 
-        // Abaikan jika nilai tekanan sama persis dengan yang ada di lokal
-        const localCurrent = nodeMeasurements[newRow.node_id]?.pressure;
-        if (localCurrent !== undefined && Math.abs(localCurrent - incomingPressure) < 0.001) {
-          return;
+        // Ekstrak demand jika ada di notes
+        if (newRow.notes) {
+          try {
+            if (newRow.notes.startsWith('{') && newRow.notes.endsWith('}')) {
+              const parsedNotes = JSON.parse(newRow.notes);
+              if (parsedNotes && parsedNotes.demand !== undefined && parsedNotes.demand !== null) {
+                const incomingDemand = Number(parsedNotes.demand);
+                if (userDemands[newRow.node_id] !== incomingDemand) {
+                  userDemands[newRow.node_id] = incomingDemand;
+                  demandUpdated = true;
+                }
+              }
+            }
+          } catch (e) {}
         }
 
-        nodeMeasurements[newRow.node_id] = {
-          pressure: incomingPressure,
-          unit: 'bar',
-          pressureMeters: Number(newRow.pressure_m) || (incomingPressure * 10.19716),
-          officer: newRow.officer_name || 'Petugas',
-          timestamp: newRow.updated_at || new Date().toISOString()
-        };
+        const localCurrent = nodeMeasurements[newRow.node_id]?.pressure;
+        const pressureChanged = localCurrent === undefined || Math.abs(localCurrent - incomingPressure) > 0.001;
 
-        saveMeasurementsToStorage();
-        recalculateAndRender();
-        UIController.showToast(`📡 Telemetry Live: Simpul ${newRow.node_label || node.label} diperbarui (${incomingPressure} bar)`, 'info');
+        if (pressureChanged || demandUpdated) {
+          if (incomingPressure > 0 || !nodeMeasurements[newRow.node_id]) {
+            nodeMeasurements[newRow.node_id] = {
+              pressure: incomingPressure,
+              unit: 'bar',
+              pressureMeters: Number(newRow.pressure_m) || (incomingPressure * 10.19716),
+              officer: newRow.officer_name || 'Petugas',
+              timestamp: newRow.updated_at || new Date().toISOString()
+            };
+          }
+
+          saveMeasurementsToStorage();
+          recalculateAndRender();
+
+          const info = [];
+          if (demandUpdated) info.push(`Demand: ${userDemands[newRow.node_id]} L/s`);
+          if (pressureChanged && incomingPressure > 0) info.push(`Tekanan: ${incomingPressure} bar`);
+          UIController.showToast(`📡 Telemetry Live: Simpul ${newRow.node_label || node.label} diperbarui (${info.join(', ') || 'OK'})`, 'info');
+        }
       }
     } else if (eventType === 'DELETE') {
       if (oldRow && oldRow.node_id && nodeIdsMap.has(oldRow.node_id)) {
@@ -280,7 +319,7 @@ const App = (() => {
   }
 
   /**
-   * Tarik Telemetry Lapangan Terkini dari Supabase Cloud
+   * Tarik Telemetry & Demand Lapangan Terkini dari Supabase Cloud
    */
   async function syncCurrentRegionTelemetry(showFeedback = true) {
     if (!networkData || !networkData.nodes) return;
@@ -291,21 +330,30 @@ const App = (() => {
 
     try {
       const nodeIds = networkData.nodes.map(n => n.id);
-      const cloudMeasurements = await SupabaseClient.getTelemetryForRegion(nodeIds);
+      const cloudResult = await SupabaseClient.getTelemetryForRegion(nodeIds, currentRegionId);
 
-      if (cloudMeasurements && Object.keys(cloudMeasurements).length > 0) {
-        const count = Object.keys(cloudMeasurements).length;
-        // Gabungkan telemetry dari cloud ke data lokal
-        Object.assign(nodeMeasurements, cloudMeasurements);
-        saveMeasurementsToStorage();
-        recalculateAndRender();
-
-        if (showFeedback) {
-          UIController.showToast(`✅ Berhasil menyinkronkan ${count} data tekanan dari Supabase Cloud!`, 'success');
+      if (cloudResult) {
+        let count = 0;
+        if (cloudResult.measurements && Object.keys(cloudResult.measurements).length > 0) {
+          Object.assign(nodeMeasurements, cloudResult.measurements);
+          count += Object.keys(cloudResult.measurements).length;
         }
-      } else {
-        if (showFeedback) {
-          UIController.showToast(`Server terhubung. Belum ada input telemetry baru untuk ${getCurrentRegion().name}.`, 'info');
+        if (cloudResult.demands && Object.keys(cloudResult.demands).length > 0) {
+          Object.assign(userDemands, cloudResult.demands);
+          count += Object.keys(cloudResult.demands).length;
+        }
+
+        if (count > 0) {
+          saveMeasurementsToStorage();
+          recalculateAndRender();
+
+          if (showFeedback) {
+            UIController.showToast(`✅ Berhasil menyinkronkan data tekanan & demand dari Supabase Cloud!`, 'success');
+          }
+        } else {
+          if (showFeedback) {
+            UIController.showToast(`Server terhubung. Belum ada data baru untuk ${getCurrentRegion().name}.`, 'info');
+          }
         }
       }
     } catch (err) {
@@ -463,42 +511,51 @@ const App = (() => {
    * Simpan Tekanan dan Demand pada Junction (Otomatis Sync ke Supabase)
    */
   async function saveNodeData(nodeId, pressure, unit = 'bar', demand = 0) {
-    userDemands[nodeId] = Number(demand);
+    const dVal = Number(demand) || 0;
+    userDemands[nodeId] = dVal;
 
     const node = networkData?.nodes.find(n => n.id === nodeId);
     const nodeLabel = node ? node.label : nodeId;
 
-    if (pressure !== null && !isNaN(pressure)) {
-      const pNum = Number(pressure);
-      const pBar = unit === 'm' ? (pNum / 10.19716) : pNum;
+    let pNum = null;
+    let pBar = null;
 
+    if (pressure !== null && !isNaN(pressure)) {
+      pNum = Number(pressure);
+      pBar = unit === 'm' ? (pNum / 10.19716) : pNum;
       nodeMeasurements[nodeId] = {
         pressure: pNum,
         unit: unit,
         timestamp: new Date().toISOString()
       };
-
-      // Simpan lokal
-      saveMeasurementsToStorage();
-      recalculateAndRender();
-
-      // Sinkronkan ke Supabase Cloud
-      const officer = localStorage.getItem('pdam_officer_name') || AppConfig.supabase?.defaultOfficer || 'Petugas Lapangan';
-      const notes = `Wilayah: ${getCurrentRegion().name}`;
-
-      SupabaseClient.upsertTelemetry(nodeId, nodeLabel, pBar, officer, notes)
-        .then(res => {
-          if (res?.success) {
-            UIController.showToast(`✅ Tekanan ${nodeLabel} (${pBar.toFixed(2)} bar) tersimpan & tersinkron ke Supabase Cloud`, 'success');
-          }
-        })
-        .catch(err => {
-          console.warn('Gagal sinkron ke Supabase:', err);
-        });
-    } else {
-      saveMeasurementsToStorage();
-      recalculateAndRender();
+    } else if (nodeMeasurements[nodeId]) {
+      pNum = nodeMeasurements[nodeId].pressure;
+      pBar = nodeMeasurements[nodeId].unit === 'm' ? (pNum / 10.19716) : pNum;
     }
+
+    // 1. Simpan lokal
+    saveMeasurementsToStorage();
+    recalculateAndRender();
+
+    // 2. Sinkronkan ke Supabase Cloud (Demand + Tekanan)
+    const officer = localStorage.getItem('pdam_officer_name') || AppConfig.supabase?.defaultOfficer || 'Petugas Lapangan';
+    const noteText = `Wilayah: ${getCurrentRegion().name}`;
+
+    SupabaseClient.upsertTelemetry(nodeId, nodeLabel, pBar !== null ? pBar : 0, officer, noteText, dVal)
+      .then(res => {
+        if (res?.success) {
+          const info = [];
+          if (dVal > 0) info.push(`Demand: ${dVal} L/s`);
+          if (pBar !== null) info.push(`Tekanan: ${pBar.toFixed(2)} bar`);
+          UIController.showToast(`✅ ${nodeLabel} tersimpan & tersinkron ke Supabase Cloud (${info.join(', ') || 'OK'})`, 'success');
+        }
+      })
+      .catch(err => {
+        console.warn('Gagal sinkron ke Supabase:', err);
+      });
+
+    // 3. Cadangkan katalog demand wilayah ke Supabase Cloud
+    SupabaseClient.saveRegionDemands(currentRegionId, userDemands);
   }
 
   /**
