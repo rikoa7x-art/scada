@@ -1,0 +1,6771 @@
+{
+  "projectName": "epanet_kasomalang",
+  "savedAt": "2026-09-16T21:36:04.405Z",
+  "version": "1.0",
+  "nodes": [
+    {
+      "id": "deff5f2a-f31d-4f48-bf34-2b8f95506107",
+      "lat": -6.709695107312607,
+      "lng": 107.74391770362855,
+      "elevation": 407,
+      "type": "reservoir",
+      "label": "R1",
+      "accessories": []
+    },
+    {
+      "id": "d22a9bea-9369-4d92-ad4f-95663d97e2de",
+      "lat": -6.709484664043087,
+      "lng": 107.74445950984956,
+      "elevation": 398,
+      "type": "junction",
+      "label": "J1",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "27515c56-ab8c-4fe0-b496-1823d0dc3241",
+      "lat": -6.709284876044853,
+      "lng": 107.74481356143953,
+      "elevation": 398,
+      "type": "junction",
+      "label": "J2",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "8c8c229d-0f04-4a48-a092-a055d5961553",
+      "lat": -6.705600770670965,
+      "lng": 107.74532318115236,
+      "elevation": 431,
+      "type": "junction",
+      "label": "J3",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "69025e01-f2f5-424a-b23e-36a78ae6b420",
+      "lat": -6.704316788138201,
+      "lng": 107.74352341890337,
+      "elevation": 442,
+      "type": "junction",
+      "label": "J4",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "37f71393-e764-4a90-9d2c-47254e81f102",
+      "lat": -6.702659859622262,
+      "lng": 107.74255245923997,
+      "elevation": 449,
+      "type": "junction",
+      "label": "J5",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "220c7178-2bc8-46e1-831b-f95c11af6bdd",
+      "lat": -6.701263986212818,
+      "lng": 107.741836309433,
+      "elevation": 451,
+      "type": "junction",
+      "label": "J6",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "6f2da9c5-c425-4d05-81ec-dbb8142e42a8",
+      "lat": -6.700648628536186,
+      "lng": 107.74154931306842,
+      "elevation": 451,
+      "type": "junction",
+      "label": "J7",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "62f096a1-1d97-4fc2-803e-c6d4040c8ea0",
+      "lat": -6.699425902536938,
+      "lng": 107.74089217185976,
+      "elevation": 441,
+      "type": "junction",
+      "label": "J8",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "c3def7dc-3f1d-4e58-9a43-84ce6034c2f9",
+      "lat": -6.698653372547754,
+      "lng": 107.73887783288957,
+      "elevation": 446,
+      "type": "junction",
+      "label": "J9",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "44353088-3b76-42c7-b32d-811758bf0a54",
+      "lat": -6.6986160779656,
+      "lng": 107.73896366357805,
+      "elevation": 446,
+      "type": "junction",
+      "label": "J10",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "58c4da8c-8106-46d6-a81a-58479c527b44",
+      "lat": -6.698520177598385,
+      "lng": 107.73688226938249,
+      "elevation": 460,
+      "type": "junction",
+      "label": "J11",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "ad557985-95be-4eed-88cc-b1ebe2853e52",
+      "lat": -6.697776949113318,
+      "lng": 107.73526757955553,
+      "elevation": 465,
+      "type": "junction",
+      "label": "J12",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "8312613e-2052-4724-8087-2200e72cd5b6",
+      "lat": -6.697012408235854,
+      "lng": 107.73369044065478,
+      "elevation": 470,
+      "type": "junction",
+      "label": "J13",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "6e7d1f4d-0b28-44d4-85e3-bc6481d307e9",
+      "lat": -6.696159957064595,
+      "lng": 107.73181289434434,
+      "elevation": 470,
+      "type": "junction",
+      "label": "J14",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "47eca28b-229d-4cc6-9586-2391e9a3008c",
+      "lat": -6.704487275640211,
+      "lng": 107.73551166057588,
+      "elevation": 462,
+      "type": "junction",
+      "label": "J16",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "34651f2f-9728-4f07-8fcd-932a23a18632",
+      "lat": -6.702729120412561,
+      "lng": 107.73511469364168,
+      "elevation": 458,
+      "type": "junction",
+      "label": "J17",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "9b5375bd-7594-402c-9849-7fc4beed4025",
+      "lat": -6.705728635966202,
+      "lng": 107.73348927497865,
+      "elevation": 465,
+      "type": "junction",
+      "label": "J18",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "c8b46978-559d-4421-b883-9fde6301a2d1",
+      "lat": -6.705568804341921,
+      "lng": 107.73237347602846,
+      "elevation": 471,
+      "type": "junction",
+      "label": "J19",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "38fefabe-3d57-4606-9ef3-c8c9e9d7699d",
+      "lat": -6.706916716063487,
+      "lng": 107.7303993701935,
+      "elevation": 474,
+      "type": "junction",
+      "label": "J20",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "cd9b1ed4-9de6-4ef1-a083-99baa485e1f8",
+      "lat": -6.7058458457906935,
+      "lng": 107.72971808910371,
+      "elevation": 479,
+      "type": "junction",
+      "label": "J21",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "c4ec0a00-c7e2-4ca9-84b7-ead4e56a87cc",
+      "lat": -6.704354082284365,
+      "lng": 107.73102164268495,
+      "elevation": 476,
+      "type": "junction",
+      "label": "J22",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "af342b61-14df-4999-a7fe-cf6af38a6906",
+      "lat": -6.700789814565275,
+      "lng": 107.74127572774889,
+      "elevation": 451,
+      "type": "junction",
+      "label": "J24",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "15f144ff-1de2-46a9-bb11-3fa44eff4592",
+      "lat": -6.700933664439656,
+      "lng": 107.74254441261293,
+      "elevation": 449,
+      "type": "junction",
+      "label": "J25",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "6b8a532d-231b-48fc-ba9b-2062939b5494",
+      "lat": -6.701050875417035,
+      "lng": 107.7471148967743,
+      "elevation": 440,
+      "type": "junction",
+      "label": "J26",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "b061e614-3ebc-49ce-b79d-954e10715488",
+      "lat": -6.701860695945558,
+      "lng": 107.75418519973756,
+      "elevation": 409,
+      "type": "junction",
+      "label": "J27",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "991d542a-dfda-4e16-930f-eb3a9aa69879",
+      "lat": -6.701455785849408,
+      "lng": 107.74935722351074,
+      "elevation": 429,
+      "type": "junction",
+      "label": "J28",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "528d1207-b2af-4d5f-95ac-caeeec757863",
+      "lat": -6.7035868878460985,
+      "lng": 107.74609565734865,
+      "elevation": 440,
+      "type": "junction",
+      "label": "J29",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "978c0b05-8168-4860-baa6-aa979c298b44",
+      "lat": -6.698501530302576,
+      "lng": 107.73901730775835,
+      "elevation": 446,
+      "type": "junction",
+      "label": "J30",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "5ce7dc16-ab07-4140-940d-26ab5053accf",
+      "lat": -6.69591487707727,
+      "lng": 107.7407741546631,
+      "elevation": 454,
+      "type": "junction",
+      "label": "J31",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "e8762794-7ea3-45f5-93ad-b4ad15d0ab79",
+      "lat": -6.695595207343619,
+      "lng": 107.7426838874817,
+      "elevation": 446,
+      "type": "junction",
+      "label": "J32",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "e6fc5351-7690-4cd8-831e-8d4641677dee",
+      "lat": -6.6952329147256995,
+      "lng": 107.74538755416872,
+      "elevation": 442,
+      "type": "junction",
+      "label": "J33",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "e4304a6e-f51c-49ff-914d-0cddc8798e4b",
+      "lat": -6.695243570394771,
+      "lng": 107.74433076381683,
+      "elevation": 445,
+      "type": "junction",
+      "label": "J34",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "85b1cc14-ecdc-4c3b-82da-b31a6057e81e",
+      "lat": -6.697683712485076,
+      "lng": 107.74123549461366,
+      "elevation": 452,
+      "type": "junction",
+      "label": "J35",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "b231263e-d12a-4ecb-a6ab-c1f9beeb6513",
+      "lat": -6.696479626428322,
+      "lng": 107.74197578430177,
+      "elevation": 450,
+      "type": "junction",
+      "label": "J36",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "65d57047-c48c-4b36-86b5-9aae631fc1e7",
+      "lat": -6.697808915953185,
+      "lng": 107.7398192882538,
+      "elevation": 456,
+      "type": "junction",
+      "label": "J37",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "dd4a1918-41fc-42b4-89b6-ea9d6858cb18",
+      "lat": -6.698951729102381,
+      "lng": 107.73266315460206,
+      "elevation": 471,
+      "type": "junction",
+      "label": "J38",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "b7d8d591-8b0d-4ad5-8829-c5c922521253",
+      "lat": -6.698323049006585,
+      "lng": 107.73132205009462,
+      "elevation": 474,
+      "type": "junction",
+      "label": "J39",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "f4104303-5351-4d39-b65a-5a0fb11d2c47",
+      "lat": -6.694865294000276,
+      "lng": 107.72824823856354,
+      "elevation": 490,
+      "type": "reservoir",
+      "label": "R2",
+      "accessories": []
+    },
+    {
+      "id": "09370981-1d16-4a58-8614-4b7cf0338144",
+      "lat": -6.694548287500246,
+      "lng": 107.72840112447741,
+      "elevation": 488,
+      "type": "junction",
+      "label": "J40",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "58ca8d6e-e876-4371-b6d7-855521b8ece9",
+      "lat": -6.694921236302449,
+      "lng": 107.72957324981691,
+      "elevation": 485,
+      "type": "junction",
+      "label": "J41",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "84167005-fa34-4a5b-872f-688f90111c4c",
+      "lat": -6.694412427508628,
+      "lng": 107.73077487945558,
+      "elevation": 481,
+      "type": "junction",
+      "label": "J42",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "3f0161fc-89d2-4ab0-8b27-8bf3b65ca8b6",
+      "lat": -6.6936239060264615,
+      "lng": 107.73284554481508,
+      "elevation": 474,
+      "type": "junction",
+      "label": "J43",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "c57de636-5643-4ff9-96db-d3eb6dd34c9e",
+      "lat": -6.692718170319912,
+      "lng": 107.73369312286378,
+      "elevation": 478,
+      "type": "junction",
+      "label": "J44",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "1f177643-90de-4dc3-afb5-44fbe4ff2471",
+      "lat": -6.693213661238143,
+      "lng": 107.73380845785142,
+      "elevation": 478,
+      "type": "junction",
+      "label": "J45",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "51d1a86c-a290-4554-acd0-ca8895e8a892",
+      "lat": -6.692893989735545,
+      "lng": 107.73438245058061,
+      "elevation": 476,
+      "type": "junction",
+      "label": "J46",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "90df1a08-94ac-4872-a941-36b1040f514b",
+      "lat": -6.690427184269036,
+      "lng": 107.7364182472229,
+      "elevation": 487,
+      "type": "junction",
+      "label": "J47",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "548a6e4f-fd64-4ae8-9e1a-16c54abcef54",
+      "lat": -6.689212424514961,
+      "lng": 107.73693323135377,
+      "elevation": 487,
+      "type": "junction",
+      "label": "J48",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "9cd38324-264f-4c1a-92da-a9a8a05c9724",
+      "lat": -6.688008317567243,
+      "lng": 107.73721218109132,
+      "elevation": 492,
+      "type": "junction",
+      "label": "J49",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "e898e932-b458-4901-b2d7-3a38ab76abad",
+      "lat": -6.687315688332588,
+      "lng": 107.73744821548463,
+      "elevation": 494,
+      "type": "junction",
+      "label": "J50",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "0e33b619-a208-4cdd-ba28-3c15ab5c7f9c",
+      "lat": -6.685823868185275,
+      "lng": 107.7377486228943,
+      "elevation": 497,
+      "type": "junction",
+      "label": "J51",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "794515fa-06b2-4ac2-bc2e-fa5dae447c08",
+      "lat": -6.684076301650347,
+      "lng": 107.73803830146791,
+      "elevation": 497,
+      "type": "junction",
+      "label": "J52",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "3f0427ef-37fd-4f2e-9578-4e3430c9d1cd",
+      "lat": -6.682850870171252,
+      "lng": 107.73840308189394,
+      "elevation": 493,
+      "type": "junction",
+      "label": "J53",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "c5d88cdd-b543-448b-b533-e3b2e70c6c32",
+      "lat": -6.682051674073843,
+      "lng": 107.73855328559875,
+      "elevation": 495,
+      "type": "junction",
+      "label": "J54",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "6c6c187a-d598-4f0e-b371-5436a3bbc3dd",
+      "lat": -6.675199845952309,
+      "lng": 107.73504495620728,
+      "elevation": 507,
+      "type": "junction",
+      "label": "J55",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "34e9bb3b-321e-4469-ae0b-cfc050543f31",
+      "lat": -6.672834184730002,
+      "lng": 107.73223400115967,
+      "elevation": 509,
+      "type": "junction",
+      "label": "J56",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "6b436fe4-fddf-4d01-9813-04ca797bbd61",
+      "lat": -6.67620151888108,
+      "lng": 107.73064613342287,
+      "elevation": 503,
+      "type": "junction",
+      "label": "J57",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "e2b9ab60-8973-4abc-9ae6-81948e2b887f",
+      "lat": -6.675349031412021,
+      "lng": 107.72844672203064,
+      "elevation": 502,
+      "type": "junction",
+      "label": "J58",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "891d55d4-4c00-4b1f-8574-5a0c5219681a",
+      "lat": -6.671342320425789,
+      "lng": 107.73056030273439,
+      "elevation": 512,
+      "type": "junction",
+      "label": "J59",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "0efa17dd-cd7a-4aec-a059-f25560485f4f",
+      "lat": -6.6699889824480705,
+      "lng": 107.72909045219421,
+      "elevation": 510,
+      "type": "junction",
+      "label": "J60",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "a85c9bdb-4a56-49e6-85f0-0c7af131362b",
+      "lat": -6.669280343354359,
+      "lng": 107.72813558578493,
+      "elevation": 512,
+      "type": "junction",
+      "label": "J61",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "ec90cf36-e373-4430-b5f8-40c7d1b10c96",
+      "lat": -6.668523750108051,
+      "lng": 107.72716462612154,
+      "elevation": 512,
+      "type": "junction",
+      "label": "J62",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "c92d2a36-415b-45f4-aebe-023f188ec803",
+      "lat": -6.667218357605904,
+      "lng": 107.72714853286745,
+      "elevation": 512,
+      "type": "junction",
+      "label": "J63",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "8d4cb05b-95c7-4ab5-9ab2-92304a456e2d",
+      "lat": -6.665811726691753,
+      "lng": 107.72684812545778,
+      "elevation": 517,
+      "type": "junction",
+      "label": "J64",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "b39524b0-5770-41a1-b788-971296f5dfcd",
+      "lat": -6.665278910897602,
+      "lng": 107.72645115852357,
+      "elevation": 513,
+      "type": "junction",
+      "label": "J65",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "85c2b2ac-47d5-4b26-970c-579bf3c73e84",
+      "lat": -6.664479686120737,
+      "lng": 107.72539973258974,
+      "elevation": 510,
+      "type": "junction",
+      "label": "J66",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "b600ecf8-88ce-44b6-97a2-54c16d4b4830",
+      "lat": -6.662018065623896,
+      "lng": 107.72324323654176,
+      "elevation": 494,
+      "type": "junction",
+      "label": "J67",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "9e7d999e-8e58-43a7-9cd4-40c7d91d4478",
+      "lat": -6.6594392118542425,
+      "lng": 107.72225618362428,
+      "elevation": 491,
+      "type": "junction",
+      "label": "J68",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "0d2d77d4-c4cc-4b58-b605-802f75946cf1",
+      "lat": -6.65815510812526,
+      "lng": 107.72090435028078,
+      "elevation": 480,
+      "type": "junction",
+      "label": "J69",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "fe7db765-a60c-4893-99d0-f96b197d42ae",
+      "lat": -6.656210297325688,
+      "lng": 107.72021770477296,
+      "elevation": 470,
+      "type": "junction",
+      "label": "J70",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "e5bcce28-bd1f-42ca-aca1-0e2e918ae605",
+      "lat": -6.6549741396074,
+      "lng": 107.7197563648224,
+      "elevation": 464,
+      "type": "junction",
+      "label": "J71",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "6d420dbe-f7b8-4446-ad44-a870ece589c5",
+      "lat": -6.65344359087955,
+      "lng": 107.71911665797234,
+      "elevation": 460,
+      "type": "junction",
+      "label": "J72",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "5fcc0dba-68b8-4c78-9065-273942760a9d",
+      "lat": -6.6530772708508685,
+      "lng": 107.71868348121644,
+      "elevation": 457,
+      "type": "junction",
+      "label": "J73",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "b2bffc25-7c09-40a6-9346-79e0ec14cb16",
+      "lat": -6.688501149309452,
+      "lng": 107.7372255921364,
+      "elevation": 490,
+      "type": "junction",
+      "label": "J74",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "2834530a-8a18-449e-aaeb-a9de43d0d9fb",
+      "lat": -6.688820823687235,
+      "lng": 107.73789614439013,
+      "elevation": 486,
+      "type": "junction",
+      "label": "J75",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "7af66bb5-0d91-4bfd-adc6-6c594129dd37",
+      "lat": -6.689580049496145,
+      "lng": 107.73756086826326,
+      "elevation": 485,
+      "type": "junction",
+      "label": "J76",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "3b480596-7fce-4a99-99ac-5d4588e3d423",
+      "lat": -6.690341938069061,
+      "lng": 107.737694978714,
+      "elevation": 485,
+      "type": "junction",
+      "label": "J77",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "d627eb7a-8914-4ba9-92cc-60a8733fa25d",
+      "lat": -6.691098497573894,
+      "lng": 107.7377486228943,
+      "elevation": 484,
+      "type": "junction",
+      "label": "J78",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "f83a126e-9bc2-4103-a257-c14f96053da3",
+      "lat": -6.691274317572688,
+      "lng": 107.73807585239412,
+      "elevation": 484,
+      "type": "junction",
+      "label": "J79",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "70b8d5f9-2892-4a7e-b85e-6d05cf9ad6c3",
+      "lat": -6.6925796458872595,
+      "lng": 107.73956179618835,
+      "elevation": 459,
+      "type": "junction",
+      "label": "J80",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "1c393a98-be13-4724-b9e9-53df386d701b",
+      "lat": -6.690959972681779,
+      "lng": 107.7399480342865,
+      "elevation": 469,
+      "type": "junction",
+      "label": "J81",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "4a892698-c1d4-41e1-a0a1-24ea27765c2a",
+      "lat": -6.6919509575835585,
+      "lng": 107.73961544036865,
+      "elevation": 466,
+      "type": "junction",
+      "label": "J82",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "5d6b0f9a-beda-4474-a1d8-bcee04251b53",
+      "lat": -6.691929646101451,
+      "lng": 107.74001240730287,
+      "elevation": 461,
+      "type": "junction",
+      "label": "J83",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "e4cd70f8-704e-4943-be07-c56bcf474c3b",
+      "lat": -6.692057514980142,
+      "lng": 107.74063467979431,
+      "elevation": 461,
+      "type": "junction",
+      "label": "J84",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "68d14041-e6f8-4697-ad9d-dfcc4148fe0d",
+      "lat": -6.690959972681779,
+      "lng": 107.74116039276124,
+      "elevation": 468,
+      "type": "junction",
+      "label": "J85",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "c5d54ab0-7cec-4d43-bf17-77f5664bd4ba",
+      "lat": -6.68305866094263,
+      "lng": 107.73896098136903,
+      "elevation": 493,
+      "type": "junction",
+      "label": "J86",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "39753798-bd60-46c6-820b-42de7e46ca73",
+      "lat": -6.682392664568488,
+      "lng": 107.73919701576234,
+      "elevation": 489,
+      "type": "junction",
+      "label": "J87",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "369ce297-a866-498c-ba4e-016791d87d99",
+      "lat": -6.6811086209991375,
+      "lng": 107.73925602436067,
+      "elevation": 489,
+      "type": "junction",
+      "label": "J88",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "1ef8c74c-8385-4e65-ae90-c769d1dc4df5",
+      "lat": -6.66592361793496,
+      "lng": 107.72513687610626,
+      "elevation": 513,
+      "type": "junction",
+      "label": "J89",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "f99bc8b4-de48-4eaf-b202-5585a023ed38",
+      "lat": -6.65424949398093,
+      "lng": 107.71724581718445,
+      "elevation": 465,
+      "type": "junction",
+      "label": "J90",
+      "demand": 0,
+      "accessories": []
+    },
+    {
+      "id": "3d5fa7a0-5dd0-43f1-a6f0-c41daf37841d",
+      "lat": -6.654041690993703,
+      "lng": 107.71755695343019,
+      "elevation": 461,
+      "type": "junction",
+      "label": "J91",
+      "demand": 0,
+      "accessories": []
+    }
+  ],
+  "pipes": [
+    {
+      "id": "63d68cca-fd50-4ae2-a31c-5f787fbcf73c",
+      "startNodeId": "27515c56-ab8c-4fe0-b496-1823d0dc3241",
+      "endNodeId": "8c8c229d-0f04-4a48-a092-a055d5961553",
+      "length": 615.5,
+      "straightLength": 413.5,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.709282,
+          107.744817
+        ],
+        [
+          -6.709261,
+          107.7448
+        ],
+        [
+          -6.709165,
+          107.744768
+        ],
+        [
+          -6.709064,
+          107.744768
+        ],
+        [
+          -6.708925,
+          107.744811
+        ],
+        [
+          -6.708787,
+          107.74488
+        ],
+        [
+          -6.70859,
+          107.745004
+        ],
+        [
+          -6.70827,
+          107.745245
+        ],
+        [
+          -6.708229,
+          107.745282
+        ],
+        [
+          -6.708201,
+          107.745331
+        ],
+        [
+          -6.708169,
+          107.74546
+        ],
+        [
+          -6.708104,
+          107.745694
+        ],
+        [
+          -6.708048,
+          107.745853
+        ],
+        [
+          -6.707999,
+          107.745948
+        ],
+        [
+          -6.707934,
+          107.746012
+        ],
+        [
+          -6.707792,
+          107.74617
+        ],
+        [
+          -6.707713,
+          107.746201
+        ],
+        [
+          -6.707514,
+          107.746289
+        ],
+        [
+          -6.707469,
+          107.74631
+        ],
+        [
+          -6.70739,
+          107.746372
+        ],
+        [
+          -6.707384,
+          107.746376
+        ],
+        [
+          -6.707292,
+          107.746478
+        ],
+        [
+          -6.707216,
+          107.746538
+        ],
+        [
+          -6.70714,
+          107.746555
+        ],
+        [
+          -6.707065,
+          107.746553
+        ],
+        [
+          -6.706956,
+          107.746523
+        ],
+        [
+          -6.706814,
+          107.746481
+        ],
+        [
+          -6.706697,
+          107.746462
+        ],
+        [
+          -6.706583,
+          107.746469
+        ],
+        [
+          -6.70639,
+          107.746505
+        ],
+        [
+          -6.706199,
+          107.746541
+        ],
+        [
+          -6.706075,
+          107.746549
+        ],
+        [
+          -6.706001,
+          107.746554
+        ],
+        [
+          -6.705927,
+          107.746543
+        ],
+        [
+          -6.705842,
+          107.746505
+        ],
+        [
+          -6.705793,
+          107.746458
+        ],
+        [
+          -6.70573,
+          107.746345
+        ],
+        [
+          -6.70566,
+          107.746163
+        ],
+        [
+          -6.705617,
+          107.745975
+        ],
+        [
+          -6.705586,
+          107.745787
+        ],
+        [
+          -6.705564,
+          107.74546
+        ],
+        [
+          -6.70556,
+          107.745324
+        ]
+      ],
+      "roadSide": "left",
+      "roadOffset": 5
+    },
+    {
+      "id": "2eacaaed-3afb-4ab7-a1ad-1da31dcb6527",
+      "startNodeId": "8c8c229d-0f04-4a48-a092-a055d5961553",
+      "endNodeId": "69025e01-f2f5-424a-b23e-36a78ae6b420",
+      "length": 248.2,
+      "straightLength": 244.7,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.70556,
+          107.745324
+        ],
+        [
+          -6.705558,
+          107.745267
+        ],
+        [
+          -6.705548,
+          107.745143
+        ],
+        [
+          -6.705532,
+          107.745068
+        ],
+        [
+          -6.705479,
+          107.74495
+        ],
+        [
+          -6.705404,
+          107.744864
+        ],
+        [
+          -6.705292,
+          107.744746
+        ],
+        [
+          -6.705015,
+          107.7445
+        ],
+        [
+          -6.704907,
+          107.744408
+        ],
+        [
+          -6.704816,
+          107.744304
+        ],
+        [
+          -6.704736,
+          107.744175
+        ],
+        [
+          -6.704662,
+          107.74403
+        ],
+        [
+          -6.704591,
+          107.743885
+        ],
+        [
+          -6.704522,
+          107.743773
+        ],
+        [
+          -6.704431,
+          107.743671
+        ],
+        [
+          -6.704302,
+          107.743538
+        ]
+      ],
+      "roadSide": "left",
+      "roadOffset": 5
+    },
+    {
+      "id": "9665f9b5-b53a-43a6-ba07-c49992fb126c",
+      "startNodeId": "69025e01-f2f5-424a-b23e-36a78ae6b420",
+      "endNodeId": "37f71393-e764-4a90-9d2c-47254e81f102",
+      "length": 211.9,
+      "straightLength": 213.2,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.704302,
+          107.743538
+        ],
+        [
+          -6.704285,
+          107.743521
+        ],
+        [
+          -6.704181,
+          107.743445
+        ],
+        [
+          -6.703758,
+          107.743196
+        ],
+        [
+          -6.702652,
+          107.742566
+        ]
+      ],
+      "roadSide": "left",
+      "roadOffset": 5
+    },
+    {
+      "id": "b9485c2e-4896-4001-9ac0-bdca5de1430a",
+      "startNodeId": "37f71393-e764-4a90-9d2c-47254e81f102",
+      "endNodeId": "220c7178-2bc8-46e1-831b-f95c11af6bdd",
+      "length": 173.6,
+      "straightLength": 174.2,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.702652,
+          107.742566
+        ],
+        [
+          -6.702629,
+          107.742553
+        ],
+        [
+          -6.702522,
+          107.742492
+        ],
+        [
+          -6.702106,
+          107.742244
+        ],
+        [
+          -6.701945,
+          107.742166
+        ],
+        [
+          -6.701772,
+          107.74209
+        ],
+        [
+          -6.701295,
+          107.741876
+        ],
+        [
+          -6.701254,
+          107.741857
+        ]
+      ],
+      "roadSide": "left",
+      "roadOffset": 5
+    },
+    {
+      "id": "ee699570-a9f2-4b86-82e2-725dd5bedc0e",
+      "startNodeId": "220c7178-2bc8-46e1-831b-f95c11af6bdd",
+      "endNodeId": "6f2da9c5-c425-4d05-81ec-dbb8142e42a8",
+      "length": 74.9,
+      "straightLength": 75.4,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.701254,
+          107.741857
+        ],
+        [
+          -6.70123,
+          107.741846
+        ],
+        [
+          -6.700645,
+          107.741583
+        ],
+        [
+          -6.700636,
+          107.741579
+        ]
+      ],
+      "roadSide": "left",
+      "roadOffset": 5
+    },
+    {
+      "id": "ddfcefb2-0dae-4a36-872a-4933ae44665f",
+      "startNodeId": "6f2da9c5-c425-4d05-81ec-dbb8142e42a8",
+      "endNodeId": "62f096a1-1d97-4fc2-803e-c6d4040c8ea0",
+      "length": 155.8,
+      "straightLength": 154.1,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.700636,
+          107.741579
+        ],
+        [
+          -6.700569,
+          107.741549
+        ],
+        [
+          -6.700314,
+          107.741434
+        ],
+        [
+          -6.699919,
+          107.74126
+        ],
+        [
+          -6.699796,
+          107.741201
+        ],
+        [
+          -6.699694,
+          107.741147
+        ],
+        [
+          -6.699587,
+          107.741072
+        ],
+        [
+          -6.699514,
+          107.741007
+        ],
+        [
+          -6.699455,
+          107.740938
+        ],
+        [
+          -6.699418,
+          107.7409
+        ]
+      ],
+      "roadSide": "left",
+      "roadOffset": 5
+    },
+    {
+      "id": "51b30689-c3d6-4a02-9931-1524ee84661d",
+      "startNodeId": "62f096a1-1d97-4fc2-803e-c6d4040c8ea0",
+      "endNodeId": "c3def7dc-3f1d-4e58-9a43-84ce6034c2f9",
+      "length": 266.5,
+      "straightLength": 238.5,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.699418,
+          107.7409
+        ],
+        [
+          -6.699395,
+          107.740876
+        ],
+        [
+          -6.699094,
+          107.740518
+        ],
+        [
+          -6.699058,
+          107.740459
+        ],
+        [
+          -6.699036,
+          107.740389
+        ],
+        [
+          -6.699037,
+          107.740282
+        ],
+        [
+          -6.69907,
+          107.739775
+        ],
+        [
+          -6.699084,
+          107.739267
+        ],
+        [
+          -6.699077,
+          107.739198
+        ],
+        [
+          -6.699068,
+          107.739143
+        ],
+        [
+          -6.699053,
+          107.739082
+        ],
+        [
+          -6.699025,
+          107.739041
+        ],
+        [
+          -6.698967,
+          107.739004
+        ],
+        [
+          -6.698892,
+          107.738977
+        ],
+        [
+          -6.698827,
+          107.73895
+        ],
+        [
+          -6.698648,
+          107.738896
+        ]
+      ],
+      "roadSide": "left",
+      "roadOffset": 5
+    },
+    {
+      "id": "9b63e7e0-dd15-48e4-9dbe-b26017adb3c9",
+      "startNodeId": "c3def7dc-3f1d-4e58-9a43-84ce6034c2f9",
+      "endNodeId": "44353088-3b76-42c7-b32d-811758bf0a54",
+      "length": 1.3,
+      "straightLength": 10.3,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.698648,
+          107.738896
+        ],
+        [
+          -6.698637,
+          107.738892
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "d5fc987b-25fc-4929-aaf1-a3718d718cae",
+      "startNodeId": "44353088-3b76-42c7-b32d-811758bf0a54",
+      "endNodeId": "58c4da8c-8106-46d6-a81a-58479c527b44",
+      "length": 274.8,
+      "straightLength": 230.1,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.698637,
+          107.738892
+        ],
+        [
+          -6.698554,
+          107.738867
+        ],
+        [
+          -6.69835,
+          107.738831
+        ],
+        [
+          -6.698285,
+          107.738793
+        ],
+        [
+          -6.698231,
+          107.73875
+        ],
+        [
+          -6.698178,
+          107.738681
+        ],
+        [
+          -6.698135,
+          107.738605
+        ],
+        [
+          -6.698103,
+          107.738498
+        ],
+        [
+          -6.698099,
+          107.738426
+        ],
+        [
+          -6.698109,
+          107.738369
+        ],
+        [
+          -6.698151,
+          107.738235
+        ],
+        [
+          -6.698214,
+          107.738049
+        ],
+        [
+          -6.698291,
+          107.7379
+        ],
+        [
+          -6.698396,
+          107.737754
+        ],
+        [
+          -6.69852,
+          107.737563
+        ],
+        [
+          -6.698591,
+          107.737409
+        ],
+        [
+          -6.698604,
+          107.737338
+        ],
+        [
+          -6.69862,
+          107.737264
+        ],
+        [
+          -6.698615,
+          107.737101
+        ],
+        [
+          -6.698594,
+          107.736972
+        ],
+        [
+          -6.698561,
+          107.736869
+        ]
+      ],
+      "roadSide": "right",
+      "roadOffset": 5
+    },
+    {
+      "id": "7cbb665f-07c7-447a-abf1-d0cf7d3a4058",
+      "startNodeId": "58c4da8c-8106-46d6-a81a-58479c527b44",
+      "endNodeId": "ad557985-95be-4eed-88cc-b1ebe2853e52",
+      "length": 197.5,
+      "straightLength": 196.5,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.698561,
+          107.736869
+        ],
+        [
+          -6.698527,
+          107.736765
+        ],
+        [
+          -6.698382,
+          107.736454
+        ],
+        [
+          -6.698298,
+          107.73628
+        ],
+        [
+          -6.698046,
+          107.735714
+        ],
+        [
+          -6.697804,
+          107.735253
+        ]
+      ],
+      "roadSide": "right",
+      "roadOffset": 5
+    },
+    {
+      "id": "1972fc09-e2b8-41cf-a5d9-5e846f7c1b03",
+      "startNodeId": "ad557985-95be-4eed-88cc-b1ebe2853e52",
+      "endNodeId": "8312613e-2052-4724-8087-2200e72cd5b6",
+      "length": 193.6,
+      "straightLength": 193.8,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.697804,
+          107.735253
+        ],
+        [
+          -6.69779,
+          107.735226
+        ],
+        [
+          -6.697645,
+          107.734933
+        ],
+        [
+          -6.697358,
+          107.734323
+        ],
+        [
+          -6.69717,
+          107.733912
+        ],
+        [
+          -6.69706,
+          107.733668
+        ]
+      ],
+      "roadSide": "right",
+      "roadOffset": 5
+    },
+    {
+      "id": "be78f64a-7351-4ac0-8aa0-fc44fb13b9b5",
+      "startNodeId": "8312613e-2052-4724-8087-2200e72cd5b6",
+      "endNodeId": "6e7d1f4d-0b28-44d4-85e3-bc6481d307e9",
+      "length": 233.2,
+      "straightLength": 228,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69706,
+          107.733668
+        ],
+        [
+          -6.697052,
+          107.733649
+        ],
+        [
+          -6.696711,
+          107.732928
+        ],
+        [
+          -6.696637,
+          107.732747
+        ],
+        [
+          -6.696533,
+          107.732499
+        ],
+        [
+          -6.69647,
+          107.732367
+        ],
+        [
+          -6.696319,
+          107.732034
+        ],
+        [
+          -6.69628,
+          107.731938
+        ],
+        [
+          -6.696209,
+          107.731795
+        ],
+        [
+          -6.696165,
+          107.731821
+        ]
+      ],
+      "roadSide": "right",
+      "roadOffset": 5
+    },
+    {
+      "id": "72461bd6-7495-4def-8e2f-28e57afcd428",
+      "startNodeId": "d22a9bea-9369-4d92-ad4f-95663d97e2de",
+      "endNodeId": "27515c56-ab8c-4fe0-b496-1823d0dc3241",
+      "length": 45,
+      "straightLength": 45,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.709484664043087,
+          107.74445950984956
+        ],
+        [
+          -6.709284876044853,
+          107.74481356143953
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "6ef43ee2-34b4-40a6-900c-7b229db2aecd",
+      "startNodeId": "af342b61-14df-4999-a7fe-cf6af38a6906",
+      "endNodeId": "47eca28b-229d-4cc6-9586-2391e9a3008c",
+      "length": 758.3,
+      "straightLength": 757.8,
+      "diameter": 75,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.700787,
+          107.741274
+        ],
+        [
+          -6.700956,
+          107.740965
+        ],
+        [
+          -6.700994,
+          107.740919
+        ],
+        [
+          -6.701043,
+          107.740869
+        ],
+        [
+          -6.70122,
+          107.740601
+        ],
+        [
+          -6.701255,
+          107.740548
+        ],
+        [
+          -6.701328,
+          107.740428
+        ],
+        [
+          -6.701557,
+          107.740075
+        ],
+        [
+          -6.701595,
+          107.740021
+        ],
+        [
+          -6.701661,
+          107.739919
+        ],
+        [
+          -6.702311,
+          107.738832
+        ],
+        [
+          -6.703081,
+          107.737574
+        ],
+        [
+          -6.703547,
+          107.73681
+        ],
+        [
+          -6.703707,
+          107.736523
+        ],
+        [
+          -6.70392,
+          107.736196
+        ],
+        [
+          -6.704205,
+          107.735909
+        ],
+        [
+          -6.704333,
+          107.735764
+        ],
+        [
+          -6.704426,
+          107.735584
+        ],
+        [
+          -6.704454,
+          107.735501
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "40a3cdc7-874d-4d3b-a054-93485dc63444",
+      "startNodeId": "47eca28b-229d-4cc6-9586-2391e9a3008c",
+      "endNodeId": "9b5375bd-7594-402c-9849-7fc4beed4025",
+      "length": 268.4,
+      "straightLength": 262.6,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.704454,
+          107.735501
+        ],
+        [
+          -6.704472,
+          107.735449
+        ],
+        [
+          -6.704486,
+          107.735406
+        ],
+        [
+          -6.704522,
+          107.735329
+        ],
+        [
+          -6.704618,
+          107.735117
+        ],
+        [
+          -6.704676,
+          107.734924
+        ],
+        [
+          -6.705023,
+          107.734432
+        ],
+        [
+          -6.705751,
+          107.733503
+        ],
+        [
+          -6.70573,
+          107.733488
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "722f358c-94d4-4529-a927-c3725cc409f8",
+      "startNodeId": "9b5375bd-7594-402c-9849-7fc4beed4025",
+      "endNodeId": "c8b46978-559d-4421-b883-9fde6301a2d1",
+      "length": 146.5,
+      "straightLength": 124.5,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.70573,
+          107.733488
+        ],
+        [
+          -6.70548,
+          107.733316
+        ],
+        [
+          -6.705462,
+          107.733298
+        ],
+        [
+          -6.705452,
+          107.73327
+        ],
+        [
+          -6.705447,
+          107.733237
+        ],
+        [
+          -6.705446,
+          107.733207
+        ],
+        [
+          -6.70543,
+          107.732496
+        ],
+        [
+          -6.705437,
+          107.732475
+        ],
+        [
+          -6.705454,
+          107.732453
+        ],
+        [
+          -6.705555,
+          107.73236
+        ],
+        [
+          -6.705559,
+          107.732358
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "dc9fa464-bb96-4e25-ba4e-b72d5a245991",
+      "startNodeId": "c8b46978-559d-4421-b883-9fde6301a2d1",
+      "endNodeId": "38fefabe-3d57-4606-9ef3-c8c9e9d7699d",
+      "length": 275.5,
+      "straightLength": 264.6,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.705559,
+          107.732358
+        ],
+        [
+          -6.705587,
+          107.732338
+        ],
+        [
+          -6.705672,
+          107.732262
+        ],
+        [
+          -6.705716,
+          107.732221
+        ],
+        [
+          -6.705735,
+          107.73218
+        ],
+        [
+          -6.70581,
+          107.732054
+        ],
+        [
+          -6.705848,
+          107.732014
+        ],
+        [
+          -6.70588,
+          107.731989
+        ],
+        [
+          -6.70601,
+          107.731912
+        ],
+        [
+          -6.706048,
+          107.731888
+        ],
+        [
+          -6.706077,
+          107.731854
+        ],
+        [
+          -6.706392,
+          107.731345
+        ],
+        [
+          -6.706678,
+          107.730826
+        ],
+        [
+          -6.706688,
+          107.730811
+        ],
+        [
+          -6.706696,
+          107.730801
+        ],
+        [
+          -6.706708,
+          107.730797
+        ],
+        [
+          -6.706802,
+          107.730789
+        ],
+        [
+          -6.70682,
+          107.730788
+        ],
+        [
+          -6.706835,
+          107.730781
+        ],
+        [
+          -6.706844,
+          107.730769
+        ],
+        [
+          -6.706849,
+          107.730752
+        ],
+        [
+          -6.70686,
+          107.730684
+        ],
+        [
+          -6.706894,
+          107.730396
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "20edde6d-e641-4782-b16f-8adc5d8ae0ee",
+      "startNodeId": "38fefabe-3d57-4606-9ef3-c8c9e9d7699d",
+      "endNodeId": "cd9b1ed4-9de6-4ef1-a083-99baa485e1f8",
+      "length": 151.1,
+      "straightLength": 140.9,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.706894,
+          107.730396
+        ],
+        [
+          -6.706905,
+          107.730304
+        ],
+        [
+          -6.706852,
+          107.730281
+        ],
+        [
+          -6.706343,
+          107.729989
+        ],
+        [
+          -6.706144,
+          107.729864
+        ],
+        [
+          -6.705857,
+          107.729655
+        ],
+        [
+          -6.705822,
+          107.729673
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "29d1689a-8f8f-4846-9cf3-61a9cdc12bf9",
+      "startNodeId": "cd9b1ed4-9de6-4ef1-a083-99baa485e1f8",
+      "endNodeId": "c4ec0a00-c7e2-4ca9-84b7-ead4e56a87cc",
+      "length": 226.5,
+      "straightLength": 219.6,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.705822,
+          107.729673
+        ],
+        [
+          -6.705717,
+          107.72973
+        ],
+        [
+          -6.705478,
+          107.729874
+        ],
+        [
+          -6.705277,
+          107.730005
+        ],
+        [
+          -6.705155,
+          107.730091
+        ],
+        [
+          -6.704965,
+          107.730233
+        ],
+        [
+          -6.704897,
+          107.730301
+        ],
+        [
+          -6.704862,
+          107.730337
+        ],
+        [
+          -6.704827,
+          107.730397
+        ],
+        [
+          -6.704798,
+          107.730466
+        ],
+        [
+          -6.704728,
+          107.730656
+        ],
+        [
+          -6.704716,
+          107.730697
+        ],
+        [
+          -6.704693,
+          107.730735
+        ],
+        [
+          -6.704664,
+          107.730765
+        ],
+        [
+          -6.704477,
+          107.730939
+        ],
+        [
+          -6.704449,
+          107.730965
+        ],
+        [
+          -6.704417,
+          107.730997
+        ],
+        [
+          -6.704392,
+          107.731025
+        ],
+        [
+          -6.704374,
+          107.731043
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "f4541f58-12f1-4b34-b797-e163b1aad21c",
+      "startNodeId": "c4ec0a00-c7e2-4ca9-84b7-ead4e56a87cc",
+      "endNodeId": "62f096a1-1d97-4fc2-803e-c6d4040c8ea0",
+      "length": 1338.4,
+      "straightLength": 1220,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.704374,
+          107.731043
+        ],
+        [
+          -6.704289,
+          107.731124
+        ],
+        [
+          -6.704081,
+          107.73133
+        ],
+        [
+          -6.703928,
+          107.731482
+        ],
+        [
+          -6.703647,
+          107.731761
+        ],
+        [
+          -6.703594,
+          107.731817
+        ],
+        [
+          -6.703568,
+          107.731847
+        ],
+        [
+          -6.703547,
+          107.731883
+        ],
+        [
+          -6.703529,
+          107.731918
+        ],
+        [
+          -6.703511,
+          107.731945
+        ],
+        [
+          -6.703475,
+          107.731985
+        ],
+        [
+          -6.703436,
+          107.732019
+        ],
+        [
+          -6.703265,
+          107.732144
+        ],
+        [
+          -6.703129,
+          107.732241
+        ],
+        [
+          -6.70308,
+          107.732284
+        ],
+        [
+          -6.703058,
+          107.732319
+        ],
+        [
+          -6.703045,
+          107.732354
+        ],
+        [
+          -6.703035,
+          107.732415
+        ],
+        [
+          -6.70303,
+          107.732487
+        ],
+        [
+          -6.703023,
+          107.732608
+        ],
+        [
+          -6.703029,
+          107.732768
+        ],
+        [
+          -6.703034,
+          107.732832
+        ],
+        [
+          -6.703042,
+          107.732914
+        ],
+        [
+          -6.703035,
+          107.732949
+        ],
+        [
+          -6.703013,
+          107.732978
+        ],
+        [
+          -6.702985,
+          107.732988
+        ],
+        [
+          -6.702853,
+          107.733011
+        ],
+        [
+          -6.702729,
+          107.733023
+        ],
+        [
+          -6.702593,
+          107.733053
+        ],
+        [
+          -6.702476,
+          107.733084
+        ],
+        [
+          -6.702403,
+          107.733111
+        ],
+        [
+          -6.702317,
+          107.733148
+        ],
+        [
+          -6.702191,
+          107.733171
+        ],
+        [
+          -6.702061,
+          107.733178
+        ],
+        [
+          -6.701967,
+          107.733183
+        ],
+        [
+          -6.701904,
+          107.733191
+        ],
+        [
+          -6.701866,
+          107.733212
+        ],
+        [
+          -6.701834,
+          107.733235
+        ],
+        [
+          -6.701811,
+          107.733267
+        ],
+        [
+          -6.701801,
+          107.733314
+        ],
+        [
+          -6.701792,
+          107.73337
+        ],
+        [
+          -6.701731,
+          107.73366
+        ],
+        [
+          -6.701693,
+          107.733818
+        ],
+        [
+          -6.701658,
+          107.734012
+        ],
+        [
+          -6.701625,
+          107.734124
+        ],
+        [
+          -6.701587,
+          107.734216
+        ],
+        [
+          -6.701516,
+          107.734423
+        ],
+        [
+          -6.701448,
+          107.734491
+        ],
+        [
+          -6.701416,
+          107.734534
+        ],
+        [
+          -6.701383,
+          107.734602
+        ],
+        [
+          -6.701368,
+          107.734653
+        ],
+        [
+          -6.701307,
+          107.734904
+        ],
+        [
+          -6.701272,
+          107.735011
+        ],
+        [
+          -6.701203,
+          107.735225
+        ],
+        [
+          -6.701132,
+          107.735411
+        ],
+        [
+          -6.70109,
+          107.735569
+        ],
+        [
+          -6.701075,
+          107.735622
+        ],
+        [
+          -6.701068,
+          107.735677
+        ],
+        [
+          -6.701079,
+          107.735796
+        ],
+        [
+          -6.701136,
+          107.736146
+        ],
+        [
+          -6.701188,
+          107.73634
+        ],
+        [
+          -6.701232,
+          107.73645
+        ],
+        [
+          -6.701296,
+          107.736595
+        ],
+        [
+          -6.701336,
+          107.736704
+        ],
+        [
+          -6.701347,
+          107.736776
+        ],
+        [
+          -6.701336,
+          107.736841
+        ],
+        [
+          -6.701321,
+          107.736905
+        ],
+        [
+          -6.701292,
+          107.737027
+        ],
+        [
+          -6.70124,
+          107.73726
+        ],
+        [
+          -6.701117,
+          107.737561
+        ],
+        [
+          -6.701,
+          107.737781
+        ],
+        [
+          -6.700886,
+          107.738057
+        ],
+        [
+          -6.700827,
+          107.738235
+        ],
+        [
+          -6.700776,
+          107.738371
+        ],
+        [
+          -6.700727,
+          107.738463
+        ],
+        [
+          -6.700611,
+          107.738616
+        ],
+        [
+          -6.700505,
+          107.738787
+        ],
+        [
+          -6.700365,
+          107.739007
+        ],
+        [
+          -6.700266,
+          107.739143
+        ],
+        [
+          -6.700134,
+          107.739366
+        ],
+        [
+          -6.699955,
+          107.739676
+        ],
+        [
+          -6.69986,
+          107.739833
+        ],
+        [
+          -6.699767,
+          107.739984
+        ],
+        [
+          -6.699704,
+          107.740106
+        ],
+        [
+          -6.69965,
+          107.740265
+        ],
+        [
+          -6.699607,
+          107.740467
+        ],
+        [
+          -6.6996,
+          107.740601
+        ],
+        [
+          -6.699587,
+          107.740679
+        ],
+        [
+          -6.699567,
+          107.740733
+        ],
+        [
+          -6.699539,
+          107.740771
+        ],
+        [
+          -6.699493,
+          107.740816
+        ],
+        [
+          -6.699395,
+          107.740876
+        ],
+        [
+          -6.699418,
+          107.7409
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "29dfec3c-7909-447a-addc-76cf7a81bd15",
+      "startNodeId": "47eca28b-229d-4cc6-9586-2391e9a3008c",
+      "endNodeId": "34651f2f-9728-4f07-8fcd-932a23a18632",
+      "length": 209,
+      "straightLength": 200.4,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.704454,
+          107.735501
+        ],
+        [
+          -6.704472,
+          107.735449
+        ],
+        [
+          -6.704486,
+          107.735406
+        ],
+        [
+          -6.704412,
+          107.735406
+        ],
+        [
+          -6.704157,
+          107.73541
+        ],
+        [
+          -6.703696,
+          107.735356
+        ],
+        [
+          -6.703331,
+          107.735286
+        ],
+        [
+          -6.70283,
+          107.735077
+        ],
+        [
+          -6.702753,
+          107.735049
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "79cbe78b-1e00-4c57-b312-0243067efa1e",
+      "startNodeId": "af342b61-14df-4999-a7fe-cf6af38a6906",
+      "endNodeId": "6f2da9c5-c425-4d05-81ec-dbb8142e42a8",
+      "length": 34,
+      "straightLength": 34,
+      "diameter": 75,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.700789814565275,
+          107.74127572774889
+        ],
+        [
+          -6.700648628536186,
+          107.74154931306842
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "25fa8cf1-af50-42bf-aa4f-e6393304e010",
+      "startNodeId": "220c7178-2bc8-46e1-831b-f95c11af6bdd",
+      "endNodeId": "15f144ff-1de2-46a9-bb11-3fa44eff4592",
+      "length": 86.8,
+      "straightLength": 86.4,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.701254,
+          107.741857
+        ],
+        [
+          -6.70123,
+          107.741846
+        ],
+        [
+          -6.701058,
+          107.742269
+        ],
+        [
+          -6.700986,
+          107.742448
+        ],
+        [
+          -6.700943,
+          107.742548
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "0ee53d8e-0ab6-4f4e-bcb9-c5fc1bbc27be",
+      "startNodeId": "15f144ff-1de2-46a9-bb11-3fa44eff4592",
+      "endNodeId": "6b8a532d-231b-48fc-ba9b-2062939b5494",
+      "length": 540.5,
+      "straightLength": 504.9,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.700943,
+          107.742548
+        ],
+        [
+          -6.700935,
+          107.742567
+        ],
+        [
+          -6.700875,
+          107.742709
+        ],
+        [
+          -6.700717,
+          107.743006
+        ],
+        [
+          -6.70068,
+          107.743076
+        ],
+        [
+          -6.700671,
+          107.743094
+        ],
+        [
+          -6.700543,
+          107.743341
+        ],
+        [
+          -6.70043,
+          107.743593
+        ],
+        [
+          -6.700358,
+          107.743888
+        ],
+        [
+          -6.700336,
+          107.743982
+        ],
+        [
+          -6.700321,
+          107.744046
+        ],
+        [
+          -6.700293,
+          107.74421
+        ],
+        [
+          -6.700297,
+          107.744517
+        ],
+        [
+          -6.700289,
+          107.744842
+        ],
+        [
+          -6.700282,
+          107.744886
+        ],
+        [
+          -6.700273,
+          107.744949
+        ],
+        [
+          -6.700249,
+          107.745066
+        ],
+        [
+          -6.700253,
+          107.745123
+        ],
+        [
+          -6.700269,
+          107.745177
+        ],
+        [
+          -6.700362,
+          107.745418
+        ],
+        [
+          -6.700372,
+          107.745444
+        ],
+        [
+          -6.700434,
+          107.745562
+        ],
+        [
+          -6.700496,
+          107.745683
+        ],
+        [
+          -6.700515,
+          107.745768
+        ],
+        [
+          -6.700547,
+          107.746002
+        ],
+        [
+          -6.700555,
+          107.746145
+        ],
+        [
+          -6.700574,
+          107.746219
+        ],
+        [
+          -6.700621,
+          107.746289
+        ],
+        [
+          -6.700682,
+          107.746375
+        ],
+        [
+          -6.700719,
+          107.746466
+        ],
+        [
+          -6.700743,
+          107.74658
+        ],
+        [
+          -6.70081,
+          107.746737
+        ],
+        [
+          -6.700922,
+          107.746914
+        ],
+        [
+          -6.700975,
+          107.747002
+        ],
+        [
+          -6.70102,
+          107.747098
+        ],
+        [
+          -6.701028,
+          107.747115
+        ],
+        [
+          -6.701031,
+          107.747122
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "48a58f31-f437-4195-8b54-d89a35bd7b2f",
+      "startNodeId": "6b8a532d-231b-48fc-ba9b-2062939b5494",
+      "endNodeId": "991d542a-dfda-4e16-930f-eb3a9aa69879",
+      "length": 252.6,
+      "straightLength": 251.7,
+      "diameter": 75,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.701031,
+          107.747122
+        ],
+        [
+          -6.701123,
+          107.74738
+        ],
+        [
+          -6.701199,
+          107.747627
+        ],
+        [
+          -6.701224,
+          107.747906
+        ],
+        [
+          -6.701297,
+          107.748346
+        ],
+        [
+          -6.701322,
+          107.748591
+        ],
+        [
+          -6.701352,
+          107.748891
+        ],
+        [
+          -6.701405,
+          107.749089
+        ],
+        [
+          -6.701442,
+          107.749333
+        ],
+        [
+          -6.701446,
+          107.749359
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "41789195-198e-4e99-897b-3f880168b41f",
+      "startNodeId": "991d542a-dfda-4e16-930f-eb3a9aa69879",
+      "endNodeId": "b061e614-3ebc-49ce-b79d-954e10715488",
+      "length": 544.8,
+      "straightLength": 535.1,
+      "diameter": 75,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.701446,
+          107.749359
+        ],
+        [
+          -6.701456,
+          107.749414
+        ],
+        [
+          -6.701539,
+          107.749757
+        ],
+        [
+          -6.701554,
+          107.749816
+        ],
+        [
+          -6.701714,
+          107.750347
+        ],
+        [
+          -6.701761,
+          107.750572
+        ],
+        [
+          -6.701764,
+          107.750702
+        ],
+        [
+          -6.701783,
+          107.75094
+        ],
+        [
+          -6.70179,
+          107.750976
+        ],
+        [
+          -6.701862,
+          107.751161
+        ],
+        [
+          -6.701965,
+          107.751382
+        ],
+        [
+          -6.701973,
+          107.751406
+        ],
+        [
+          -6.702043,
+          107.752073
+        ],
+        [
+          -6.702067,
+          107.752438
+        ],
+        [
+          -6.702073,
+          107.752717
+        ],
+        [
+          -6.702042,
+          107.75313
+        ],
+        [
+          -6.701991,
+          107.753503
+        ],
+        [
+          -6.701927,
+          107.753811
+        ],
+        [
+          -6.70189,
+          107.754066
+        ],
+        [
+          -6.701852,
+          107.754182
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "5a6b819b-4e36-450e-9ed2-c8d59ae2c66d",
+      "startNodeId": "6b8a532d-231b-48fc-ba9b-2062939b5494",
+      "endNodeId": "528d1207-b2af-4d5f-95ac-caeeec757863",
+      "length": 366.2,
+      "straightLength": 303.6,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.701031,
+          107.747122
+        ],
+        [
+          -6.701028,
+          107.747115
+        ],
+        [
+          -6.70102,
+          107.747098
+        ],
+        [
+          -6.701421,
+          107.746963
+        ],
+        [
+          -6.701862,
+          107.746839
+        ],
+        [
+          -6.702323,
+          107.746658
+        ],
+        [
+          -6.702402,
+          107.746629
+        ],
+        [
+          -6.702435,
+          107.746631
+        ],
+        [
+          -6.702467,
+          107.74665
+        ],
+        [
+          -6.702569,
+          107.746785
+        ],
+        [
+          -6.702644,
+          107.746891
+        ],
+        [
+          -6.702659,
+          107.746908
+        ],
+        [
+          -6.702683,
+          107.746915
+        ],
+        [
+          -6.702734,
+          107.746911
+        ],
+        [
+          -6.702937,
+          107.74686
+        ],
+        [
+          -6.703059,
+          107.746828
+        ],
+        [
+          -6.703088,
+          107.74681
+        ],
+        [
+          -6.703105,
+          107.746777
+        ],
+        [
+          -6.703122,
+          107.746688
+        ],
+        [
+          -6.703128,
+          107.746638
+        ],
+        [
+          -6.703131,
+          107.74657
+        ],
+        [
+          -6.703127,
+          107.746515
+        ],
+        [
+          -6.703125,
+          107.746485
+        ],
+        [
+          -6.703134,
+          107.746449
+        ],
+        [
+          -6.703187,
+          107.746361
+        ],
+        [
+          -6.703285,
+          107.746251
+        ],
+        [
+          -6.703327,
+          107.74621
+        ],
+        [
+          -6.703359,
+          107.746198
+        ],
+        [
+          -6.703387,
+          107.746196
+        ],
+        [
+          -6.703436,
+          107.746195
+        ],
+        [
+          -6.703491,
+          107.746195
+        ],
+        [
+          -6.703512,
+          107.746192
+        ],
+        [
+          -6.703528,
+          107.746184
+        ],
+        [
+          -6.70359,
+          107.746124
+        ],
+        [
+          -6.703602,
+          107.74611
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "57e9db6e-c138-4277-a719-99223634694e",
+      "startNodeId": "44353088-3b76-42c7-b32d-811758bf0a54",
+      "endNodeId": "978c0b05-8168-4860-baa6-aa979c298b44",
+      "length": 27.2,
+      "straightLength": 14,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.698637,
+          107.738892
+        ],
+        [
+          -6.698554,
+          107.738867
+        ],
+        [
+          -6.698501,
+          107.739017
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "40cb22d0-2d09-4995-bce2-82b7cc6c5257",
+      "startNodeId": "5ce7dc16-ab07-4140-940d-26ab5053accf",
+      "endNodeId": "e8762794-7ea3-45f5-93ad-b4ad15d0ab79",
+      "length": 219.9,
+      "straightLength": 213.9,
+      "diameter": 75,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.695888,
+          107.74076
+        ],
+        [
+          -6.695778,
+          107.740969
+        ],
+        [
+          -6.695759,
+          107.741069
+        ],
+        [
+          -6.695738,
+          107.741292
+        ],
+        [
+          -6.695678,
+          107.741557
+        ],
+        [
+          -6.695582,
+          107.741899
+        ],
+        [
+          -6.695559,
+          107.74208
+        ],
+        [
+          -6.695571,
+          107.742394
+        ],
+        [
+          -6.695577,
+          107.742441
+        ],
+        [
+          -6.69563,
+          107.742615
+        ],
+        [
+          -6.695578,
+          107.742667
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "f0f41f68-338f-4201-824a-1ffc2ba6ec4c",
+      "startNodeId": "e8762794-7ea3-45f5-93ad-b4ad15d0ab79",
+      "endNodeId": "e6fc5351-7690-4cd8-831e-8d4641677dee",
+      "length": 332,
+      "straightLength": 301.3,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.695578,
+          107.742667
+        ],
+        [
+          -6.69563,
+          107.742615
+        ],
+        [
+          -6.695767,
+          107.742987
+        ],
+        [
+          -6.695885,
+          107.743399
+        ],
+        [
+          -6.69589,
+          107.743462
+        ],
+        [
+          -6.69589,
+          107.743538
+        ],
+        [
+          -6.695858,
+          107.743776
+        ],
+        [
+          -6.695846,
+          107.743848
+        ],
+        [
+          -6.695826,
+          107.743908
+        ],
+        [
+          -6.695805,
+          107.743957
+        ],
+        [
+          -6.695763,
+          107.74404
+        ],
+        [
+          -6.695605,
+          107.744311
+        ],
+        [
+          -6.695573,
+          107.744384
+        ],
+        [
+          -6.69555,
+          107.744444
+        ],
+        [
+          -6.695487,
+          107.744667
+        ],
+        [
+          -6.695342,
+          107.745017
+        ],
+        [
+          -6.695281,
+          107.745197
+        ],
+        [
+          -6.69526,
+          107.745276
+        ],
+        [
+          -6.695258,
+          107.745356
+        ],
+        [
+          -6.695265,
+          107.745377
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "357d197d-3af8-4222-ab13-4b89fe33687d",
+      "startNodeId": "978c0b05-8168-4860-baa6-aa979c298b44",
+      "endNodeId": "65d57047-c48c-4b36-86b5-9aae631fc1e7",
+      "length": 122,
+      "straightLength": 117.4,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.698501,
+          107.739017
+        ],
+        [
+          -6.698486,
+          107.73906
+        ],
+        [
+          -6.69846,
+          107.73911
+        ],
+        [
+          -6.698422,
+          107.739155
+        ],
+        [
+          -6.698365,
+          107.7392
+        ],
+        [
+          -6.698319,
+          107.739224
+        ],
+        [
+          -6.698251,
+          107.739241
+        ],
+        [
+          -6.698217,
+          107.739261
+        ],
+        [
+          -6.698041,
+          107.739441
+        ],
+        [
+          -6.697908,
+          107.739648
+        ],
+        [
+          -6.697837,
+          107.739761
+        ],
+        [
+          -6.6978,
+          107.739818
+        ],
+        [
+          -6.697808,
+          107.739822
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "1af7d16b-662f-48e1-b366-ae5894745d2e",
+      "startNodeId": "65d57047-c48c-4b36-86b5-9aae631fc1e7",
+      "endNodeId": "5ce7dc16-ab07-4140-940d-26ab5053accf",
+      "length": 253.1,
+      "straightLength": 235.5,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.697808,
+          107.739822
+        ],
+        [
+          -6.6978,
+          107.739818
+        ],
+        [
+          -6.697745,
+          107.739829
+        ],
+        [
+          -6.69729,
+          107.739932
+        ],
+        [
+          -6.697179,
+          107.739956
+        ],
+        [
+          -6.69714,
+          107.739988
+        ],
+        [
+          -6.697121,
+          107.739999
+        ],
+        [
+          -6.697101,
+          107.740007
+        ],
+        [
+          -6.697072,
+          107.740018
+        ],
+        [
+          -6.696508,
+          107.740137
+        ],
+        [
+          -6.696257,
+          107.740195
+        ],
+        [
+          -6.696213,
+          107.740215
+        ],
+        [
+          -6.696189,
+          107.740242
+        ],
+        [
+          -6.696149,
+          107.74029
+        ],
+        [
+          -6.696042,
+          107.740466
+        ],
+        [
+          -6.695888,
+          107.74076
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "11f3b73d-c005-4922-ade8-12325e58aed3",
+      "startNodeId": "65d57047-c48c-4b36-86b5-9aae631fc1e7",
+      "endNodeId": "85b1cc14-ecdc-4c3b-82da-b31a6057e81e",
+      "length": 158.1,
+      "straightLength": 157,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.697808,
+          107.739822
+        ],
+        [
+          -6.697822,
+          107.739829
+        ],
+        [
+          -6.697834,
+          107.739873
+        ],
+        [
+          -6.69782,
+          107.740318
+        ],
+        [
+          -6.697753,
+          107.740822
+        ],
+        [
+          -6.697744,
+          107.740989
+        ],
+        [
+          -6.697705,
+          107.741123
+        ],
+        [
+          -6.697687,
+          107.741176
+        ],
+        [
+          -6.697671,
+          107.741206
+        ],
+        [
+          -6.697689,
+          107.74121
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "4815b3e5-6003-4a2c-bf8d-cf08ad6aff2e",
+      "startNodeId": "85b1cc14-ecdc-4c3b-82da-b31a6057e81e",
+      "endNodeId": "b231263e-d12a-4ecb-a6ab-c1f9beeb6513",
+      "length": 161.1,
+      "straightLength": 156.9,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.697689,
+          107.74121
+        ],
+        [
+          -6.697671,
+          107.741206
+        ],
+        [
+          -6.697651,
+          107.741238
+        ],
+        [
+          -6.697626,
+          107.74126
+        ],
+        [
+          -6.69756,
+          107.741287
+        ],
+        [
+          -6.697476,
+          107.741303
+        ],
+        [
+          -6.697444,
+          107.741309
+        ],
+        [
+          -6.697376,
+          107.741329
+        ],
+        [
+          -6.697271,
+          107.741392
+        ],
+        [
+          -6.696781,
+          107.741729
+        ],
+        [
+          -6.696669,
+          107.741831
+        ],
+        [
+          -6.696601,
+          107.741881
+        ],
+        [
+          -6.696484,
+          107.741968
+        ],
+        [
+          -6.696478,
+          107.741973
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "39b137f8-e606-430a-9492-bf0d38e17cfa",
+      "startNodeId": "e8762794-7ea3-45f5-93ad-b4ad15d0ab79",
+      "endNodeId": "e4304a6e-f51c-49ff-914d-0cddc8798e4b",
+      "length": 208.9,
+      "straightLength": 186,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.695578,
+          107.742667
+        ],
+        [
+          -6.695398,
+          107.74285
+        ],
+        [
+          -6.695254,
+          107.742964
+        ],
+        [
+          -6.695068,
+          107.743021
+        ],
+        [
+          -6.694983,
+          107.743046
+        ],
+        [
+          -6.694961,
+          107.743076
+        ],
+        [
+          -6.694953,
+          107.743145
+        ],
+        [
+          -6.695046,
+          107.743656
+        ],
+        [
+          -6.695182,
+          107.744178
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "93b2013b-620e-49cf-9ef7-31152757dc99",
+      "startNodeId": "8312613e-2052-4724-8087-2200e72cd5b6",
+      "endNodeId": "dd4a1918-41fc-42b4-89b6-ea9d6858cb18",
+      "length": 235,
+      "straightLength": 243.7,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69706,
+          107.733668
+        ],
+        [
+          -6.697052,
+          107.733649
+        ],
+        [
+          -6.697324,
+          107.733509
+        ],
+        [
+          -6.697395,
+          107.733467
+        ],
+        [
+          -6.697656,
+          107.73331
+        ],
+        [
+          -6.697717,
+          107.733271
+        ],
+        [
+          -6.698097,
+          107.733085
+        ],
+        [
+          -6.698304,
+          107.732997
+        ],
+        [
+          -6.698394,
+          107.732947
+        ],
+        [
+          -6.698495,
+          107.73289
+        ],
+        [
+          -6.698665,
+          107.732803
+        ],
+        [
+          -6.698857,
+          107.732709
+        ],
+        [
+          -6.698883,
+          107.732684
+        ],
+        [
+          -6.698893,
+          107.732654
+        ],
+        [
+          -6.698893,
+          107.732654
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "4f4d8011-686b-4e2f-a62c-c0a91e913029",
+      "startNodeId": "dd4a1918-41fc-42b4-89b6-ea9d6858cb18",
+      "endNodeId": "b7d8d591-8b0d-4ad5-8829-c5c922521253",
+      "length": 164.1,
+      "straightLength": 163.8,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.698893,
+          107.732654
+        ],
+        [
+          -6.698898,
+          107.732622
+        ],
+        [
+          -6.69889,
+          107.732585
+        ],
+        [
+          -6.698865,
+          107.732538
+        ],
+        [
+          -6.698804,
+          107.732441
+        ],
+        [
+          -6.698653,
+          107.73218
+        ],
+        [
+          -6.698576,
+          107.732028
+        ],
+        [
+          -6.698466,
+          107.731794
+        ],
+        [
+          -6.69838,
+          107.731589
+        ],
+        [
+          -6.698318,
+          107.731438
+        ],
+        [
+          -6.698285,
+          107.731358
+        ],
+        [
+          -6.698281,
+          107.731326
+        ],
+        [
+          -6.698283,
+          107.731315
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "90d9c179-86bf-40c2-8d66-bd09fa84ee68",
+      "startNodeId": "09370981-1d16-4a58-8614-4b7cf0338144",
+      "endNodeId": "58ca8d6e-e876-4371-b6d7-855521b8ece9",
+      "length": 136.5,
+      "straightLength": 135.9,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.694597,
+          107.728382
+        ],
+        [
+          -6.694638,
+          107.72849
+        ],
+        [
+          -6.694712,
+          107.728713
+        ],
+        [
+          -6.694764,
+          107.728929
+        ],
+        [
+          -6.694795,
+          107.729185
+        ],
+        [
+          -6.694844,
+          107.729345
+        ],
+        [
+          -6.694907,
+          107.729489
+        ],
+        [
+          -6.694945,
+          107.729559
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "87474096-e9f0-45ba-b0cf-bf57c45914ac",
+      "startNodeId": "58ca8d6e-e876-4371-b6d7-855521b8ece9",
+      "endNodeId": "84167005-fa34-4a5b-872f-688f90111c4c",
+      "length": 160,
+      "straightLength": 144.3,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.694945,
+          107.729559
+        ],
+        [
+          -6.694907,
+          107.729489
+        ],
+        [
+          -6.694524,
+          107.730543
+        ],
+        [
+          -6.694486,
+          107.730638
+        ],
+        [
+          -6.694455,
+          107.730709
+        ],
+        [
+          -6.694419,
+          107.730746
+        ],
+        [
+          -6.694405,
+          107.73075
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "030d9d9b-29ee-4082-af81-e4826d109d9c",
+      "startNodeId": "3f0161fc-89d2-4ab0-8b27-8bf3b65ca8b6",
+      "endNodeId": "c57de636-5643-4ff9-96db-d3eb6dd34c9e",
+      "length": 131.5,
+      "straightLength": 137.5,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.693593,
+          107.732892
+        ],
+        [
+          -6.692767,
+          107.733609
+        ],
+        [
+          -6.692756,
+          107.733624
+        ],
+        [
+          -6.692753,
+          107.733645
+        ],
+        [
+          -6.692706,
+          107.733674
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "ee1cbb3d-b8cc-4dd0-bfd3-7b4ef724d818",
+      "startNodeId": "c57de636-5643-4ff9-96db-d3eb6dd34c9e",
+      "endNodeId": "1f177643-90de-4dc3-afb5-44fbe4ff2471",
+      "length": 66.6,
+      "straightLength": 56.5,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.692706,
+          107.733674
+        ],
+        [
+          -6.692753,
+          107.733645
+        ],
+        [
+          -6.69276,
+          107.733658
+        ],
+        [
+          -6.692768,
+          107.733667
+        ],
+        [
+          -6.692792,
+          107.733677
+        ],
+        [
+          -6.693061,
+          107.733756
+        ],
+        [
+          -6.693187,
+          107.733805
+        ],
+        [
+          -6.693215,
+          107.73377
+        ],
+        [
+          -6.69323,
+          107.7338
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "cffcc8e5-7f23-441b-8531-62233bf5af7e",
+      "startNodeId": "1f177643-90de-4dc3-afb5-44fbe4ff2471",
+      "endNodeId": "51d1a86c-a290-4554-acd0-ca8895e8a892",
+      "length": 81.6,
+      "straightLength": 72.7,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69323,
+          107.7338
+        ],
+        [
+          -6.693215,
+          107.73377
+        ],
+        [
+          -6.693187,
+          107.733805
+        ],
+        [
+          -6.693132,
+          107.73388
+        ],
+        [
+          -6.693079,
+          107.733938
+        ],
+        [
+          -6.693039,
+          107.73399
+        ],
+        [
+          -6.693008,
+          107.734035
+        ],
+        [
+          -6.692982,
+          107.734082
+        ],
+        [
+          -6.692961,
+          107.734127
+        ],
+        [
+          -6.692906,
+          107.734335
+        ],
+        [
+          -6.692896,
+          107.734369
+        ],
+        [
+          -6.692892,
+          107.734382
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "ab82e674-8c1a-4ffe-8d4c-0b703c9ecceb",
+      "startNodeId": "51d1a86c-a290-4554-acd0-ca8895e8a892",
+      "endNodeId": "90df1a08-94ac-4872-a941-36b1040f514b",
+      "length": 366,
+      "straightLength": 354.7,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.692892,
+          107.734382
+        ],
+        [
+          -6.692887,
+          107.7344
+        ],
+        [
+          -6.692873,
+          107.734427
+        ],
+        [
+          -6.692828,
+          107.734493
+        ],
+        [
+          -6.692729,
+          107.73457
+        ],
+        [
+          -6.692605,
+          107.734668
+        ],
+        [
+          -6.692501,
+          107.734738
+        ],
+        [
+          -6.691964,
+          107.735146
+        ],
+        [
+          -6.691487,
+          107.73558
+        ],
+        [
+          -6.69142,
+          107.735655
+        ],
+        [
+          -6.691337,
+          107.735754
+        ],
+        [
+          -6.691254,
+          107.735913
+        ],
+        [
+          -6.691216,
+          107.735986
+        ],
+        [
+          -6.691157,
+          107.736052
+        ],
+        [
+          -6.691121,
+          107.736089
+        ],
+        [
+          -6.691037,
+          107.736142
+        ],
+        [
+          -6.690836,
+          107.736217
+        ],
+        [
+          -6.690467,
+          107.736359
+        ],
+        [
+          -6.690401,
+          107.736385
+        ],
+        [
+          -6.690421,
+          107.736421
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "16086b7f-4348-4595-9f7d-a3ed5bfea1f4",
+      "startNodeId": "90df1a08-94ac-4872-a941-36b1040f514b",
+      "endNodeId": "548a6e4f-fd64-4ae8-9e1a-16c54abcef54",
+      "length": 153.2,
+      "straightLength": 146.6,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.690421,
+          107.736421
+        ],
+        [
+          -6.690401,
+          107.736385
+        ],
+        [
+          -6.689793,
+          107.736654
+        ],
+        [
+          -6.689588,
+          107.736736
+        ],
+        [
+          -6.689256,
+          107.736866
+        ],
+        [
+          -6.689201,
+          107.736892
+        ],
+        [
+          -6.68922,
+          107.736929
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "971cdd18-0819-44b0-aee6-f98bba7544a3",
+      "startNodeId": "548a6e4f-fd64-4ae8-9e1a-16c54abcef54",
+      "endNodeId": "9cd38324-264f-4c1a-92da-a9a8a05c9724",
+      "length": 144.8,
+      "straightLength": 137.4,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.68922,
+          107.736929
+        ],
+        [
+          -6.689201,
+          107.736892
+        ],
+        [
+          -6.688877,
+          107.737006
+        ],
+        [
+          -6.688448,
+          107.737123
+        ],
+        [
+          -6.688132,
+          107.737202
+        ],
+        [
+          -6.688,
+          107.737236
+        ],
+        [
+          -6.687992,
+          107.73722
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "76c0131d-7c3c-4192-abca-b4defa6ff7d7",
+      "startNodeId": "9cd38324-264f-4c1a-92da-a9a8a05c9724",
+      "endNodeId": "e898e932-b458-4901-b2d7-3a38ab76abad",
+      "length": 92.5,
+      "straightLength": 81.3,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.687992,
+          107.73722
+        ],
+        [
+          -6.688,
+          107.737236
+        ],
+        [
+          -6.687268,
+          107.737395
+        ],
+        [
+          -6.687301,
+          107.737456
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "2ddf0d60-f19e-435d-8a1d-8aac7c0ae625",
+      "startNodeId": "e898e932-b458-4901-b2d7-3a38ab76abad",
+      "endNodeId": "0e33b619-a208-4cdd-ba28-3c15ab5c7f9c",
+      "length": 173.9,
+      "straightLength": 169.2,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.687301,
+          107.737456
+        ],
+        [
+          -6.687268,
+          107.737395
+        ],
+        [
+          -6.686576,
+          107.737657
+        ],
+        [
+          -6.686515,
+          107.737668
+        ],
+        [
+          -6.68642,
+          107.737674
+        ],
+        [
+          -6.686267,
+          107.737678
+        ],
+        [
+          -6.685969,
+          107.737695
+        ],
+        [
+          -6.685901,
+          107.737704
+        ],
+        [
+          -6.685855,
+          107.737719
+        ],
+        [
+          -6.685819,
+          107.737729
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "58ddf6be-6f69-4b1b-a864-b43a37956d6b",
+      "startNodeId": "0e33b619-a208-4cdd-ba28-3c15ab5c7f9c",
+      "endNodeId": "794515fa-06b2-4ac2-bc2e-fa5dae447c08",
+      "length": 196.8,
+      "straightLength": 196.9,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.685819,
+          107.737729
+        ],
+        [
+          -6.685363,
+          107.737851
+        ],
+        [
+          -6.685141,
+          107.737903
+        ],
+        [
+          -6.684848,
+          107.737983
+        ],
+        [
+          -6.684784,
+          107.737995
+        ],
+        [
+          -6.684592,
+          107.738014
+        ],
+        [
+          -6.684443,
+          107.73802
+        ],
+        [
+          -6.68434,
+          107.738022
+        ],
+        [
+          -6.684116,
+          107.738014
+        ],
+        [
+          -6.684075,
+          107.738016
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "50a2d6ae-5776-4ac9-98d1-469f403e81e8",
+      "startNodeId": "794515fa-06b2-4ac2-bc2e-fa5dae447c08",
+      "endNodeId": "3f0427ef-37fd-4f2e-9578-4e3430c9d1cd",
+      "length": 148.4,
+      "straightLength": 142.1,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.684075,
+          107.738016
+        ],
+        [
+          -6.683943,
+          107.738022
+        ],
+        [
+          -6.683843,
+          107.738038
+        ],
+        [
+          -6.683031,
+          107.738274
+        ],
+        [
+          -6.682846,
+          107.738332
+        ],
+        [
+          -6.682867,
+          107.738398
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "74724243-d899-486d-99d0-9222dcba9d6e",
+      "startNodeId": "3f0427ef-37fd-4f2e-9578-4e3430c9d1cd",
+      "endNodeId": "c5d88cdd-b543-448b-b533-e3b2e70c6c32",
+      "length": 102.2,
+      "straightLength": 90.4,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.682867,
+          107.738398
+        ],
+        [
+          -6.682846,
+          107.738332
+        ],
+        [
+          -6.682566,
+          107.738466
+        ],
+        [
+          -6.682383,
+          107.73853
+        ],
+        [
+          -6.682311,
+          107.738537
+        ],
+        [
+          -6.68225,
+          107.738538
+        ],
+        [
+          -6.682169,
+          107.738526
+        ],
+        [
+          -6.682082,
+          107.738499
+        ],
+        [
+          -6.682093,
+          107.738542
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "ab89062d-4f9d-430a-865c-154114b6e1de",
+      "startNodeId": "c5d88cdd-b543-448b-b533-e3b2e70c6c32",
+      "endNodeId": "6c6c187a-d598-4f0e-b371-5436a3bbc3dd",
+      "length": 918.8,
+      "straightLength": 854.8,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.682093,
+          107.738542
+        ],
+        [
+          -6.682082,
+          107.738499
+        ],
+        [
+          -6.681958,
+          107.738445
+        ],
+        [
+          -6.681855,
+          107.73837
+        ],
+        [
+          -6.68181,
+          107.738326
+        ],
+        [
+          -6.681733,
+          107.738249
+        ],
+        [
+          -6.681562,
+          107.738053
+        ],
+        [
+          -6.681387,
+          107.737833
+        ],
+        [
+          -6.681199,
+          107.737552
+        ],
+        [
+          -6.680978,
+          107.737234
+        ],
+        [
+          -6.680929,
+          107.737179
+        ],
+        [
+          -6.680789,
+          107.737069
+        ],
+        [
+          -6.680607,
+          107.736967
+        ],
+        [
+          -6.680365,
+          107.736864
+        ],
+        [
+          -6.680092,
+          107.736787
+        ],
+        [
+          -6.679473,
+          107.736601
+        ],
+        [
+          -6.679159,
+          107.736526
+        ],
+        [
+          -6.67886,
+          107.736438
+        ],
+        [
+          -6.678794,
+          107.736412
+        ],
+        [
+          -6.678613,
+          107.736291
+        ],
+        [
+          -6.67835,
+          107.736096
+        ],
+        [
+          -6.678132,
+          107.73597
+        ],
+        [
+          -6.677835,
+          107.735885
+        ],
+        [
+          -6.677584,
+          107.735824
+        ],
+        [
+          -6.677518,
+          107.735819
+        ],
+        [
+          -6.677258,
+          107.735812
+        ],
+        [
+          -6.676114,
+          107.735847
+        ],
+        [
+          -6.675789,
+          107.735842
+        ],
+        [
+          -6.675711,
+          107.735832
+        ],
+        [
+          -6.675651,
+          107.735815
+        ],
+        [
+          -6.675599,
+          107.735775
+        ],
+        [
+          -6.675552,
+          107.735725
+        ],
+        [
+          -6.675461,
+          107.735584
+        ],
+        [
+          -6.675333,
+          107.735265
+        ],
+        [
+          -6.675264,
+          107.735123
+        ],
+        [
+          -6.675211,
+          107.735038
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "ff5603e3-2d64-4490-98f7-8e39386ad42f",
+      "startNodeId": "6c6c187a-d598-4f0e-b371-5436a3bbc3dd",
+      "endNodeId": "34e9bb3b-321e-4469-ae0b-cfc050543f31",
+      "length": 408.2,
+      "straightLength": 406.9,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.675211,
+          107.735038
+        ],
+        [
+          -6.675092,
+          107.734844
+        ],
+        [
+          -6.675044,
+          107.734785
+        ],
+        [
+          -6.67451,
+          107.734267
+        ],
+        [
+          -6.673985,
+          107.733699
+        ],
+        [
+          -6.673519,
+          107.733142
+        ],
+        [
+          -6.673328,
+          107.732931
+        ],
+        [
+          -6.672868,
+          107.732361
+        ],
+        [
+          -6.672807,
+          107.732249
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "61179369-6779-4772-b6aa-e04e2fd1e306",
+      "startNodeId": "34e9bb3b-321e-4469-ae0b-cfc050543f31",
+      "endNodeId": "891d55d4-4c00-4b1f-8574-5a0c5219681a",
+      "length": 254.2,
+      "straightLength": 248.4,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.672807,
+          107.732249
+        ],
+        [
+          -6.672756,
+          107.732156
+        ],
+        [
+          -6.672556,
+          107.731805
+        ],
+        [
+          -6.672393,
+          107.731475
+        ],
+        [
+          -6.672288,
+          107.731276
+        ],
+        [
+          -6.672212,
+          107.731165
+        ],
+        [
+          -6.672127,
+          107.731089
+        ],
+        [
+          -6.67201,
+          107.731018
+        ],
+        [
+          -6.671602,
+          107.730751
+        ],
+        [
+          -6.671347,
+          107.730553
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "3c9592f5-2057-4b50-ad3a-67810cc72739",
+      "startNodeId": "891d55d4-4c00-4b1f-8574-5a0c5219681a",
+      "endNodeId": "0efa17dd-cd7a-4aec-a059-f25560485f4f",
+      "length": 223.9,
+      "straightLength": 221.4,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.671347,
+          107.730553
+        ],
+        [
+          -6.671306,
+          107.730521
+        ],
+        [
+          -6.671236,
+          107.730429
+        ],
+        [
+          -6.671163,
+          107.730312
+        ],
+        [
+          -6.671042,
+          107.730091
+        ],
+        [
+          -6.670928,
+          107.729911
+        ],
+        [
+          -6.670836,
+          107.729792
+        ],
+        [
+          -6.670716,
+          107.729666
+        ],
+        [
+          -6.670491,
+          107.729457
+        ],
+        [
+          -6.670122,
+          107.729202
+        ],
+        [
+          -6.66999,
+          107.729088
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "e3d4c994-d6a0-4f83-b8d1-8fb4f754b6a0",
+      "startNodeId": "0efa17dd-cd7a-4aec-a059-f25560485f4f",
+      "endNodeId": "a85c9bdb-4a56-49e6-85f0-0c7af131362b",
+      "length": 132.3,
+      "straightLength": 131.6,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.66999,
+          107.729088
+        ],
+        [
+          -6.669932,
+          107.729038
+        ],
+        [
+          -6.669636,
+          107.728738
+        ],
+        [
+          -6.669407,
+          107.728415
+        ],
+        [
+          -6.66934,
+          107.728282
+        ],
+        [
+          -6.669252,
+          107.728156
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "a3f7eb41-7bf7-418e-aa3c-b3e40fe9196b",
+      "startNodeId": "a85c9bdb-4a56-49e6-85f0-0c7af131362b",
+      "endNodeId": "ec90cf36-e373-4430-b5f8-40c7d1b10c96",
+      "length": 139.9,
+      "straightLength": 136.3,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.669252,
+          107.728156
+        ],
+        [
+          -6.669226,
+          107.728118
+        ],
+        [
+          -6.668766,
+          107.7275
+        ],
+        [
+          -6.668497,
+          107.727177
+        ],
+        [
+          -6.668518,
+          107.727158
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "cba42150-8f8f-4f4b-a5cd-aa93929ce001",
+      "startNodeId": "ec90cf36-e373-4430-b5f8-40c7d1b10c96",
+      "endNodeId": "c92d2a36-415b-45f4-aebe-023f188ec803",
+      "length": 148.3,
+      "straightLength": 145.2,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.668518,
+          107.727158
+        ],
+        [
+          -6.668497,
+          107.727177
+        ],
+        [
+          -6.668415,
+          107.727115
+        ],
+        [
+          -6.668361,
+          107.727086
+        ],
+        [
+          -6.668277,
+          107.727071
+        ],
+        [
+          -6.668139,
+          107.727075
+        ],
+        [
+          -6.667777,
+          107.727123
+        ],
+        [
+          -6.667373,
+          107.727151
+        ],
+        [
+          -6.667292,
+          107.727153
+        ],
+        [
+          -6.667218,
+          107.727156
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "36f4a5f4-b8c2-4497-88c3-a6d839165954",
+      "startNodeId": "c92d2a36-415b-45f4-aebe-023f188ec803",
+      "endNodeId": "8d4cb05b-95c7-4ab5-9ab2-92304a456e2d",
+      "length": 171.8,
+      "straightLength": 159.9,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.667218,
+          107.727156
+        ],
+        [
+          -6.66717,
+          107.727158
+        ],
+        [
+          -6.666712,
+          107.727153
+        ],
+        [
+          -6.666456,
+          107.72712
+        ],
+        [
+          -6.666157,
+          107.727004
+        ],
+        [
+          -6.665946,
+          107.726874
+        ],
+        [
+          -6.665813,
+          107.726776
+        ],
+        [
+          -6.665777,
+          107.726818
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "407693e1-2678-40e4-83b6-48bc74a30c92",
+      "startNodeId": "8d4cb05b-95c7-4ab5-9ab2-92304a456e2d",
+      "endNodeId": "b39524b0-5770-41a1-b788-971296f5dfcd",
+      "length": 75,
+      "straightLength": 73.7,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.665777,
+          107.726818
+        ],
+        [
+          -6.665813,
+          107.726776
+        ],
+        [
+          -6.66531,
+          107.726408
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "0b5bc31d-9b28-4429-bcf0-ff590eb52401",
+      "startNodeId": "b39524b0-5770-41a1-b788-971296f5dfcd",
+      "endNodeId": "85c2b2ac-47d5-4b26-970c-579bf3c73e84",
+      "length": 145.3,
+      "straightLength": 146.2,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.66531,
+          107.726408
+        ],
+        [
+          -6.66526,
+          107.726372
+        ],
+        [
+          -6.665043,
+          107.726164
+        ],
+        [
+          -6.66479,
+          107.725884
+        ],
+        [
+          -6.664479,
+          107.725401
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "3402b2b7-900c-4671-8a12-9615ae73504f",
+      "startNodeId": "85c2b2ac-47d5-4b26-970c-579bf3c73e84",
+      "endNodeId": "b600ecf8-88ce-44b6-97a2-54c16d4b4830",
+      "length": 389.7,
+      "straightLength": 362.8,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.664479,
+          107.725401
+        ],
+        [
+          -6.664445,
+          107.725349
+        ],
+        [
+          -6.664233,
+          107.724968
+        ],
+        [
+          -6.664035,
+          107.724615
+        ],
+        [
+          -6.663876,
+          107.724362
+        ],
+        [
+          -6.66381,
+          107.724236
+        ],
+        [
+          -6.663706,
+          107.724063
+        ],
+        [
+          -6.663619,
+          107.723949
+        ],
+        [
+          -6.663506,
+          107.723841
+        ],
+        [
+          -6.66337,
+          107.723737
+        ],
+        [
+          -6.66321,
+          107.723621
+        ],
+        [
+          -6.663139,
+          107.723583
+        ],
+        [
+          -6.662987,
+          107.723501
+        ],
+        [
+          -6.662543,
+          107.723328
+        ],
+        [
+          -6.662055,
+          107.72318
+        ],
+        [
+          -6.662037,
+          107.723248
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "bba93f95-4166-4759-bef3-230eb5bc6f3a",
+      "startNodeId": "b600ecf8-88ce-44b6-97a2-54c16d4b4830",
+      "endNodeId": "9e7d999e-8e58-43a7-9cd4-40c7d91d4478",
+      "length": 314.8,
+      "straightLength": 306.8,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.662037,
+          107.723248
+        ],
+        [
+          -6.662055,
+          107.72318
+        ],
+        [
+          -6.661868,
+          107.723111
+        ],
+        [
+          -6.661611,
+          107.723002
+        ],
+        [
+          -6.66118,
+          107.72283
+        ],
+        [
+          -6.660927,
+          107.722739
+        ],
+        [
+          -6.660749,
+          107.722693
+        ],
+        [
+          -6.660605,
+          107.722655
+        ],
+        [
+          -6.660429,
+          107.722579
+        ],
+        [
+          -6.660265,
+          107.722499
+        ],
+        [
+          -6.660101,
+          107.722409
+        ],
+        [
+          -6.659692,
+          107.722275
+        ],
+        [
+          -6.659536,
+          107.722225
+        ],
+        [
+          -6.659497,
+          107.722291
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "ca710365-a3ab-494e-9751-ee5ef79a8e77",
+      "startNodeId": "9e7d999e-8e58-43a7-9cd4-40c7d91d4478",
+      "endNodeId": "0d2d77d4-c4cc-4b58-b605-802f75946cf1",
+      "length": 223.4,
+      "straightLength": 206.6,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.659497,
+          107.722291
+        ],
+        [
+          -6.659536,
+          107.722225
+        ],
+        [
+          -6.659415,
+          107.72216
+        ],
+        [
+          -6.659267,
+          107.722079
+        ],
+        [
+          -6.659184,
+          107.72202
+        ],
+        [
+          -6.659117,
+          107.721946
+        ],
+        [
+          -6.658928,
+          107.721713
+        ],
+        [
+          -6.65869,
+          107.721432
+        ],
+        [
+          -6.658515,
+          107.721269
+        ],
+        [
+          -6.65822,
+          107.721004
+        ],
+        [
+          -6.658144,
+          107.720919
+        ],
+        [
+          -6.658158,
+          107.720908
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "cd0e3a2d-7134-4540-8a77-1049d602bb97",
+      "startNodeId": "0d2d77d4-c4cc-4b58-b605-802f75946cf1",
+      "endNodeId": "fe7db765-a60c-4893-99d0-f96b197d42ae",
+      "length": 241.8,
+      "straightLength": 229.2,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.658158,
+          107.720908
+        ],
+        [
+          -6.658144,
+          107.720919
+        ],
+        [
+          -6.658078,
+          107.720845
+        ],
+        [
+          -6.658029,
+          107.720746
+        ],
+        [
+          -6.658,
+          107.720721
+        ],
+        [
+          -6.657961,
+          107.720698
+        ],
+        [
+          -6.657931,
+          107.720688
+        ],
+        [
+          -6.657859,
+          107.720671
+        ],
+        [
+          -6.657774,
+          107.720674
+        ],
+        [
+          -6.657712,
+          107.720673
+        ],
+        [
+          -6.657653,
+          107.720663
+        ],
+        [
+          -6.657582,
+          107.720644
+        ],
+        [
+          -6.65753,
+          107.720623
+        ],
+        [
+          -6.65737,
+          107.72053
+        ],
+        [
+          -6.657225,
+          107.720435
+        ],
+        [
+          -6.657076,
+          107.720333
+        ],
+        [
+          -6.656922,
+          107.720263
+        ],
+        [
+          -6.656687,
+          107.720195
+        ],
+        [
+          -6.656498,
+          107.720179
+        ],
+        [
+          -6.656405,
+          107.720179
+        ],
+        [
+          -6.656312,
+          107.72019
+        ],
+        [
+          -6.656208,
+          107.720202
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "1e4b8f65-bc9e-4321-a88b-5ef3352e7a84",
+      "startNodeId": "fe7db765-a60c-4893-99d0-f96b197d42ae",
+      "endNodeId": "e5bcce28-bd1f-42ca-aca1-0e2e918ae605",
+      "length": 147.9,
+      "straightLength": 146.6,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.656208,
+          107.720202
+        ],
+        [
+          -6.65617,
+          107.720206
+        ],
+        [
+          -6.656116,
+          107.720206
+        ],
+        [
+          -6.656067,
+          107.720204
+        ],
+        [
+          -6.656017,
+          107.720195
+        ],
+        [
+          -6.655959,
+          107.720171
+        ],
+        [
+          -6.655912,
+          107.720149
+        ],
+        [
+          -6.65582,
+          107.720102
+        ],
+        [
+          -6.655377,
+          107.719839
+        ],
+        [
+          -6.655227,
+          107.719771
+        ],
+        [
+          -6.655123,
+          107.719743
+        ],
+        [
+          -6.654988,
+          107.719706
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "33420a6c-48ad-4bbc-84cf-01cb321800c1",
+      "startNodeId": "e5bcce28-bd1f-42ca-aca1-0e2e918ae605",
+      "endNodeId": "6d420dbe-f7b8-4446-ad44-a870ece589c5",
+      "length": 185.4,
+      "straightLength": 184.3,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.654988,
+          107.719706
+        ],
+        [
+          -6.654942,
+          107.719693
+        ],
+        [
+          -6.654725,
+          107.719665
+        ],
+        [
+          -6.654519,
+          107.719642
+        ],
+        [
+          -6.654448,
+          107.719628
+        ],
+        [
+          -6.654401,
+          107.719612
+        ],
+        [
+          -6.654179,
+          107.719459
+        ],
+        [
+          -6.654074,
+          107.719397
+        ],
+        [
+          -6.654034,
+          107.719381
+        ],
+        [
+          -6.653877,
+          107.719317
+        ],
+        [
+          -6.653498,
+          107.719138
+        ],
+        [
+          -6.653451,
+          107.719106
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "0f25699b-69fe-42af-8543-a86891332511",
+      "startNodeId": "6d420dbe-f7b8-4446-ad44-a870ece589c5",
+      "endNodeId": "5fcc0dba-68b8-4c78-9065-273942760a9d",
+      "length": 62.2,
+      "straightLength": 62.8,
+      "diameter": 150,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.653451,
+          107.719106
+        ],
+        [
+          -6.653421,
+          107.719086
+        ],
+        [
+          -6.653378,
+          107.719038
+        ],
+        [
+          -6.653127,
+          107.71865
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "337d014f-e329-4c84-a05c-4a845a711129",
+      "startNodeId": "b2bffc25-7c09-40a6-9346-79e0ec14cb16",
+      "endNodeId": "2834530a-8a18-449e-aaeb-a9de43d0d9fb",
+      "length": 81.5,
+      "straightLength": 82.1,
+      "diameter": 75,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.688498,
+          107.737228
+        ],
+        [
+          -6.688813,
+          107.737889
+        ],
+        [
+          -6.688817,
+          107.737887
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "1bd82c35-6fc7-4ae2-a5f9-52546493be20",
+      "startNodeId": "2834530a-8a18-449e-aaeb-a9de43d0d9fb",
+      "endNodeId": "7af66bb5-0d91-4bfd-adc6-6c594129dd37",
+      "length": 93.6,
+      "straightLength": 92.2,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.688817,
+          107.737887
+        ],
+        [
+          -6.688969,
+          107.737818
+        ],
+        [
+          -6.689479,
+          107.737617
+        ],
+        [
+          -6.689527,
+          107.737586
+        ],
+        [
+          -6.689573,
+          107.737543
+        ],
+        [
+          -6.689584,
+          107.737546
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "0bbf2f7e-d454-4187-adac-c32372144b21",
+      "startNodeId": "7af66bb5-0d91-4bfd-adc6-6c594129dd37",
+      "endNodeId": "3b480596-7fce-4a99-99ac-5d4588e3d423",
+      "length": 87.2,
+      "straightLength": 86,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.689584,
+          107.737546
+        ],
+        [
+          -6.689676,
+          107.737572
+        ],
+        [
+          -6.689957,
+          107.737636
+        ],
+        [
+          -6.690079,
+          107.737637
+        ],
+        [
+          -6.690207,
+          107.737637
+        ],
+        [
+          -6.690258,
+          107.737637
+        ],
+        [
+          -6.690306,
+          107.737659
+        ],
+        [
+          -6.690337,
+          107.73769
+        ],
+        [
+          -6.69034,
+          107.737696
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "c1c9d303-a5c9-4c74-89de-d670310875b5",
+      "startNodeId": "3b480596-7fce-4a99-99ac-5d4588e3d423",
+      "endNodeId": "1c393a98-be13-4724-b9e9-53df386d701b",
+      "length": 265.4,
+      "straightLength": 258.1,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69034,
+          107.737696
+        ],
+        [
+          -6.690359,
+          107.737742
+        ],
+        [
+          -6.690545,
+          107.738189
+        ],
+        [
+          -6.690599,
+          107.738341
+        ],
+        [
+          -6.690611,
+          107.73839
+        ],
+        [
+          -6.690634,
+          107.738449
+        ],
+        [
+          -6.690654,
+          107.738579
+        ],
+        [
+          -6.690659,
+          107.738636
+        ],
+        [
+          -6.69071,
+          107.738771
+        ],
+        [
+          -6.690731,
+          107.738848
+        ],
+        [
+          -6.690768,
+          107.738974
+        ],
+        [
+          -6.690834,
+          107.739231
+        ],
+        [
+          -6.690848,
+          107.739288
+        ],
+        [
+          -6.690872,
+          107.739449
+        ],
+        [
+          -6.690856,
+          107.739666
+        ],
+        [
+          -6.690867,
+          107.739758
+        ],
+        [
+          -6.690896,
+          107.739827
+        ],
+        [
+          -6.690947,
+          107.739888
+        ],
+        [
+          -6.690991,
+          107.739924
+        ],
+        [
+          -6.69096,
+          107.739948
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "b8fe23d0-1d7c-4f79-b716-7bdfbbae0280",
+      "startNodeId": "3b480596-7fce-4a99-99ac-5d4588e3d423",
+      "endNodeId": "d627eb7a-8914-4ba9-92cc-60a8733fa25d",
+      "length": 111.7,
+      "straightLength": 84.3,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69034,
+          107.737696
+        ],
+        [
+          -6.690337,
+          107.73769
+        ],
+        [
+          -6.690306,
+          107.737659
+        ],
+        [
+          -6.690258,
+          107.737637
+        ],
+        [
+          -6.690434,
+          107.737595
+        ],
+        [
+          -6.690473,
+          107.737589
+        ],
+        [
+          -6.690522,
+          107.73759
+        ],
+        [
+          -6.690572,
+          107.737601
+        ],
+        [
+          -6.690666,
+          107.737632
+        ],
+        [
+          -6.690731,
+          107.737647
+        ],
+        [
+          -6.690803,
+          107.737652
+        ],
+        [
+          -6.691034,
+          107.73765
+        ],
+        [
+          -6.691061,
+          107.73769
+        ],
+        [
+          -6.691077,
+          107.737714
+        ],
+        [
+          -6.691099,
+          107.737748
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "a6d58798-db30-497a-9da7-1a29092f2ce2",
+      "startNodeId": "d627eb7a-8914-4ba9-92cc-60a8733fa25d",
+      "endNodeId": "f83a126e-9bc2-4103-a257-c14f96053da3",
+      "length": 42.4,
+      "straightLength": 41.1,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.691099,
+          107.737748
+        ],
+        [
+          -6.691178,
+          107.737872
+        ],
+        [
+          -6.691229,
+          107.73806
+        ],
+        [
+          -6.69127,
+          107.738053
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "1289adfe-e275-4707-91cc-4971231a842e",
+      "startNodeId": "f83a126e-9bc2-4103-a257-c14f96053da3",
+      "endNodeId": "70b8d5f9-2892-4a7e-b85e-6d05cf9ad6c3",
+      "length": 242.8,
+      "straightLength": 219.1,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69127,
+          107.738053
+        ],
+        [
+          -6.691449,
+          107.738024
+        ],
+        [
+          -6.691585,
+          107.73804
+        ],
+        [
+          -6.691681,
+          107.738069
+        ],
+        [
+          -6.69183,
+          107.73816
+        ],
+        [
+          -6.691954,
+          107.738266
+        ],
+        [
+          -6.692088,
+          107.738453
+        ],
+        [
+          -6.692209,
+          107.738778
+        ],
+        [
+          -6.692257,
+          107.738901
+        ],
+        [
+          -6.69256,
+          107.739566
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "ac2d3e53-3f18-4a7f-a0cb-7e61e296e42c",
+      "startNodeId": "1c393a98-be13-4724-b9e9-53df386d701b",
+      "endNodeId": "4a892698-c1d4-41e1-a0a1-24ea27765c2a",
+      "length": 269,
+      "straightLength": 116.2,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69096,
+          107.739948
+        ],
+        [
+          -6.690991,
+          107.739924
+        ],
+        [
+          -6.690947,
+          107.739888
+        ],
+        [
+          -6.690896,
+          107.739827
+        ],
+        [
+          -6.690867,
+          107.739758
+        ],
+        [
+          -6.690856,
+          107.739666
+        ],
+        [
+          -6.690872,
+          107.739449
+        ],
+        [
+          -6.690848,
+          107.739288
+        ],
+        [
+          -6.690834,
+          107.739231
+        ],
+        [
+          -6.691116,
+          107.739144
+        ],
+        [
+          -6.691133,
+          107.739135
+        ],
+        [
+          -6.691143,
+          107.739125
+        ],
+        [
+          -6.691156,
+          107.739104
+        ],
+        [
+          -6.691172,
+          107.739093
+        ],
+        [
+          -6.69119,
+          107.739088
+        ],
+        [
+          -6.691232,
+          107.739082
+        ],
+        [
+          -6.69127,
+          107.739077
+        ],
+        [
+          -6.691537,
+          107.739027
+        ],
+        [
+          -6.691583,
+          107.739015
+        ],
+        [
+          -6.691629,
+          107.738995
+        ],
+        [
+          -6.691701,
+          107.738956
+        ],
+        [
+          -6.69172,
+          107.738953
+        ],
+        [
+          -6.691734,
+          107.738958
+        ],
+        [
+          -6.691744,
+          107.738968
+        ],
+        [
+          -6.691947,
+          107.739616
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "429c9c5a-1c0f-4f1c-a22c-814fc211e8b8",
+      "startNodeId": "1c393a98-be13-4724-b9e9-53df386d701b",
+      "endNodeId": "5d6b0f9a-beda-4474-a1d8-bcee04251b53",
+      "length": 118.9,
+      "straightLength": 108.1,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69096,
+          107.739948
+        ],
+        [
+          -6.690991,
+          107.739924
+        ],
+        [
+          -6.691048,
+          107.739927
+        ],
+        [
+          -6.691127,
+          107.739922
+        ],
+        [
+          -6.691224,
+          107.739923
+        ],
+        [
+          -6.691261,
+          107.739935
+        ],
+        [
+          -6.691282,
+          107.739951
+        ],
+        [
+          -6.691308,
+          107.739998
+        ],
+        [
+          -6.691356,
+          107.740065
+        ],
+        [
+          -6.691393,
+          107.740081
+        ],
+        [
+          -6.691445,
+          107.740085
+        ],
+        [
+          -6.691629,
+          107.740055
+        ],
+        [
+          -6.691789,
+          107.740035
+        ],
+        [
+          -6.69193,
+          107.739996
+        ],
+        [
+          -6.691933,
+          107.740011
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "164aa602-04a7-45e6-b7c5-8126bb515c0e",
+      "startNodeId": "5d6b0f9a-beda-4474-a1d8-bcee04251b53",
+      "endNodeId": "e4cd70f8-704e-4943-be07-c56bcf474c3b",
+      "length": 73.7,
+      "straightLength": 70.2,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.691933,
+          107.740011
+        ],
+        [
+          -6.692079,
+          107.740646
+        ],
+        [
+          -6.692065,
+          107.740652
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "879ad12b-8d62-40ec-ab17-5cc2cb5c94ed",
+      "startNodeId": "e4cd70f8-704e-4943-be07-c56bcf474c3b",
+      "endNodeId": "68d14041-e6f8-4697-ad9d-dfcc4148fe0d",
+      "length": 131.5,
+      "straightLength": 135.1,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.692065,
+          107.740652
+        ],
+        [
+          -6.691802,
+          107.740759
+        ],
+        [
+          -6.691517,
+          107.740886
+        ],
+        [
+          -6.691,
+          107.741123
+        ],
+        [
+          -6.691007,
+          107.741146
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "6d04add0-0cfd-4495-a583-131628fb75e0",
+      "startNodeId": "70b8d5f9-2892-4a7e-b85e-6d05cf9ad6c3",
+      "endNodeId": "5d6b0f9a-beda-4474-a1d8-bcee04251b53",
+      "length": 90.2,
+      "straightLength": 87.8,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.69256,
+          107.739566
+        ],
+        [
+          -6.69256,
+          107.739566
+        ],
+        [
+          -6.692564,
+          107.739581
+        ],
+        [
+          -6.692566,
+          107.739592
+        ],
+        [
+          -6.692563,
+          107.739605
+        ],
+        [
+          -6.692557,
+          107.739618
+        ],
+        [
+          -6.692369,
+          107.739801
+        ],
+        [
+          -6.692195,
+          107.739895
+        ],
+        [
+          -6.692087,
+          107.739957
+        ],
+        [
+          -6.691971,
+          107.739985
+        ],
+        [
+          -6.69193,
+          107.739996
+        ],
+        [
+          -6.691933,
+          107.740011
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "05183e2e-646f-48f3-bb42-1e53aa57128f",
+      "startNodeId": "3f0427ef-37fd-4f2e-9578-4e3430c9d1cd",
+      "endNodeId": "c5d54ab0-7cec-4d43-bf17-77f5664bd4ba",
+      "length": 64.7,
+      "straightLength": 65.8,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.682867,
+          107.738398
+        ],
+        [
+          -6.682948,
+          107.73865
+        ],
+        [
+          -6.683044,
+          107.738944
+        ],
+        [
+          -6.683055,
+          107.738942
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "430cab5f-8b34-4b12-a427-61d2da16770f",
+      "startNodeId": "c5d54ab0-7cec-4d43-bf17-77f5664bd4ba",
+      "endNodeId": "39753798-bd60-46c6-820b-42de7e46ca73",
+      "length": 78.8,
+      "straightLength": 78.5,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.683055,
+          107.738942
+        ],
+        [
+          -6.683044,
+          107.738944
+        ],
+        [
+          -6.682955,
+          107.738966
+        ],
+        [
+          -6.682786,
+          107.739008
+        ],
+        [
+          -6.682407,
+          107.739188
+        ],
+        [
+          -6.682394,
+          107.739196
+        ],
+        [
+          -6.682393,
+          107.739196
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "45b2c4e5-392f-4481-bc58-9e7f01998d33",
+      "startNodeId": "39753798-bd60-46c6-820b-42de7e46ca73",
+      "endNodeId": "369ce297-a866-498c-ba4e-016791d87d99",
+      "length": 225.7,
+      "straightLength": 142.9,
+      "diameter": 40,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.682393,
+          107.739196
+        ],
+        [
+          -6.682379,
+          107.739198
+        ],
+        [
+          -6.682367,
+          107.739195
+        ],
+        [
+          -6.682359,
+          107.739181
+        ],
+        [
+          -6.682352,
+          107.739161
+        ],
+        [
+          -6.682156,
+          107.738734
+        ],
+        [
+          -6.682124,
+          107.738646
+        ],
+        [
+          -6.682109,
+          107.738603
+        ],
+        [
+          -6.681797,
+          107.738776
+        ],
+        [
+          -6.681768,
+          107.738794
+        ],
+        [
+          -6.681756,
+          107.738817
+        ],
+        [
+          -6.681754,
+          107.738854
+        ],
+        [
+          -6.681794,
+          107.738991
+        ],
+        [
+          -6.681795,
+          107.739023
+        ],
+        [
+          -6.681786,
+          107.73905
+        ],
+        [
+          -6.681766,
+          107.73907
+        ],
+        [
+          -6.681641,
+          107.739103
+        ],
+        [
+          -6.681411,
+          107.739176
+        ],
+        [
+          -6.681113,
+          107.739268
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "bc2780cf-65b0-4967-a7d3-ac0364989503",
+      "startNodeId": "34e9bb3b-321e-4469-ae0b-cfc050543f31",
+      "endNodeId": "6b436fe4-fddf-4d01-9813-04ca797bbd61",
+      "length": 429.9,
+      "straightLength": 413.5,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.672807,
+          107.732249
+        ],
+        [
+          -6.672756,
+          107.732156
+        ],
+        [
+          -6.672911,
+          107.732103
+        ],
+        [
+          -6.673298,
+          107.731919
+        ],
+        [
+          -6.673467,
+          107.731833
+        ],
+        [
+          -6.674016,
+          107.731554
+        ],
+        [
+          -6.674189,
+          107.731494
+        ],
+        [
+          -6.674263,
+          107.731486
+        ],
+        [
+          -6.674327,
+          107.731483
+        ],
+        [
+          -6.674386,
+          107.731476
+        ],
+        [
+          -6.674445,
+          107.73147
+        ],
+        [
+          -6.674518,
+          107.731441
+        ],
+        [
+          -6.674626,
+          107.731395
+        ],
+        [
+          -6.675056,
+          107.731215
+        ],
+        [
+          -6.675111,
+          107.731204
+        ],
+        [
+          -6.675168,
+          107.731207
+        ],
+        [
+          -6.675241,
+          107.731207
+        ],
+        [
+          -6.675325,
+          107.731189
+        ],
+        [
+          -6.675494,
+          107.731109
+        ],
+        [
+          -6.675662,
+          107.731026
+        ],
+        [
+          -6.67586,
+          107.730889
+        ],
+        [
+          -6.675877,
+          107.730878
+        ],
+        [
+          -6.676052,
+          107.730713
+        ],
+        [
+          -6.676143,
+          107.730627
+        ],
+        [
+          -6.676146,
+          107.73062
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "db9d42b6-03ef-4d1c-b061-75e7e262667f",
+      "startNodeId": "6b436fe4-fddf-4d01-9813-04ca797bbd61",
+      "endNodeId": "e2b9ab60-8973-4abc-9ae6-81948e2b887f",
+      "length": 264.4,
+      "straightLength": 260.7,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.676146,
+          107.73062
+        ],
+        [
+          -6.676167,
+          107.730575
+        ],
+        [
+          -6.676174,
+          107.730531
+        ],
+        [
+          -6.676163,
+          107.730483
+        ],
+        [
+          -6.675888,
+          107.729792
+        ],
+        [
+          -6.675863,
+          107.729742
+        ],
+        [
+          -6.675822,
+          107.729696
+        ],
+        [
+          -6.675657,
+          107.729551
+        ],
+        [
+          -6.675623,
+          107.729514
+        ],
+        [
+          -6.675596,
+          107.729472
+        ],
+        [
+          -6.675482,
+          107.729271
+        ],
+        [
+          -6.675472,
+          107.729242
+        ],
+        [
+          -6.675467,
+          107.729217
+        ],
+        [
+          -6.675456,
+          107.729063
+        ],
+        [
+          -6.675452,
+          107.729033
+        ],
+        [
+          -6.675448,
+          107.72899
+        ],
+        [
+          -6.675357,
+          107.728446
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "bf662d4f-3305-4be0-bd6c-bc36599d4733",
+      "startNodeId": "85c2b2ac-47d5-4b26-970c-579bf3c73e84",
+      "endNodeId": "1ef8c74c-8385-4e65-ae90-c769d1dc4df5",
+      "length": 218.1,
+      "straightLength": 163.2,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.664479686120737,
+          107.72539973258974
+        ],
+        [
+          -6.664916595826849,
+          107.72513687610626
+        ],
+        [
+          -6.665039143601338,
+          107.72488474845888
+        ],
+        [
+          -6.665358833303643,
+          107.72476673126222
+        ],
+        [
+          -6.665774429605014,
+          107.7247452735901
+        ],
+        [
+          -6.66592361793496,
+          107.72513687610626
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "80ecb496-2f4a-490e-b6a1-ff96091975e6",
+      "startNodeId": "c92d2a36-415b-45f4-aebe-023f188ec803",
+      "endNodeId": "b39524b0-5770-41a1-b788-971296f5dfcd",
+      "length": 335.2,
+      "straightLength": 229,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.667218357605904,
+          107.72714853286745
+        ],
+        [
+          -6.667117122940046,
+          107.72667646408081
+        ],
+        [
+          -6.667005231969272,
+          107.72654771804811
+        ],
+        [
+          -6.666861372112161,
+          107.72657454013826
+        ],
+        [
+          -6.666770793661946,
+          107.72641360759737
+        ],
+        [
+          -6.666632261882186,
+          107.72615611553192
+        ],
+        [
+          -6.666584308564702,
+          107.72585570812227
+        ],
+        [
+          -6.66615272849612,
+          107.7260059118271
+        ],
+        [
+          -6.665950258703387,
+          107.7260595560074
+        ],
+        [
+          -6.665278910897602,
+          107.72645115852357
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "0858504b-7021-42b1-9305-c398ee269c3c",
+      "startNodeId": "5fcc0dba-68b8-4c78-9065-273942760a9d",
+      "endNodeId": "3d5fa7a0-5dd0-43f1-a6f0-c41daf37841d",
+      "length": 187.4,
+      "straightLength": 164.3,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.653127,
+          107.71865
+        ],
+        [
+          -6.653062,
+          107.718551
+        ],
+        [
+          -6.653165,
+          107.718468
+        ],
+        [
+          -6.653274,
+          107.718356
+        ],
+        [
+          -6.653312,
+          107.718313
+        ],
+        [
+          -6.653472,
+          107.718126
+        ],
+        [
+          -6.653644,
+          107.717914
+        ],
+        [
+          -6.653919,
+          107.717578
+        ],
+        [
+          -6.654031,
+          107.717443
+        ],
+        [
+          -6.654086,
+          107.717528
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "718eef13-018a-4c8a-89c9-673e114f9f89",
+      "startNodeId": "3d5fa7a0-5dd0-43f1-a6f0-c41daf37841d",
+      "endNodeId": "f99bc8b4-de48-4eaf-b202-5585a023ed38",
+      "length": 43.2,
+      "straightLength": 41.4,
+      "diameter": 100,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.654086,
+          107.717528
+        ],
+        [
+          -6.654031,
+          107.717443
+        ],
+        [
+          -6.654154,
+          107.717293
+        ],
+        [
+          -6.654212,
+          107.717217
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "36c3991d-73d3-460c-a971-01c9e3c3a8c9",
+      "startNodeId": "e5bcce28-bd1f-42ca-aca1-0e2e918ae605",
+      "endNodeId": "3d5fa7a0-5dd0-43f1-a6f0-c41daf37841d",
+      "length": 272.7,
+      "straightLength": 264.1,
+      "diameter": 50,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.654988,
+          107.719706
+        ],
+        [
+          -6.654942,
+          107.719693
+        ],
+        [
+          -6.654908,
+          107.719417
+        ],
+        [
+          -6.654871,
+          107.719283
+        ],
+        [
+          -6.654846,
+          107.719131
+        ],
+        [
+          -6.654812,
+          107.718903
+        ],
+        [
+          -6.654785,
+          107.718747
+        ],
+        [
+          -6.654778,
+          107.718702
+        ],
+        [
+          -6.654774,
+          107.718631
+        ],
+        [
+          -6.654777,
+          107.718498
+        ],
+        [
+          -6.654771,
+          107.718457
+        ],
+        [
+          -6.654766,
+          107.718439
+        ],
+        [
+          -6.654738,
+          107.718405
+        ],
+        [
+          -6.654708,
+          107.71838
+        ],
+        [
+          -6.654639,
+          107.718328
+        ],
+        [
+          -6.654584,
+          107.718285
+        ],
+        [
+          -6.654513,
+          107.718211
+        ],
+        [
+          -6.654396,
+          107.718053
+        ],
+        [
+          -6.654287,
+          107.717865
+        ],
+        [
+          -6.654164,
+          107.717648
+        ],
+        [
+          -6.654086,
+          107.717528
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    },
+    {
+      "id": "60346600-9675-4fd4-8a51-8d6b8e6d0fb8",
+      "startNodeId": "84167005-fa34-4a5b-872f-688f90111c4c",
+      "endNodeId": "3f0161fc-89d2-4ab0-8b27-8bf3b65ca8b6",
+      "length": 250.5,
+      "straightLength": 244.9,
+      "diameter": 200,
+      "roughness": 150,
+      "material": "PVC",
+      "routeCoordinates": [
+        [
+          -6.694412427508628,
+          107.73077487945558
+        ],
+        [
+          -6.6943058706260095,
+          107.73132205009462
+        ],
+        [
+          -6.6942312807943445,
+          107.73179948329927
+        ],
+        [
+          -6.694098084638007,
+          107.73221254348756
+        ],
+        [
+          -6.693916937807061,
+          107.73248076438905
+        ],
+        [
+          -6.6936239060264615,
+          107.73284554481508
+        ]
+      ],
+      "roadSide": "center",
+      "roadOffset": 3
+    }
+  ],
+  "pumps": [
+    {
+      "id": "3ac96880-169b-4812-a2ae-ac220857ca55",
+      "startNodeId": "deff5f2a-f31d-4f48-bf34-2b8f95506107",
+      "endNodeId": "d22a9bea-9369-4d92-ad4f-95663d97e2de",
+      "label": "PMP1",
+      "designFlow": 50,
+      "designHead": 90,
+      "speed": 1,
+      "status": "on",
+      "pumpCurve": [
+        {
+          "flow": 0,
+          "head": 119.7
+        },
+        {
+          "flow": 50,
+          "head": 90
+        },
+        {
+          "flow": 100,
+          "head": 0
+        }
+      ]
+    },
+    {
+      "id": "80d45484-67be-486a-87e2-3c9e5fa7ddb9",
+      "startNodeId": "f4104303-5351-4d39-b65a-5a0fb11d2c47",
+      "endNodeId": "09370981-1d16-4a58-8614-4b7cf0338144",
+      "label": "PMP2",
+      "designFlow": 50,
+      "designHead": 90,
+      "speed": 1,
+      "status": "on",
+      "pumpCurve": [
+        {
+          "flow": 0,
+          "head": 119.7
+        },
+        {
+          "flow": 50,
+          "head": 90
+        },
+        {
+          "flow": 100,
+          "head": 0
+        }
+      ]
+    }
+  ]
+}

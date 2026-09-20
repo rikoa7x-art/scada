@@ -62,12 +62,35 @@
             <h1 class="font-bold text-sm sm:text-base md:text-lg tracking-wide truncate">SPAM PDAM DEBIT</h1>
             <span class="text-[9px] sm:text-[10px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 px-1.5 py-0.5 rounded-full font-semibold uppercase hidden xs:inline">Hazen-Williams</span>
           </div>
-          <p class="text-[10px] sm:text-xs text-slate-300 truncate">Bunihayu &bull; Monitoring Tekanan & Debit Pipa</p>
+          <p id="appSubtitle" class="text-[10px] sm:text-xs text-slate-300 truncate">Bunihayu &bull; Monitoring Tekanan & Debit Pipa</p>
         </div>
       </div>
 
       <!-- Action Buttons & Quick Controls -->
       <div class="flex items-center gap-1.5 sm:gap-2 flex-none">
+        <!-- Selector Wilayah SPAM Terpadu (9 Wilayah) -->
+        <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-800/95 px-2 py-1 rounded-lg border border-slate-700/80 shadow-xs text-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="text-slate-400 font-semibold hidden lg:inline text-[11px]">Wilayah:</span>
+          <select id="selectRegion" class="bg-slate-900 text-sky-300 hover:text-white font-bold text-[11px] sm:text-xs focus:outline-hidden cursor-pointer rounded border-0 max-w-[125px] sm:max-w-[165px] truncate" title="Pilih Wilayah SPAM PDAM Kabupaten Subang">
+            <option value="bunihayu">Bunihayu (17 Simpul)</option>
+            <option value="cisalak">Cisalak (203 Simpul)</option>
+            <option value="jalancagak">Jalancagak (35 Simpul)</option>
+            <option value="kasomalang">Kasomalang (91 Simpul)</option>
+            <option value="pabuaran">Pabuaran (290 Simpul)</option>
+            <option value="sagalaherang">Sagalaherang (211 Simpul)</option>
+            <option value="subang">Subang Kota (314 Simpul)</option>
+            <option value="tambakan">Tambakan (13 Simpul)</option>
+            <option value="tanjungsiang">Tanjungsiang (272 Simpul)</option>
+          </select>
+        </div>
+
+        <!-- Indikator Status Cloud Supabase -->
+        <button id="btnCloudStatus" class="flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 px-2 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-colors cursor-pointer" title="Status Koneksi Server Supabase SCADA (Klik untuk Re-Sync)">
+          <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-none"></span>
+          <span id="cloudStatusText" class="hidden sm:inline text-[11px] font-mono">Cloud Aktif</span>
+        </button>
+
         <!-- Tombol Setting Sumber: Pompa & Gravitasi -->
         <button id="btnSourceSettings" class="flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500 text-white text-xs px-2 sm:px-2.5 py-1.5 rounded-lg font-medium shadow-xs border border-indigo-400/30 transition-all cursor-pointer active-press" title="Edit Kapasitas Head & Debit Pompa atau Pengaliran Gravitasi Reservoir">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-200 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -127,8 +150,8 @@
 
     </div>
 
-    <!-- Sub-Header: Mode Switcher Responsive -->
-    <div class="mt-2 flex items-center justify-between gap-2">
+    <!-- Sub-Header: Mode Switcher & Cloud Quick Sync Responsive -->
+    <div class="mt-2 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
       <div class="flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 text-xs w-full sm:w-auto">
         <button id="btnModeDemand" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold transition-all bg-emerald-600 text-white shadow-xs flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode EPANET: Input Demand">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
@@ -137,6 +160,14 @@
         <button id="btnModePressure" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode Lapangan: Input Tekanan Manometer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           <span>Tekanan Lapangan</span>
+        </button>
+      </div>
+
+      <!-- Quick Cloud Sync Button -->
+      <div class="flex items-center gap-2">
+        <button id="btnSyncCloud" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded-lg border border-slate-700 font-medium transition-colors cursor-pointer active-press" title="Tarik pembaruan data tekanan terkini dari server Supabase">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span class="text-[11px]">Sync Cloud</span>
         </button>
       </div>
     </div>
@@ -182,6 +213,46 @@
       </div>
 
       <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto text-xs">
+        <!-- Wilayah Selector Mobile -->
+        <div class="bg-blue-50/70 p-3 rounded-xl border border-blue-200">
+          <label class="block font-bold text-blue-900 mb-1.5 flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>Pilih Wilayah SPAM:</span>
+          </label>
+          <select id="selectRegionMobile" class="w-full bg-white border border-blue-300 text-blue-900 rounded-lg p-2 font-bold focus:ring-2 focus:ring-blue-500">
+            <option value="bunihayu">SPAM Bunihayu (17 Simpul)</option>
+            <option value="cisalak">SPAM Cisalak (203 Simpul)</option>
+            <option value="jalancagak">SPAM Jalancagak (35 Simpul)</option>
+            <option value="kasomalang">SPAM Kasomalang (91 Simpul)</option>
+            <option value="pabuaran">SPAM Pabuaran (290 Simpul)</option>
+            <option value="sagalaherang">SPAM Sagalaherang (211 Simpul)</option>
+            <option value="subang">SPAM Subang Kota (314 Simpul)</option>
+            <option value="tambakan">SPAM Tambakan (13 Simpul)</option>
+            <option value="tanjungsiang">SPAM Tanjungsiang (272 Simpul)</option>
+          </select>
+        </div>
+
+        <!-- Supabase Cloud Sync Actions Mobile -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-700 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Supabase Cloud SCADA</span>
+            </span>
+            <span id="cloudStatusBadgeMobile" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Terhubung</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="btnSyncCloudMobile" class="flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white p-2 rounded-lg font-bold active-press text-[11px]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Sync Tekanan</span>
+            </button>
+            <button id="btnSaveTopologyCloudMobile" class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-lg font-bold active-press text-[11px]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Backup Cloud</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Base Layer Selector Mobile -->
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
           <label class="block font-bold text-slate-700 mb-1.5">🗺️ Tipe Peta Dasar:</label>
@@ -789,8 +860,10 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT MODULES -->
+  <!-- SUPABASE & JAVASCRIPT MODULES -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
+  <script src="js/supabase_client.js"></script>
   <script src="js/hydraulic_engine.js"></script>
   <script src="js/map_manager.js"></script>
   <script src="js/chart_controller.js"></script>

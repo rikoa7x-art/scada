@@ -613,12 +613,19 @@ const MapManager = (() => {
   }
 
   /**
-   * Zoom ke keseluruhan jaringan
+   * Zoom ke keseluruhan jaringan pipa & titik simpul
    */
   function fitNetworkBounds() {
-    if (!map || !pipeLayersGroup || pipeLayersGroup.getLayers().length === 0) return;
-    const bounds = pipeLayersGroup.getBounds();
-    map.fitBounds(bounds, { padding: [40, 40] });
+    if (!map) return;
+    let bounds = null;
+    if (pipeLayersGroup && pipeLayersGroup.getLayers().length > 0) {
+      bounds = pipeLayersGroup.getBounds();
+    } else if (nodeLayersGroup && nodeLayersGroup.getLayers().length > 0) {
+      bounds = nodeLayersGroup.getBounds();
+    }
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+    }
   }
 
   /**

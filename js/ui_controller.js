@@ -12,10 +12,61 @@ const UIController = (() => {
   /**
    * Inisialisasi Event Listener UI
    */
-  function init({ onSavePressure, onDeletePressure, onResetData, onLoadSampleData, onSolveNetwork, onExportCSV, onUploadJSON, onSaveSourceConfig }) {
+  function init({ 
+    onSavePressure, 
+    onDeletePressure, 
+    onResetData, 
+    onLoadSampleData, 
+    onSolveNetwork, 
+    onExportCSV, 
+    onUploadJSON, 
+    onSaveSourceConfig,
+    onSelectRegion,
+    onSyncCloud,
+    onBackupTopology
+  }) {
     onSavePressureCallback = onSavePressure;
     onDeletePressureCallback = onDeletePressure;
     onSaveSourceConfigCallback = onSaveSourceConfig;
+
+    // Pemilih Wilayah SPAM (Desktop & Mobile)
+    const selectRegion = document.getElementById('selectRegion');
+    const selectRegionMobile = document.getElementById('selectRegionMobile');
+
+    if (selectRegion) {
+      selectRegion.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (selectRegionMobile) selectRegionMobile.value = val;
+        if (onSelectRegion) onSelectRegion(val);
+      });
+    }
+
+    if (selectRegionMobile) {
+      selectRegionMobile.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (selectRegion) selectRegion.value = val;
+        document.getElementById('mobileActionMenu')?.classList.add('hidden');
+        if (onSelectRegion) onSelectRegion(val);
+      });
+    }
+
+    // Tombol Cloud Sync & Status
+    document.getElementById('btnSyncCloud')?.addEventListener('click', () => {
+      if (onSyncCloud) onSyncCloud();
+    });
+    document.getElementById('btnSyncCloudMobile')?.addEventListener('click', () => {
+      document.getElementById('mobileActionMenu')?.classList.add('hidden');
+      if (onSyncCloud) onSyncCloud();
+    });
+    document.getElementById('btnCloudStatus')?.addEventListener('click', () => {
+      if (onSyncCloud) onSyncCloud();
+    });
+
+    // Tombol Backup Topologi ke Cloud (Mobile)
+    document.getElementById('btnSaveTopologyCloudMobile')?.addEventListener('click', () => {
+      document.getElementById('mobileActionMenu')?.classList.add('hidden');
+      if (onBackupTopology) onBackupTopology();
+    });
 
     // Tombol di Header / Toolbar
     document.getElementById('btnLoadSample')?.addEventListener('click', onLoadSampleData);
@@ -997,10 +1048,108 @@ const UIController = (() => {
   }
 
   /**
-   * Cetak Laporan Pengawasan Debit (Print to PDF / Printer)
+   * Tampilkan Toast Feedback Notifikasi Elegan
    */
-  function printReport() {
-    window.print();
+  function showToast(message, type = 'info') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toast-container';
+      container.className = 'fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0';
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    const bgColors = {
+      success: 'bg-emerald-700 text-white border-emerald-500',
+      info: 'bg-slate-800 text-white border-slate-700',
+      warning: 'bg-amber-600 text-white border-amber-400',
+      error: 'bg-red-600 text-white border-red-400'
+    };
+
+    toast.className = `p-3 rounded-xl shadow-xl text-xs font-semibold border flex items-center justify-between pointer-events-auto transition-all transform duration-300 translate-y-2 opacity-0 ${bgColors[type] || bgColors.info}`;
+    toast.innerHTML = `<span class="flex-1 pr-2">${message}</span><button class="text-white/80 hover:text-white font-bold text-base leading-none">&times;</button>`;
+    
+    toast.querySelector('button')?.addEventListener('click', () => toast.remove());
+
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.remove('translate-y-2', 'opacity-0');
+    }, 10);
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  /**
+   * Perbarui Status Indikator Cloud Supabase pada Desktop & Mobile
+   */
+  function updateCloudStatus(status) {
+    const dot = document.getElementById('cloudStatusDot');
+    const text = document.getElementById('cloudStatusText');
+    const badgeMobile = document.getElementById('cloudStatusBadgeMobile');
+    const btnStatus = document.getElementById('btnCloudStatus');
+
+    if (!dot || !text) return;
+
+    if (status === 'connected') {
+      dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-none';
+      text.innerText = 'Cloud Aktif';
+      text.className = 'hidden sm:inline text-[11px] font-mono text-emerald-400';
+      if (btnStatus) {
+        btnStatus.className = 'flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 px-2 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-colors cursor-pointer';
+        btnStatus.title = 'Terhubung ke Supabase SCADA Server (Real-Time Aktif)';
+      }
+      if (badgeMobile) {
+        badgeMobile.innerText = 'Terhubung';
+        badgeMobile.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold';
+      }
+    } else if (status === 'syncing') {
+      dot.className = 'w-2 h-2 rounded-full bg-sky-400 animate-ping flex-none';
+      text.innerText = 'Sinkronisasi...';
+      text.className = 'hidden sm:inline text-[11px] font-mono text-sky-400';
+      if (badgeMobile) {
+        badgeMobile.innerText = 'Syncing...';
+        badgeMobile.className = 'text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold';
+      }
+    } else if (status === 'offline') {
+      dot.className = 'w-2 h-2 rounded-full bg-amber-400 flex-none';
+      text.innerText = 'Offline (Lokal)';
+      text.className = 'hidden sm:inline text-[11px] font-mono text-amber-400';
+      if (btnStatus) {
+        btnStatus.className = 'flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-2 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-colors cursor-pointer';
+        btnStatus.title = 'Mode Offline: Menggunakan penyimpanan lokal perangkat';
+      }
+      if (badgeMobile) {
+        badgeMobile.innerText = 'Offline';
+        badgeMobile.className = 'text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold';
+      }
+    } else {
+      dot.className = 'w-2 h-2 rounded-full bg-red-400 flex-none';
+      text.innerText = 'Error Cloud';
+      text.className = 'hidden sm:inline text-[11px] font-mono text-red-400';
+      if (badgeMobile) {
+        badgeMobile.innerText = 'Error';
+        badgeMobile.className = 'text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold';
+      }
+    }
+  }
+
+  /**
+   * Set Pilihan Wilayah Aktif di Antarmuka
+   */
+  function setActiveRegionDisplay(regionId, regionName) {
+    const sel = document.getElementById('selectRegion');
+    const selMob = document.getElementById('selectRegionMobile');
+    const subtitle = document.getElementById('appSubtitle');
+
+    if (sel) sel.value = regionId;
+    if (selMob) selMob.value = regionId;
+    if (subtitle) {
+      subtitle.innerHTML = `<strong>${regionName}</strong> &bull; Monitoring Tekanan & Debit Pipa`;
+    }
   }
 
   return {
@@ -1014,7 +1163,10 @@ const UIController = (() => {
     updateSummaryCards,
     renderPipesTable,
     renderJunctionsSidebarTable,
-    renderSequentialFlowTable
+    renderSequentialFlowTable,
+    updateCloudStatus,
+    setActiveRegionDisplay,
+    showToast
   };
 })();
 

@@ -517,117 +517,239 @@ const HydraulicEngine = (() => {
     });
 
     // 2. Hitung debit pada setiap pipa berdasarkan kontinuitas aliran & setting sumber
+    // 2. Hitung debit pada setiap pipa berdasarkan kontinuitas aliran & setting sumber
     const transmissionFlow = configuredSupplyFlow > 0 ? configuredSupplyFlow : 10;
+    const isBunihayu = networkData.projectName === 'epanet_bunihayu' && networkData.pipes.some(p => p.id === '479ed69a-bcf8-4840-81a3-5e4ee8385d96');
 
-    // Alokasi pembagian aliran hilir dari J51
-    const d_52 = demands['0d39211f-43c5-41a7-9b19-6a4db19343fe'] || 0; // J52
-    const q_52_53 = demands['9f08c84a-093d-41db-981c-435f94c93451'] || 0; // J53 dead end
-    const d_51 = demands['9ed2dbf0-747d-45a5-aede-554e5c56e590'] || 0; // J51
+    const pipeFlowMap = {};
+    const nodeHeads = {};
+    const pipeDirMap = {};
 
-    // Sisa aliran yang menuju titik temu J54
-    const availableForLoop = Math.max(0, transmissionFlow - d_51);
-    let q_54_total = Math.max(0, availableForLoop - d_52 - q_52_53);
-    if (q_54_total <= 0 && availableForLoop > 0) {
-      q_54_total = availableForLoop * 0.2; // minimal 20% mengalir ke loop cabang bawah
-    }
-
-    // Selesaikan pembagian aliran loop J51-J52-J54 dan J51-J60-J54
     function calcPipeLoss(L, D_mm, C, Q_lps) {
       if (Q_lps <= 0) return 0;
       const R = calculateResistance(L, D_mm, C);
       return R * Math.pow(Q_lps / 1000.0, 1.852);
     }
 
-    let low = 0.0, high = Math.max(q_54_total, 1.0);
-    for (let i = 0; i < 40; i++) {
-      const mid = (low + high) / 2.0;
-      const q_60 = mid;
-      const q_52_54 = q_54_total - mid;
+    if (isBunihayu) {
+      // Skenario Spesifik Bunihayu (Calibrated Loop Solver)
+      const d_52 = demands['0d39211f-43c5-41a7-9b19-6a4db19343fe'] || 0; // J52
+      const q_52_53 = demands['9f08c84a-093d-41db-981c-435f94c93451'] || 0; // J53 dead end
+      const d_51 = demands['9ed2dbf0-747d-45a5-aede-554e5c56e590'] || 0; // J51
+
+      const availableForLoop = Math.max(0, transmissionFlow - d_51);
+      let q_54_total = Math.max(0, availableForLoop - d_52 - q_52_53);
+      if (q_54_total <= 0 && availableForLoop > 0) {
+        q_54_total = availableForLoop * 0.2;
+      }
+
+      let low = 0.0, high = Math.max(q_54_total, 1.0);
+      for (let i = 0; i < 40; i++) {
+        const mid = (low + high) / 2.0;
+        const q_60 = mid;
+        const q_52_54 = q_54_total - mid;
+        const q_51_52 = q_52_53 + d_52 + q_52_54;
+
+        const hf_b = calcPipeLoss(522.1, 63, 140, q_60) + calcPipeLoss(479.9, 63, 140, q_60);
+        const hf_a = calcPipeLoss(718.2, 110, 140, q_51_52) + calcPipeLoss(419.6, 110, 140, Math.abs(q_52_54)) * (q_52_54 >= 0 ? 1 : -1);
+
+        if (hf_b > hf_a) high = mid;
+        else low = mid;
+      }
+
+      const q_loop = (low + high) / 2.0;
+      const q_51_60 = q_loop;
+      const q_60_54 = q_loop;
+      const q_52_54 = q_54_total - q_loop;
       const q_51_52 = q_52_53 + d_52 + q_52_54;
 
-      const hf_b = calcPipeLoss(522.1, 63, 140, q_60) + calcPipeLoss(479.9, 63, 140, q_60);
-      const hf_a = calcPipeLoss(718.2, 110, 140, q_51_52) + calcPipeLoss(419.6, 110, 140, Math.abs(q_52_54)) * (q_52_54 >= 0 ? 1 : -1);
+      const d_54 = demands['62756c9d-a03d-43d8-8c9b-ee1b0f1a9c96'] || 0;
+      const q_54_57 = Math.max(0, q_54_total - d_54);
+      const d_57 = demands['c834078f-45f9-4755-93a8-3550467a280d'] || 0;
+      const d_58 = demands['b19ee0ac-c4c9-4022-bff8-566f9df956fe'] || 0;
+      const q_57_58 = d_58 > 0 ? d_58 : (q_54_57 * 0.2);
+      const q_57_55 = Math.max(0, q_54_57 - d_57 - q_57_58);
+      const d_55 = demands['787ddb48-0fa4-416d-86aa-cc114d79c8f2'] || 0;
+      const d_56 = demands['9253adcd-12d5-45f5-ad94-c71872e906b7'] || 0;
+      const d_59 = demands['c70fdc26-52bf-4662-88c6-0eabbdd79af2'] || 0;
+      const q_55_avail = Math.max(0, q_57_55 - d_55);
+      const q_55_56 = d_56 > 0 ? d_56 : (q_55_avail * 0.5);
+      const q_55_59 = d_59 > 0 ? d_59 : (q_55_avail * 0.5);
 
-      if (hf_b > hf_a) high = mid;
-      else low = mid;
+      Object.assign(pipeFlowMap, {
+        '479ed69a-bcf8-4840-81a3-5e4ee8385d96': transmissionFlow,
+        '81e1a587-6808-4a01-8be5-48fe5ac34056': transmissionFlow,
+        '85f2a757-1c5d-427f-8de6-1df2a0ece9c6': transmissionFlow,
+        '4c5a822c-8659-4c50-bc4e-ffb8e393628e': transmissionFlow,
+        'f11970a1-22a6-4b11-9444-8286066d1b2d': transmissionFlow,
+        '03d43fb6-5a43-40f9-ba5b-bc42247ec4af': transmissionFlow,
+        'd0fe3ac1-20ae-49a4-897e-335d75438372': q_51_52,
+        '93a79cf3-9be5-478a-bfde-09883f9a3457': q_51_60,
+        '73848f69-a231-491f-a781-ad5f6afe7d00': q_60_54,
+        '4fbdc4e1-263e-450e-98bb-7c5e7a2ebe2b': q_52_54,
+        'a93607f6-a596-4627-99b5-bdbbc70ed5b6': q_52_53,
+        '3255c7e6-549a-4042-8bc8-4fc0f70c660e': q_54_57,
+        '8a5f47b4-09f3-42a4-8461-5fb95007fcb8': q_57_58,
+        '514a0ca9-7879-4db2-9d24-04c28fcc4d97': q_57_55,
+        '0826ca95-e981-4989-befd-eca39e01f637': q_55_56,
+        'd430417f-44f4-46b5-8129-a6d153e8481e': q_55_59
+      });
+
+      const resHead = resElevation;
+      const j66Head = resHead + pumpHeadAdd;
+      nodeHeads[reservoir.id] = resHead;
+      nodeHeads['4d432f14-ea0c-4c60-a73c-ebb8e2003ed5'] = j66Head;
+
+      function stepLoss(pId, startNodeId, endNodeId) {
+        const p = networkData.pipes.find(pipe => pipe.id === pId);
+        if (!p) return 0;
+        const q = pipeFlowMap[pId] || 0;
+        const hf = calcPipeLoss(Number(p.length), Number(p.diameter), Number(p.roughness) || 140, q);
+        nodeHeads[endNodeId] = nodeHeads[startNodeId] - hf;
+        return hf;
+      }
+
+      stepLoss('479ed69a-bcf8-4840-81a3-5e4ee8385d96', '4d432f14-ea0c-4c60-a73c-ebb8e2003ed5', 'e9ca15c2-2ad5-4532-b51b-966129d3dc52');
+      stepLoss('81e1a587-6808-4a01-8be5-48fe5ac34056', 'e9ca15c2-2ad5-4532-b51b-966129d3dc52', '4c6eb5c9-bbdc-4fc7-b29a-a5045b48d829');
+      stepLoss('85f2a757-1c5d-427f-8de6-1df2a0ece9c6', '4c6eb5c9-bbdc-4fc7-b29a-a5045b48d829', '6091ca2a-c2e2-4660-ab1e-07f67a07564a');
+      stepLoss('4c5a822c-8659-4c50-bc4e-ffb8e393628e', '6091ca2a-c2e2-4660-ab1e-07f67a07564a', 'c050b469-4d7f-4b49-8e78-142356877ca1');
+      stepLoss('f11970a1-22a6-4b11-9444-8286066d1b2d', 'c050b469-4d7f-4b49-8e78-142356877ca1', 'b223d3e7-a625-4080-8b3f-f22eb5ca7bb8');
+      stepLoss('03d43fb6-5a43-40f9-ba5b-bc42247ec4af', 'b223d3e7-a625-4080-8b3f-f22eb5ca7bb8', '9ed2dbf0-747d-45a5-aede-554e5c56e590');
+      stepLoss('93a79cf3-9be5-478a-bfde-09883f9a3457', '9ed2dbf0-747d-45a5-aede-554e5c56e590', '4d3d91ae-6e06-4a3d-abb8-2105fdd0ca39');
+      stepLoss('73848f69-a231-491f-a781-ad5f6afe7d00', '4d3d91ae-6e06-4a3d-abb8-2105fdd0ca39', '62756c9d-a03d-43d8-8c9b-ee1b0f1a9c96');
+      stepLoss('d0fe3ac1-20ae-49a4-897e-335d75438372', '9ed2dbf0-747d-45a5-aede-554e5c56e590', '0d39211f-43c5-41a7-9b19-6a4db19343fe');
+      stepLoss('a93607f6-a596-4627-99b5-bdbbc70ed5b6', '0d39211f-43c5-41a7-9b19-6a4db19343fe', '9f08c84a-093d-41db-981c-435f94c93451');
+      stepLoss('3255c7e6-549a-4042-8bc8-4fc0f70c660e', '62756c9d-a03d-43d8-8c9b-ee1b0f1a9c96', 'c834078f-45f9-4755-93a8-3550467a280d');
+      stepLoss('8a5f47b4-09f3-42a4-8461-5fb95007fcb8', 'c834078f-45f9-4755-93a8-3550467a280d', 'b19ee0ac-c4c9-4022-bff8-566f9df956fe');
+      stepLoss('514a0ca9-7879-4db2-9d24-04c28fcc4d97', 'c834078f-45f9-4755-93a8-3550467a280d', '787ddb48-0fa4-416d-86aa-cc114d79c8f2');
+      stepLoss('0826ca95-e981-4989-befd-eca39e01f637', '787ddb48-0fa4-416d-86aa-cc114d79c8f2', '9253adcd-12d5-45f5-ad94-c71872e906b7');
+      stepLoss('d430417f-44f4-46b5-8129-a6d153e8481e', '787ddb48-0fa4-416d-86aa-cc114d79c8f2', 'c70fdc26-52bf-4662-88c6-0eabbdd79af2');
+
+    } else {
+      // Solver Universal untuk SELURUH 8 Wilayah Lainnya (Cisalak, Subang, Pabuaran, dll)
+      const resHead = resElevation;
+      nodeHeads[reservoir.id] = resHead;
+
+      let rootNodeId = reservoir.id;
+      let rootHead = resHead;
+
+      if (pump && pump.endNodeId) {
+        rootNodeId = pump.endNodeId;
+        rootHead = resHead + pumpHeadAdd;
+        nodeHeads[rootNodeId] = rootHead;
+      }
+
+      // Adjacency List Graf
+      const adj = new Map();
+      networkData.nodes.forEach(n => adj.set(n.id, []));
+      networkData.pipes.forEach(pipe => {
+        if (!adj.has(pipe.startNodeId)) adj.set(pipe.startNodeId, []);
+        if (!adj.has(pipe.endNodeId)) adj.set(pipe.endNodeId, []);
+        adj.get(pipe.startNodeId).push({ pipe, nextNodeId: pipe.endNodeId, isForward: true });
+        adj.get(pipe.endNodeId).push({ pipe, nextNodeId: pipe.startNodeId, isForward: false });
+      });
+
+      // BFS Pohon Rentang dari Root
+      const depth = new Map();
+      const parentPipe = new Map();
+      const queue = [rootNodeId];
+      depth.set(rootNodeId, 0);
+
+      while (queue.length > 0) {
+        const u = queue.shift();
+        const currentDepth = depth.get(u);
+        const edges = adj.get(u) || [];
+
+        edges.forEach(edge => {
+          const v = edge.nextNodeId;
+          if (!depth.has(v)) {
+            depth.set(v, currentDepth + 1);
+            parentPipe.set(v, edge.pipe.id);
+            pipeDirMap[edge.pipe.id] = edge.isForward ? 'forward' : 'backward';
+            queue.push(v);
+          }
+        });
+      }
+
+      // Akumulasi Demand Hilir ke Hulu
+      const nodesSortedByDepth = Array.from(depth.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(entry => entry[0]);
+
+      const subtreeDemand = new Map();
+      let sumAllDemands = 0;
+      networkData.nodes.forEach(n => {
+        const d = demands[n.id] || 0;
+        subtreeDemand.set(n.id, d);
+        sumAllDemands += d;
+      });
+
+      const baseSupply = configuredSupplyFlow > 0 ? configuredSupplyFlow : 20;
+
+      nodesSortedByDepth.forEach(u => {
+        const pId = parentPipe.get(u);
+        if (pId) {
+          const pipe = networkData.pipes.find(p => p.id === pId);
+          if (pipe) {
+            const parentNodeId = (pipe.startNodeId === u) ? pipe.endNodeId : pipe.startNodeId;
+            const currentSubtree = subtreeDemand.get(u) || 0;
+            const parentSubtree = subtreeDemand.get(parentNodeId) || 0;
+            subtreeDemand.set(parentNodeId, parentSubtree + currentSubtree);
+          }
+        }
+      });
+
+      // Tetapkan debit pipa
+      networkData.pipes.forEach(pipe => {
+        const dStart = depth.get(pipe.startNodeId) ?? 999999;
+        const dEnd = depth.get(pipe.endNodeId) ?? 999999;
+        const downstreamNodeId = dStart < dEnd ? pipe.endNodeId : pipe.startNodeId;
+
+        let q = 0;
+        if (sumAllDemands > 0) {
+          const subDem = subtreeDemand.get(downstreamNodeId) || 0;
+          const scale = baseSupply > sumAllDemands ? (baseSupply / sumAllDemands) : 1;
+          q = subDem * scale;
+        } else {
+          const D = Number(pipe.diameter) || 100;
+          const L = Math.max(1, Number(pipe.length) || 100);
+          const dLevel = depth.get(downstreamNodeId) || 1;
+          const decay = 1.0 / Math.pow(dLevel, 0.4);
+          q = Math.max(0.2, baseSupply * decay * (Math.pow(D / 100, 2)));
+        }
+
+        pipeFlowMap[pipe.id] = Math.max(0.05, Math.round(q * 100) / 100);
+        if (!pipeDirMap[pipe.id]) {
+          pipeDirMap[pipe.id] = dStart <= dEnd ? 'forward' : 'backward';
+        }
+      });
+
+      // Propagasi Head Maju dari Root
+      const forwardQueue = [rootNodeId];
+      const visitedNodes = new Set([rootNodeId]);
+
+      while (forwardQueue.length > 0) {
+        const u = forwardQueue.shift();
+        const uHead = nodeHeads[u] !== undefined ? nodeHeads[u] : rootHead;
+        const edges = adj.get(u) || [];
+
+        edges.forEach(edge => {
+          const v = edge.nextNodeId;
+          if (!visitedNodes.has(v)) {
+            visitedNodes.add(v);
+            const pipe = edge.pipe;
+            const q = pipeFlowMap[pipe.id] || 0.1;
+            const L = Math.max(1, Number(pipe.length) || 100);
+            const D = Number(pipe.diameter) || 100;
+            const C = Number(pipe.roughness) || 140;
+            const hf = calcPipeLoss(L, D, C, q);
+
+            nodeHeads[v] = Math.max((Number(networkData.nodes.find(n => n.id === v)?.elevation) || 0) + 1, uHead - hf);
+            forwardQueue.push(v);
+          }
+        });
+      }
     }
-
-    const q_loop = (low + high) / 2.0;
-    const q_51_60 = q_loop;
-    const q_60_54 = q_loop;
-    const q_52_54 = q_54_total - q_loop;
-    const q_51_52 = q_52_53 + d_52 + q_52_54;
-
-    // Aliran hilir J54
-    const d_54 = demands['62756c9d-a03d-43d8-8c9b-ee1b0f1a9c96'] || 0;
-    const q_54_57 = Math.max(0, q_54_total - d_54);
-    const d_57 = demands['c834078f-45f9-4755-93a8-3550467a280d'] || 0;
-    const d_58 = demands['b19ee0ac-c4c9-4022-bff8-566f9df956fe'] || 0;
-    const q_57_58 = d_58 > 0 ? d_58 : (q_54_57 * 0.2);
-    const q_57_55 = Math.max(0, q_54_57 - d_57 - q_57_58);
-    const d_55 = demands['787ddb48-0fa4-416d-86aa-cc114d79c8f2'] || 0;
-    const d_56 = demands['9253adcd-12d5-45f5-ad94-c71872e906b7'] || 0;
-    const d_59 = demands['c70fdc26-52bf-4662-88c6-0eabbdd79af2'] || 0;
-    const q_55_avail = Math.max(0, q_57_55 - d_55);
-    const q_55_56 = d_56 > 0 ? d_56 : (q_55_avail * 0.5);
-    const q_55_59 = d_59 > 0 ? d_59 : (q_55_avail * 0.5);
-
-    // Mapping debit ke masing-masing pipa
-    const pipeFlowMap = {
-      '479ed69a-bcf8-4840-81a3-5e4ee8385d96': transmissionFlow, // J66 -> J46
-      '81e1a587-6808-4a01-8be5-48fe5ac34056': transmissionFlow, // J46 -> J47
-      '85f2a757-1c5d-427f-8de6-1df2a0ece9c6': transmissionFlow, // J47 -> J48
-      '4c5a822c-8659-4c50-bc4e-ffb8e393628e': transmissionFlow, // J48 -> J49
-      'f11970a1-22a6-4b11-9444-8286066d1b2d': transmissionFlow, // J49 -> J50
-      '03d43fb6-5a43-40f9-ba5b-bc42247ec4af': transmissionFlow, // J50 -> J51
-      'd0fe3ac1-20ae-49a4-897e-335d75438372': q_51_52,          // J51 -> J52
-      '93a79cf3-9be5-478a-bfde-09883f9a3457': q_51_60,          // J51 -> J60
-      '73848f69-a231-491f-a781-ad5f6afe7d00': q_60_54,          // J60 -> J54
-      '4fbdc4e1-263e-450e-98bb-7c5e7a2ebe2b': q_52_54,          // J52 -> J54
-      'a93607f6-a596-4627-99b5-bdbbc70ed5b6': q_52_53,          // J52 -> J53
-      '3255c7e6-549a-4042-8bc8-4fc0f70c660e': q_54_57,          // J54 -> J57
-      '8a5f47b4-09f3-42a4-8461-5fb95007fcb8': q_57_58,          // J57 -> J58
-      '514a0ca9-7879-4db2-9d24-04c28fcc4d97': q_57_55,          // J57 -> J55
-      '0826ca95-e981-4989-befd-eca39e01f637': q_55_56,          // J55 -> J56
-      'd430417f-44f4-46b5-8129-a6d153e8481e': q_55_59           // J55 -> J59
-    };
-
-    // 3. Propagasi Head dan Tekanan dari Reservoir & Pompa
-    const resHead = resElevation;
-    const j66Head = resHead + pumpHeadAdd;
-
-    const nodeHeads = {};
-    nodeHeads[reservoir.id] = resHead;
-    nodeHeads['4d432f14-ea0c-4c60-a73c-ebb8e2003ed5'] = j66Head; // J66
-
-    // Selesaikan head berurutan sepanjang pipa transmisi
-    function stepLoss(pId, startNodeId, endNodeId) {
-      const p = networkData.pipes.find(pipe => pipe.id === pId);
-      const q = pipeFlowMap[pId] || 0;
-      const hf = calcPipeLoss(Number(p.length), Number(p.diameter), Number(p.roughness) || 140, q);
-      nodeHeads[endNodeId] = nodeHeads[startNodeId] - hf;
-      return hf;
-    }
-
-    stepLoss('479ed69a-bcf8-4840-81a3-5e4ee8385d96', '4d432f14-ea0c-4c60-a73c-ebb8e2003ed5', 'e9ca15c2-2ad5-4532-b51b-966129d3dc52'); // J66 -> J46
-    stepLoss('81e1a587-6808-4a01-8be5-48fe5ac34056', 'e9ca15c2-2ad5-4532-b51b-966129d3dc52', '4c6eb5c9-bbdc-4fc7-b29a-a5045b48d829'); // J46 -> J47
-    stepLoss('85f2a757-1c5d-427f-8de6-1df2a0ece9c6', '4c6eb5c9-bbdc-4fc7-b29a-a5045b48d829', '6091ca2a-c2e2-4660-ab1e-07f67a07564a'); // J47 -> J48
-    stepLoss('4c5a822c-8659-4c50-bc4e-ffb8e393628e', '6091ca2a-c2e2-4660-ab1e-07f67a07564a', 'c050b469-4d7f-4b49-8e78-142356877ca1'); // J48 -> J49
-    stepLoss('f11970a1-22a6-4b11-9444-8286066d1b2d', 'c050b469-4d7f-4b49-8e78-142356877ca1', 'b223d3e7-a625-4080-8b3f-f22eb5ca7bb8'); // J49 -> J50
-    stepLoss('03d43fb6-5a43-40f9-ba5b-bc42247ec4af', 'b223d3e7-a625-4080-8b3f-f22eb5ca7bb8', '9ed2dbf0-747d-45a5-aede-554e5c56e590'); // J50 -> J51
-
-    // Cabang J51
-    stepLoss('93a79cf3-9be5-478a-bfde-09883f9a3457', '9ed2dbf0-747d-45a5-aede-554e5c56e590', '4d3d91ae-6e06-4a3d-abb8-2105fdd0ca39'); // J51 -> J60
-    stepLoss('73848f69-a231-491f-a781-ad5f6afe7d00', '4d3d91ae-6e06-4a3d-abb8-2105fdd0ca39', '62756c9d-a03d-43d8-8c9b-ee1b0f1a9c96'); // J60 -> J54
-    stepLoss('d0fe3ac1-20ae-49a4-897e-335d75438372', '9ed2dbf0-747d-45a5-aede-554e5c56e590', '0d39211f-43c5-41a7-9b19-6a4db19343fe'); // J51 -> J52
-    stepLoss('a93607f6-a596-4627-99b5-bdbbc70ed5b6', '0d39211f-43c5-41a7-9b19-6a4db19343fe', '9f08c84a-093d-41db-981c-435f94c93451'); // J52 -> J53
-
-    // Hilir J54
-    stepLoss('3255c7e6-549a-4042-8bc8-4fc0f70c660e', '62756c9d-a03d-43d8-8c9b-ee1b0f1a9c96', 'c834078f-45f9-4755-93a8-3550467a280d'); // J54 -> J57
-    stepLoss('8a5f47b4-09f3-42a4-8461-5fb95007fcb8', 'c834078f-45f9-4755-93a8-3550467a280d', 'b19ee0ac-c4c9-4022-bff8-566f9df956fe'); // J57 -> J58
-    stepLoss('514a0ca9-7879-4db2-9d24-04c28fcc4d97', 'c834078f-45f9-4755-93a8-3550467a280d', '787ddb48-0fa4-416d-86aa-cc114d79c8f2'); // J57 -> J55
-    stepLoss('0826ca95-e981-4989-befd-eca39e01f637', '787ddb48-0fa4-416d-86aa-cc114d79c8f2', '9253adcd-12d5-45f5-ad94-c71872e906b7'); // J55 -> J56
-    stepLoss('d430417f-44f4-46b5-8129-a6d153e8481e', '787ddb48-0fa4-416d-86aa-cc114d79c8f2', 'c70fdc26-52bf-4662-88c6-0eabbdd79af2'); // J55 -> J59
 
     // 4. Bangun Node State Map
     networkData.nodes.forEach(node => {
