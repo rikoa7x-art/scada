@@ -309,15 +309,23 @@ const UIController = (() => {
     });
   }
 
+  let isDashboardCollapsed = false;
+
   /**
-   * Setup Fitur Sembunyikan / Tampilkan Dashboard Informasi (Mode EPANET & KPI Strip)
+   * Fungsi Toggle Dashboard (Bisa dipanggil dari event listener atau inline onclick HTML)
    */
-  function setupDashboardToggle() {
-    const STORAGE_KEY = 'pdam_spam_dashboard_collapsed';
+  function toggleDashboard() {
+    setDashboardCollapsed(!isDashboardCollapsed, true);
+  }
+
+  /**
+   * Set Status Collapsed / Expanded Dashboard secara pasti
+   */
+  function setDashboardCollapsed(collapsed, triggerResize = true) {
+    isDashboardCollapsed = !!collapsed;
     const container = document.getElementById('collapsibleDashboard');
     const btnToggle = document.getElementById('btnToggleDashboard');
     const btnHeaderToggle = document.getElementById('btnHeaderToggleDashboard');
-    const btnMobileToggle = document.getElementById('btnToggleDashboardMobileMenu');
     const chevron = document.getElementById('toggleDashboardChevron');
     const headerChevron = document.getElementById('headerToggleDashIcon');
     const textLabel = document.getElementById('toggleDashboardText');
@@ -326,71 +334,88 @@ const UIController = (() => {
 
     if (!container) return;
 
-    // Baca preferensi tersimpan
-    let isCollapsed = false;
+    if (isDashboardCollapsed) {
+      // Sembunyikan secara pasti dengan display: none dan class is-collapsed
+      container.style.display = 'none';
+      container.classList.add('is-collapsed');
+      btnToggle?.classList.add('active-glow');
+      chevron?.classList.add('rotate-180');
+      headerChevron?.classList.add('rotate-180');
+      if (textLabel) textLabel.textContent = 'Buka Info';
+      miniKpi?.classList.remove('hidden');
+      if (mobileStatusLabel) {
+        mobileStatusLabel.textContent = 'Tersembunyi';
+        mobileStatusLabel.className = 'text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-bold';
+      }
+    } else {
+      // Tampilkan kembali
+      container.style.display = '';
+      container.classList.remove('is-collapsed');
+      btnToggle?.classList.remove('active-glow');
+      chevron?.classList.remove('rotate-180');
+      headerChevron?.classList.remove('rotate-180');
+      if (textLabel) textLabel.textContent = 'Sembunyikan Info';
+      miniKpi?.classList.add('hidden');
+      if (mobileStatusLabel) {
+        mobileStatusLabel.textContent = 'Terbuka';
+        mobileStatusLabel.className = 'text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold';
+      }
+    }
+
+    try {
+      localStorage.setItem('pdam_spam_dashboard_collapsed', isDashboardCollapsed ? 'true' : 'false');
+    } catch (e) {
+      console.warn('Gagal menyimpan status dashboard:', e);
+    }
+
+    if (triggerResize) {
+      setTimeout(() => MapManager.getMap()?.invalidateSize(), 50);
+      setTimeout(() => MapManager.getMap()?.invalidateSize(), 180);
+      setTimeout(() => MapManager.getMap()?.invalidateSize(), 350);
+    }
+  }
+
+  /**
+   * Setup Fitur Sembunyikan / Tampilkan Dashboard Informasi (Mode EPANET & KPI Strip)
+   */
+  function setupDashboardToggle() {
+    const STORAGE_KEY = 'pdam_spam_dashboard_collapsed';
+    let initCollapsed = false;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved !== null) {
-        isCollapsed = saved === 'true';
+        initCollapsed = saved === 'true';
       } else {
         // Default di mobile (< 768px): sembunyikan dashboard agar peta langsung luas dan nyaman
-        isCollapsed = window.innerWidth < 768;
+        initCollapsed = window.innerWidth < 768;
       }
     } catch (e) {
-      console.warn('Gagal membaca storage preferensi dashboard:', e);
-      isCollapsed = window.innerWidth < 768;
-    }
-
-    function applyState(collapsed, triggerResize = true) {
-      isCollapsed = collapsed;
-      if (isCollapsed) {
-        container.classList.add('is-collapsed');
-        btnToggle?.classList.add('active-glow');
-        chevron?.classList.add('rotate-180');
-        headerChevron?.classList.add('rotate-180');
-        if (textLabel) textLabel.textContent = 'Buka Info';
-        miniKpi?.classList.remove('hidden');
-        if (mobileStatusLabel) {
-          mobileStatusLabel.textContent = 'Tersembunyi';
-          mobileStatusLabel.className = 'text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-bold';
-        }
-      } else {
-        container.classList.remove('is-collapsed');
-        btnToggle?.classList.remove('active-glow');
-        chevron?.classList.remove('rotate-180');
-        headerChevron?.classList.remove('rotate-180');
-        if (textLabel) textLabel.textContent = 'Sembunyikan Info';
-        miniKpi?.classList.add('hidden');
-        if (mobileStatusLabel) {
-          mobileStatusLabel.textContent = 'Terbuka';
-          mobileStatusLabel.className = 'text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold';
-        }
-      }
-
-      try {
-        localStorage.setItem(STORAGE_KEY, isCollapsed ? 'true' : 'false');
-      } catch (e) {
-        console.warn('Gagal menyimpan status dashboard:', e);
-      }
-
-      if (triggerResize) {
-        setTimeout(() => MapManager.getMap()?.invalidateSize(), 80);
-        setTimeout(() => MapManager.getMap()?.invalidateSize(), 340);
-      }
+      initCollapsed = window.innerWidth < 768;
     }
 
     // Terapkan kondisi awal
-    applyState(isCollapsed, true);
+    setDashboardCollapsed(initCollapsed, false);
 
-    // Event Listener Toggle
-    function toggle() {
-      applyState(!isCollapsed, true);
-    }
+    // Event Listener Klik
+    const btnToggle = document.getElementById('btnToggleDashboard');
+    const btnHeaderToggle = document.getElementById('btnHeaderToggleDashboard');
+    const btnMobileToggle = document.getElementById('btnToggleDashboardMobileMenu');
 
-    btnToggle?.addEventListener('click', toggle);
-    btnHeaderToggle?.addEventListener('click', toggle);
-    btnMobileToggle?.addEventListener('click', () => {
-      toggle();
+    btnToggle?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleDashboard();
+    });
+
+    btnHeaderToggle?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleDashboard();
+    });
+
+    btnMobileToggle?.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleDashboard();
       document.getElementById('mobileActionMenu')?.classList.add('hidden');
     });
 
@@ -1290,6 +1315,9 @@ const UIController = (() => {
 
   return {
     init,
+    toggleDashboard,
+    setDashboardCollapsed,
+    isDashboardCollapsed: () => isDashboardCollapsed,
     openPressureModal,
     closePressureModal,
     openSourceSettingsModal,
@@ -1305,4 +1333,7 @@ const UIController = (() => {
     showToast
   };
 })();
+
+// Expose global shortcut untuk inline HTML onclick
+window.toggleDashboard = () => UIController.toggleDashboard();
 

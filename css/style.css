@@ -265,6 +265,7 @@
 }
 
 .collapsible-dashboard.is-collapsed {
+  display: none !important;
   max-height: 0 !important;
   opacity: 0 !important;
   transform: translateY(-8px);
