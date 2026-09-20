@@ -140,6 +140,12 @@
             <span>Upload JSON</span>
             <input type="file" id="inputJsonFile" accept=".json" class="hidden">
           </label>
+
+          <!-- Backup Topologi ke Cloud -->
+          <button id="btnBackupCloud" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors cursor-pointer" title="Cadangkan Topologi Jaringan Ini ke Supabase Cloud">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg>
+            <span>Backup Cloud</span>
+          </button>
         </div>
 
         <!-- Tombol Toggle Dashboard Informasi (Sembunyikan / Tampilkan Mode & KPI) -->

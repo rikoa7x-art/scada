@@ -62,7 +62,10 @@ const UIController = (() => {
       if (onSyncCloud) onSyncCloud();
     });
 
-    // Tombol Backup Topologi ke Cloud (Mobile)
+    // Tombol Backup Topologi ke Cloud (Desktop & Mobile)
+    document.getElementById('btnBackupCloud')?.addEventListener('click', () => {
+      if (onBackupTopology) onBackupTopology();
+    });
     document.getElementById('btnSaveTopologyCloudMobile')?.addEventListener('click', () => {
       document.getElementById('mobileActionMenu')?.classList.add('hidden');
       if (onBackupTopology) onBackupTopology();
@@ -139,12 +142,13 @@ const UIController = (() => {
           reader.onload = (event) => {
             try {
               const data = JSON.parse(event.target.result);
-              if (onUploadJSON) onUploadJSON(data);
+              if (onUploadJSON) onUploadJSON(data, file.name);
             } catch (err) {
               alert('File JSON tidak valid: ' + err.message);
             }
           };
           reader.readAsText(file);
+          e.target.value = '';
         }
       });
     }
@@ -206,12 +210,13 @@ const UIController = (() => {
           reader.onload = (event) => {
             try {
               const data = JSON.parse(event.target.result);
-              if (onUploadJSON) onUploadJSON(data);
+              if (onUploadJSON) onUploadJSON(data, file.name);
             } catch (err) {
               alert('File JSON tidak valid: ' + err.message);
             }
           };
           reader.readAsText(file);
+          e.target.value = '';
         }
       });
     }

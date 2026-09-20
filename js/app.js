@@ -411,18 +411,59 @@ const App = (() => {
   /**
    * Tangani JSON kustom yang diunggah pengguna
    */
-  function handleCustomJSON(data) {
-    if (!data.nodes || !data.pipes) {
-      alert('Format JSON tidak sesuai: Harus memiliki array "nodes" dan "pipes".');
+  function handleCustomJSON(data, fileName = '') {
+    if (!data || !data.nodes || !data.pipes) {
+      alert('Format JSON tidak sesuai: Harus memiliki array "nodes" dan "pipes" (Standar EPANET / PDAM).');
       return;
     }
+
     networkData = data;
     nodeMeasurements = {};
     userDemands = {};
+
+    // 1. Ekstrak demand awal dari setiap simpul (junction)
+    networkData.nodes.forEach(node => {
+      userDemands[node.id] = Number(node.demand) || 0;
+    });
+
+    // 2. Deteksi parameter sumber (pompa / reservoir gravitasi)
+    if (networkData.pumps && networkData.pumps.length > 0) {
+      const p = networkData.pumps[0];
+      sourceConfig.systemMode = 'pump';
+      sourceConfig.pump.id = p.id;
+      sourceConfig.pump.label = p.label || 'Pompa Utama';
+      sourceConfig.pump.head = Number(p.designHead) || 50;
+      sourceConfig.pump.flow = Number(p.designFlow) || 10;
+      sourceConfig.pump.status = p.status || 'on';
+    } else {
+      sourceConfig.systemMode = 'gravity';
+    }
+
+    const res = networkData.nodes.find(n => n.type === 'reservoir');
+    if (res) {
+      sourceConfig.reservoir.id = res.id;
+      sourceConfig.reservoir.label = res.label || 'Reservoir';
+      sourceConfig.reservoir.elevation = Number(res.elevation) || 500;
+      sourceConfig.reservoir.flow = Number(res.demand) || 10;
+    }
+
+    // 3. Perbarui tampilan judul wilayah & subtitle
+    const netName = data.projectName || (fileName ? fileName.replace(/\.json$/i, '') : 'Jaringan Kustom');
+    UIController.setActiveRegionDisplay('custom', netName);
+
+    // 4. Update badge sumber
+    UIController.updateSourceBadge(sourceConfig);
+
+    // 5. Simpan dan render ulang
     saveMeasurementsToStorage();
     recalculateAndRender();
-    MapManager.fitNetworkBounds();
-    UIController.showToast('File JSON kustom berhasil dimuat!', 'success');
+
+    // 6. Zoom otomatis ke batas jaringan baru
+    setTimeout(() => {
+      MapManager.fitNetworkBounds();
+    }, 250);
+
+    UIController.showToast(`✅ File JSON "${netName}" (${networkData.nodes.length} Simpul, ${networkData.pipes.length} Pipa) berhasil dimuat!`, 'success');
   }
 
   /**
