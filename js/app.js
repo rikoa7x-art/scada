@@ -132,13 +132,21 @@ const App = (() => {
     const nodeIdsMap = new Map(networkData.nodes.map(n => [n.id, n]));
 
     if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      const safeCurrentRegion = (currentRegionId || 'bunihayu').toString().toUpperCase();
       // 1. Cek apakah ini pembaruan katalog demand wilayah
-      if (newRow && newRow.node_id === `__SCADA_DEMANDS_${currentRegionId.toUpperCase()}__`) {
+      if (newRow && newRow.node_id === `__SCADA_DEMANDS_${safeCurrentRegion}__`) {
         if (newRow.notes) {
           try {
             const parsed = JSON.parse(newRow.notes);
             if (parsed && typeof parsed === 'object') {
               Object.assign(userDemands, parsed);
+              if (networkData && networkData.nodes) {
+                networkData.nodes.forEach(n => {
+                  if (parsed[n.id] !== undefined) {
+                    n.demand = parsed[n.id];
+                  }
+                });
+              }
               saveMeasurementsToStorage();
               recalculateAndRender();
               UIController.showToast('📡 Pembaruan Demand Wilayah disinkronkan secara Real-Time!', 'info');
@@ -163,6 +171,7 @@ const App = (() => {
                 const incomingDemand = Number(parsedNotes.demand);
                 if (userDemands[newRow.node_id] !== incomingDemand) {
                   userDemands[newRow.node_id] = incomingDemand;
+                  if (node) node.demand = incomingDemand;
                   demandUpdated = true;
                 }
               }
@@ -342,6 +351,13 @@ const App = (() => {
         }
         if (cloudResult.demands && Object.keys(cloudResult.demands).length > 0) {
           Object.assign(userDemands, cloudResult.demands);
+          if (networkData && networkData.nodes) {
+            networkData.nodes.forEach(n => {
+              if (cloudResult.demands[n.id] !== undefined) {
+                n.demand = cloudResult.demands[n.id];
+              }
+            });
+          }
           count += Object.keys(cloudResult.demands).length;
         }
 

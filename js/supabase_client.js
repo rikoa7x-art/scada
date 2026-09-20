@@ -96,8 +96,9 @@ const SupabaseClient = (() => {
   /**
    * Ambil semua data telemetry untuk daftar node_id wilayah aktif
    */
-  async function getTelemetryForRegion(nodeIds = []) {
+  async function getTelemetryForRegion(nodeIds = [], regionId = 'bunihayu') {
     const config = AppConfig.supabase;
+    const safeRegion = (regionId || 'bunihayu').toString().toUpperCase();
     try {
       setStatus('syncing');
       let url = `${config.url}/rest/v1/${config.tableName}?select=*`;
@@ -123,7 +124,7 @@ const SupabaseClient = (() => {
       const nodeIdSet = new Set(nodeIds);
 
       // Periksa apakah ada katalog demand khusus wilayah
-      const catalogDemandRow = rows.find(r => r.node_id === `__SCADA_DEMANDS_${regionId.toUpperCase()}__`);
+      const catalogDemandRow = rows.find(r => r.node_id === `__SCADA_DEMANDS_${safeRegion}__`);
       if (catalogDemandRow && catalogDemandRow.notes) {
         try {
           const parsed = JSON.parse(catalogDemandRow.notes);
