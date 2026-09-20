@@ -1,0 +1,252 @@
+/**
+ * Styling Kustom untuk Aplikasi Monitoring Debit SPAM PDAM
+ */
+
+/* Animasi Denyut Aliran Air (Flow Pulse Animation) */
+@keyframes flowPulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.8));
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+}
+
+.flow-pulse svg {
+  animation: flowPulse 1.8s infinite ease-in-out;
+  transform-origin: center;
+}
+
+/* Kustom Tooltip Leaflet */
+.leaflet-tooltip.custom-leaflet-tooltip {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  font-family: inherit;
+  color: #1e293b;
+  min-width: 180px;
+}
+
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+  border-top-color: rgba(255, 255, 255, 0.98);
+}
+
+/* Label Teks Junction di Peta */
+.node-map-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Media Print untuk Laporan Resmi PDAM */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Sembunyikan elemen navigasi, tombol, dan sidebar saat print */
+  header,
+  #map,
+  #btnLoadSample,
+  #btnResetData,
+  #btnSolveNetwork,
+  #btnExportCSV,
+  #btnPrintReport,
+  #btnFitMap,
+  #selectBaseLayer,
+  .print-hide,
+  aside,
+  #pressureModal,
+  #pipeDetailCard,
+  nav {
+    display: none !important;
+  }
+
+  /* Tampilkan tab tabel monitoring secara penuh */
+  #tabTable {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10pt !important;
+  }
+
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 4px 6px !important;
+  }
+
+  th {
+    background-color: #f2f2f2 !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+/* Badge Angka Debit pada Garis Pipa GIS */
+.pipe-flow-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.pipe-flow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border: 1.5px solid #10b981;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  padding: 1.5px 7px;
+  border-radius: 9999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #065f46;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  pointer-events: auto;
+}
+
+.pipe-flow-badge:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.38);
+  z-index: 1000 !important;
+}
+
+.pipe-flow-badge.selected {
+  border: 2.5px solid #2563eb !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35) !important;
+}
+
+.pipe-flow-badge.badge-normal {
+  border-color: #10b981;
+  color: #047857;
+}
+
+.pipe-flow-badge.badge-low {
+  border-color: #0284c7;
+  color: #0369a1;
+}
+
+.pipe-flow-badge.badge-warning {
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.pipe-flow-badge.badge-critical {
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+/* ======================================================
+   PENGATURAN UI/UX KHUSUS MOBILE PHONE & TOUCH SCREENS
+   ====================================================== */
+
+/* Cegah auto-zoom liar pada mobile browser saat tap form input */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Animasi Slide-up untuk Bottom Sheet Mobile */
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-sheet-up {
+  animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Sembunyikan scrollbar pada strip horizontal mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area padding untuk mobile notch dan gesture bar */
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+}
+
+/* Efek sentuhan responsif pada tombol mobile */
+.active-press:active {
+  transform: scale(0.96);
+  transition: transform 0.08s ease;
+}
+
+/* Custom indicator drag-handle pada modal/bottom-sheet */
+.bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  margin: 8px auto 4px auto;
+}
+
+/* Hint geser horizontal pada tabel mobile */
+.table-scroll-hint {
+  background: linear-gradient(90deg, rgba(241, 245, 249, 0) 0%, rgba(241, 245, 249, 0.9) 100%);
+}
+
+

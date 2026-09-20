@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDAM SPAM - Monitoring Debit Air Jaringan Pipa (Hazen-Williams)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pdam: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans flex flex-col h-screen overflow-hidden">
+
+  <!-- PRINT ONLY HEADER -->
+  <div class="print-only p-4 mb-4 border-b-2 border-slate-900">
+    <div class="text-center">
+      <h1 class="text-xl font-bold uppercase tracking-wider">PERUMDA AIR MINUM (PDAM)</h1>
+      <h2 class="text-base font-semibold">LAPORAN MONITORING DEBIT AIR JARINGAN PIPA SPAM</h2>
+      <p class="text-xs text-slate-600">Metoda Analisa Hidrolika: Hazen-Williams (Standar EPANET)</p>
+    </div>
+  </div>
+
+  <!-- HEADER UTAMA APLIKASI (RESPONSIVE DESKTOP & MOBILE) -->
+  <header class="bg-gradient-to-r from-slate-900 via-pdam-900 to-slate-900 text-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-md flex-none z-30 border-b border-slate-800">
+    <div class="flex items-center justify-between gap-2 sm:gap-3">
+      
+      <!-- Brand & Judul Ringkas -->
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 shadow-inner flex-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-bold text-sm sm:text-base md:text-lg tracking-wide truncate">SPAM PDAM DEBIT</h1>
+            <span class="text-[9px] sm:text-[10px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 px-1.5 py-0.5 rounded-full font-semibold uppercase hidden xs:inline">Hazen-Williams</span>
+          </div>
+          <p class="text-[10px] sm:text-xs text-slate-300 truncate">Bunihayu &bull; Monitoring Tekanan & Debit Pipa</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons & Quick Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-none">
+        <!-- Tombol Setting Sumber: Pompa & Gravitasi -->
+        <button id="btnSourceSettings" class="flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500 text-white text-xs px-2 sm:px-2.5 py-1.5 rounded-lg font-medium shadow-xs border border-indigo-400/30 transition-all cursor-pointer active-press" title="Edit Kapasitas Head & Debit Pompa atau Pengaliran Gravitasi Reservoir">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-200 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="font-semibold hidden sm:inline">Sumber:</span>
+          <span id="sourceBadge" class="bg-indigo-900/60 text-indigo-100 border border-indigo-300/30 px-1.5 py-0.5 rounded text-[10px] font-bold max-w-[110px] sm:max-w-none truncate">⚡ Pompa: 50m / 10 L/s</span>
+        </button>
+
+        <!-- Desktop Only Toolbar Buttons -->
+        <div class="hidden md:flex items-center gap-2">
+          <!-- Backdrop Selector -->
+          <div class="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs">
+            <span class="text-slate-400 font-medium">Peta:</span>
+            <select id="selectBaseLayer" class="bg-slate-900 text-white font-medium focus:outline-hidden cursor-pointer">
+              <option value="Google Hybrid" selected>Google Hybrid (Satelit + Jalan)</option>
+              <option value="OpenStreetMap">OpenStreetMap</option>
+              <option value="Google Satellite">Google Satellite</option>
+              <option value="Google Streets">Google Streets</option>
+              <option value="Carto Light">Carto Light</option>
+              <option value="Carto Dark">Carto Dark</option>
+            </select>
+          </div>
+
+          <!-- Tombol Aksi Desktop -->
+          <button id="btnLoadSample" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium shadow-xs transition-colors" title="Muat Contoh Data Uji Lapangan">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Data Uji</span>
+          </button>
+
+          <button id="btnResetData" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors" title="Kosongkan Semua Pengukuran Tekanan">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            <span>Reset</span>
+          </button>
+
+          <button id="btnExportCSV" class="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium shadow-xs transition-colors" title="Ekspor Data ke File CSV / Excel">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <span>Ekspor CSV</span>
+          </button>
+
+          <button id="btnPrintReport" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors" title="Cetak Laporan Resmi">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>Cetak</span>
+          </button>
+
+          <!-- Upload JSON Kustom -->
+          <label class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors cursor-pointer" title="Unggah File JSON Jaringan Baru">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload JSON</span>
+            <input type="file" id="inputJsonFile" accept=".json" class="hidden">
+          </label>
+        </div>
+
+        <!-- Mobile Menu Toggle Button (Titik Tiga) -->
+        <button id="btnMobileMenuToggle" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 active-press" title="Buka Menu Aksi Tambahan">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Sub-Header: Mode Switcher Responsive -->
+    <div class="mt-2 flex items-center justify-between gap-2">
+      <div class="flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 text-xs w-full sm:w-auto">
+        <button id="btnModeDemand" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold transition-all bg-emerald-600 text-white shadow-xs flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode EPANET: Input Demand">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <span>Demand (EPANET)</span>
+        </button>
+        <button id="btnModePressure" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode Lapangan: Input Tekanan Manometer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Tekanan Lapangan</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUMMARY KPI STRIP RESPONSIVE -->
+    <div class="mt-2 pt-2 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 text-xs">
+      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+        <span class="text-slate-400 text-[11px]">Junction:</span>
+        <span id="kpiMeasuredNodes" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0 / 0</span>
+      </div>
+      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+        <span class="text-slate-400 text-[11px]">Pipa Hitung:</span>
+        <span id="kpiCalculatedPipes" class="font-bold text-sky-400 font-mono text-xs sm:text-sm">0 / 0</span>
+      </div>
+      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+        <span class="text-slate-400 text-[11px]">Total Debit:</span>
+        <div class="text-right">
+          <span id="kpiTotalDebit" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0.0 L/s</span>
+          <span id="kpiTotalDebitM3h" class="text-[9px] sm:text-[10px] text-slate-400 ml-0.5 sm:ml-1">(0 m³/h)</span>
+        </div>
+      </div>
+      <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
+        <span class="text-slate-400 text-[11px]">Pipa Waspada:</span>
+        <div class="flex items-center gap-1.5">
+          <span id="kpiCriticalBadge" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="kpiCriticalPipes" class="font-bold text-white font-mono text-xs sm:text-sm">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE ACTION MENU DRAWER (Action Sheet Dropdown) -->
+  <div id="mobileActionMenu" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-sheet-up">
+      <div class="bottom-sheet-handle sm:hidden"></div>
+      
+      <div class="p-3.5 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-md bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">⚙️</div>
+          <h3 class="font-bold text-sm">Menu Opsi & Aksi Lapangan</h3>
+        </div>
+        <button id="btnCloseMobileMenu" class="text-slate-400 hover:text-white text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
+      </div>
+
+      <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto text-xs">
+        <!-- Base Layer Selector Mobile -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <label class="block font-bold text-slate-700 mb-1.5">🗺️ Tipe Peta Dasar:</label>
+          <select id="selectBaseLayerMobile" class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500">
+            <option value="Google Hybrid" selected>Google Hybrid (Satelit + Jalan)</option>
+            <option value="OpenStreetMap">OpenStreetMap</option>
+            <option value="Google Satellite">Google Satellite</option>
+            <option value="Google Streets">Google Streets</option>
+            <option value="Carto Light">Carto Light</option>
+            <option value="Carto Dark">Carto Dark</option>
+          </select>
+        </div>
+
+        <!-- Action Buttons Grid Mobile -->
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btnLoadSampleMobile" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 p-3 rounded-xl border border-blue-200 font-bold active-press">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Muat Data Uji</span>
+          </button>
+
+          <button id="btnResetDataMobile" class="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 p-3 rounded-xl border border-red-200 font-bold active-press">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            <span>Reset Data</span>
+          </button>
+
+          <button id="btnExportCSVMobile" class="flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-3 rounded-xl border border-emerald-200 font-bold active-press">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <span>Ekspor CSV</span>
+          </button>
+
+          <button id="btnPrintReportMobile" class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-xl border border-slate-300 font-bold active-press">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>Cetak Laporan</span>
+          </button>
+        </div>
+
+        <!-- Upload JSON Mobile -->
+        <label class="flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-3 rounded-xl border border-indigo-200 font-bold cursor-pointer active-press">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Unggah File JSON Jaringan</span>
+          <input type="file" id="inputJsonFileMobile" accept=".json" class="hidden">
+        </label>
+      </div>
+
+      <div class="p-3 bg-slate-100 border-t border-slate-200 text-center">
+        <button id="btnCloseMobileMenuBtn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold active-press">
+          Tutup Menu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP NAVIGATION TABS (Visible only on Tablet / Laptop / PC) -->
+  <nav class="hidden sm:flex bg-white border-b border-slate-200 px-4 items-center justify-between shadow-2xs z-20 flex-none">
+    <div class="flex items-center space-x-1 py-1.5 text-xs font-semibold">
+      <button id="btn-tabMap" class="px-3.5 py-1.5 rounded-md bg-blue-600 text-white transition-colors flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span>Peta Jaringan GIS</span>
+      </button>
+      <button id="btn-tabTable" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        <span>Tabel Monitoring Pipa</span>
+      </button>
+      <button id="btn-tabSequence" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+        <span>Alur Berurutan (Reservoir &rarr; Ujung)</span>
+      </button>
+      <button id="btn-tabProfile" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        <span>Profil Hidrolis (HGL)</span>
+      </button>
+    </div>
+
+    <!-- Map Zoom to Fit Shortcut -->
+    <div class="flex items-center gap-2">
+      <button id="btnFitMap" class="text-xs text-slate-600 hover:text-blue-600 flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-100 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4"/><path d="M12 16V8"/></svg>
+        <span>Pusatkan Peta</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR (Thumb-Friendly for Smartphones) -->
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 shadow-2xl flex items-center justify-around py-1 safe-bottom">
+    <button id="btnMobileTabMap" class="mobile-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-blue-600 font-bold active-press">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span class="text-[10px] mt-0.5">Peta</span>
+    </button>
+    <button id="btnMobileTabTable" class="mobile-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 font-medium active-press">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+      <span class="text-[10px] mt-0.5">Tabel</span>
+    </button>
+    <button id="btnMobileTabSequence" class="mobile-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 font-medium active-press">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      <span class="text-[10px] mt-0.5">Alur</span>
+    </button>
+    <button id="btnMobileTabProfile" class="mobile-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 font-medium active-press">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <span class="text-[10px] mt-0.5">Profil HGL</span>
+    </button>
+  </nav>
+
+  <!-- MAIN CONTENT CONTAINER (Dengan padding bawah khusus mobile agar tidak terpotong bottom nav) -->
+  <main class="flex-1 relative overflow-hidden pb-14 sm:pb-0">
+
+    <!-- TAB 1: PETA GIS INTERAKTIF -->
+    <div id="tabMap" class="w-full h-full relative">
+      <!-- Container Leaflet Map -->
+      <div id="map" class="w-full h-full z-0"></div>
+
+      <!-- FLOATING PIPE FLOW LABEL SELECTOR (Kanan Atas) -->
+      <div class="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg border border-slate-200 text-xs">
+        <div class="flex items-center gap-1 text-blue-600 font-bold">
+          <span class="text-sm">💧</span>
+          <span class="text-slate-700 font-semibold text-[11px] hidden sm:inline">Debit:</span>
+        </div>
+        <select id="selectPipeFlowUnit" class="bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-800 rounded-lg px-2 py-1 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors" title="Pilih satuan atau sembunyikan angka debit pada garis pipa">
+          <option value="lps" selected>Liter / Detik (L/s)</option>
+          <option value="m3h">m³ / Jam</option>
+          <option value="both">Lengkap (L/s & m³/h)</option>
+          <option value="off">Sembunyikan Label</option>
+        </select>
+      </div>
+
+      <!-- FLOATING BUTTON TRIGGER SIDEBAR INPUT (Khusus Layar Mobile) -->
+      <button id="btnToggleMobileSidebar" class="sm:hidden absolute bottom-4 left-3 z-20 flex items-center gap-1.5 bg-slate-900/95 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-full shadow-2xl border border-slate-700 active-press" title="Buka Input Tekanan Lapangan">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>📋 Input Lapangan</span>
+      </button>
+
+      <!-- FLOATING SIDEBAR: INPUT TEKANAN CEPAT (LAPANGAN) - RESPONSIVE DRAWER -->
+      <div id="sidebarJunctionsContainer" class="fixed sm:absolute inset-x-0 bottom-0 sm:bottom-auto sm:top-3 sm:left-3 z-40 sm:z-10 w-full sm:w-80 max-h-[82vh] sm:max-h-[calc(100%-24px)] flex-col bg-white/98 sm:bg-white/95 backdrop-blur-md rounded-t-3xl sm:rounded-xl shadow-2xl sm:shadow-xl border-t sm:border border-slate-200 overflow-hidden transition-all duration-250 hidden sm:flex animate-sheet-up">
+        <div class="bottom-sheet-handle sm:hidden"></div>
+        
+        <div class="p-3 bg-slate-900 text-white flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <h3 class="font-bold text-xs uppercase tracking-wide">Input Tekanan Lapangan</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnSolveNetwork" class="text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-medium px-2 py-1 rounded shadow-xs active-press" title="Hitung estimasi titik yang belum terukur">
+              Simulasi Penuh
+            </button>
+            <!-- Tombol Tutup Khusus Mobile Drawer -->
+            <button id="btnCloseMobileSidebar" class="sm:hidden text-slate-400 hover:text-white text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
+          </div>
+        </div>
+
+        <div class="p-2 bg-blue-50 border-b border-blue-100 text-[11px] text-blue-900 leading-tight">
+          💡 <b>Petunjuk:</b> Klik titik junction pada peta atau ketik tekanan di bawah. Debit air pipa terhitung seketika!
+        </div>
+
+        <!-- Daftar Junction Scrollable -->
+        <div id="junctionsSidebarList" class="p-2 space-y-1.5 overflow-y-auto flex-1 max-h-[48vh] sm:max-h-[420px]">
+          <!-- Diisi otomatis oleh ui_controller.js -->
+        </div>
+
+        <!-- Legend Visualisasi -->
+        <div class="p-2.5 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-600 space-y-1">
+          <div class="font-semibold text-slate-700">Legenda Status:</div>
+          <div class="flex items-center gap-3">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Terukur</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Belum Diukur</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> Reservoir</span>
+          </div>
+          <div class="flex items-center gap-3 pt-0.5">
+            <span class="flex items-center gap-1"><span class="w-3 h-1 bg-emerald-500 rounded"></span> Ideal (0.3-1.5 m/s)</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-1 bg-amber-500 rounded"></span> Waspada</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-1 bg-red-500 rounded"></span> Kritis</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLOATING PIPE DETAIL CARD (Kanan Bawah Desktop, Bottom Sheet Mobile) -->
+      <div id="pipeDetailCard" class="fixed sm:absolute inset-x-0 bottom-0 sm:bottom-6 sm:inset-x-auto sm:right-6 z-40 sm:z-10 w-full sm:w-96 rounded-t-3xl sm:rounded-xl shadow-2xl border-t sm:border border-slate-200 bg-white overflow-hidden hidden animate-sheet-up">
+        <!-- Diisi dinamis oleh showPipeDetailCard -->
+      </div>
+    </div>
+
+    <!-- TAB 2: TABEL MONITORING PIPA -->
+    <div id="tabTable" class="w-full h-full bg-white p-4 overflow-y-auto hidden">
+      <div class="max-w-7xl mx-auto space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">TABEL HASIL ANALISA DEBIT PIPA SPAM</h2>
+            <p class="text-xs text-slate-500">Hasil perhitungan otomatis metoda Hazen-Williams berdasarkan tekanan junction terukur di lapangan.</p>
+          </div>
+        </div>
+
+        <div class="sm:hidden flex items-center justify-between bg-blue-50/80 px-3 py-1.5 rounded-lg border border-blue-200 text-[11px] text-blue-900">
+          <span>👉 Geser tabel ke samping untuk melihat seluruh kolom</span>
+          <span class="text-blue-600 font-bold">↔️</span>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
+                <th class="p-2.5">No</th>
+                <th class="p-2.5">Pipa (Dari &rarr; Ke)</th>
+                <th class="p-2.5">Diameter ($D$)</th>
+                <th class="p-2.5">Panjang ($L$)</th>
+                <th class="p-2.5">Kekasaran ($C$)</th>
+                <th class="p-2.5">Head Loss ($h_f$)</th>
+                <th class="p-2.5">Debit ($Q$ L/det)</th>
+                <th class="p-2.5">Debit ($Q$ m³/jam)</th>
+                <th class="p-2.5">Kecepatan ($v$)</th>
+                <th class="p-2.5">Status Aliran</th>
+                <th class="p-2.5">Arah Aliran</th>
+                <th class="p-2.5 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tablePipesBody">
+              <!-- Diisi otomatis oleh ui_controller.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: SKEMA ALUR BERURUTAN (RESERVOIR -> UJUNG JARINGAN) -->
+    <div id="tabSequence" class="w-full h-full bg-white p-4 overflow-y-auto hidden">
+      <div class="max-w-7xl mx-auto space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>SKEMA ALUR HIDROLIS BERURUTAN & KONTINUITAS ALIRAN</span>
+              <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded border border-blue-200">Standar EPANET 2.2</span>
+            </h2>
+            <p class="text-xs text-slate-500">Data hasil analisa disusun secara kronologis dan berkesinambungan dari Reservoir R4 &rarr; Pompa PMP4 &rarr; Pipa Transmisi &rarr; Percabangan/Loop &rarr; Ujung Titik Terjauh.</p>
+          </div>
+        </div>
+
+        <!-- Box Edukasi / Konseptual Hidrolika -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div class="bg-blue-50/80 border border-blue-200 rounded-xl p-3 space-y-1">
+            <span id="boxSequenceSourceHeader" class="font-bold text-blue-950 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> 1. Sumber & Pompa (Hulu)
+            </span>
+            <p id="boxSequenceSourceDesc" class="text-slate-600 leading-relaxed">
+              Air bermula dari <b>Reservoir R4</b> (Elevasi 535 m), lalu tekanannya dinaikkan oleh <b>Pompa PMP4 (+50 m)</b> ke Junction J66 (Total Head 585 m).
+            </p>
+          </div>
+          <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3 space-y-1">
+            <span class="font-bold text-emerald-950 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-600"></span> 2. Pipa Transmisi & Beda Head
+            </span>
+            <p class="text-slate-600 leading-relaxed">
+              Air mengalir berurutan: J66 &rarr; J46 &rarr; J47 &rarr; J48 &rarr; J49 &rarr; J50 &rarr; J51. Setiap meter pipa mengalami kehilangan energi ($h_f$) sesuai rumus Hazen-Williams.
+            </p>
+          </div>
+          <div class="bg-purple-50/80 border border-purple-200 rounded-xl p-3 space-y-1">
+            <span class="font-bold text-purple-950 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-purple-600"></span> 3. Percabangan & Titik Terjauh
+            </span>
+            <p class="text-slate-600 leading-relaxed">
+              Di J51 aliran terbagi ke J52 & J60, bertemu lagi di J54, lalu didistribusikan ke titik-titik terjauh (J53, J58, J56, J59) dengan sisa tekanan positif.
+            </p>
+          </div>
+        </div>
+
+        <div class="sm:hidden flex items-center justify-between bg-blue-50/80 px-3 py-1.5 rounded-lg border border-blue-200 text-[11px] text-blue-900">
+          <span>👉 Geser tabel ke samping untuk melihat rincian alur sekuensial</span>
+          <span class="text-blue-600 font-bold">↔️</span>
+        </div>
+
+        <!-- Tabel Alur Berurutan -->
+        <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
+                <th class="p-2.5 text-center">Urutan</th>
+                <th class="p-2.5">Ruas Jalur Aliran</th>
+                <th class="p-2.5">Kategori</th>
+                <th class="p-2.5">Jarak Kumulatif</th>
+                <th class="p-2.5">Elevasi ($z$)</th>
+                <th class="p-2.5">Sisa Tekanan ($P$)</th>
+                <th class="p-2.5">Total Head ($H$)</th>
+                <th class="p-2.5">Head Loss ($h_f$)</th>
+                <th class="p-2.5">Debit ($Q$ L/det)</th>
+                <th class="p-2.5">Debit ($Q$ m³/jam)</th>
+                <th class="p-2.5">Kecepatan ($v$)</th>
+                <th class="p-2.5 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tableSequenceBody">
+              <!-- Diisi otomatis oleh ui_controller.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PROFIL HIDROLIS (HGL) -->
+    <div id="tabProfile" class="w-full h-full bg-white p-4 overflow-y-auto hidden">
+      <div class="max-w-6xl mx-auto space-y-4 h-full flex flex-col">
+        <div class="border-b border-slate-200 pb-2 flex-none">
+          <h2 class="text-base font-bold text-slate-900">DIAGRAM PROFIL HIDROLIS (HYDRAULIC GRADE LINE / HGL)</h2>
+          <p class="text-xs text-slate-500">Visualisasi profil elevasi tanah vs tinggi tekan hidrolis ($H = z + P/\gamma$) sepanjang jalur pipa utama.</p>
+        </div>
+        <div class="flex-1 min-h-[450px] p-4 bg-slate-50 rounded-xl border border-slate-200 shadow-inner relative">
+          <canvas id="profileChartCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL INPUT TEKANAN JUNCTION (RESPONSIVE BOTTOM SHEET ON MOBILE) -->
+  <div id="pressureModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform transition-all animate-sheet-up">
+      <div class="bottom-sheet-handle sm:hidden"></div>
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded bg-blue-600 flex items-center justify-center font-bold text-xs">P</div>
+          <h3 class="font-bold text-sm">Input Tekanan Lapangan</h3>
+        </div>
+        <button id="btnClosePressureModal" class="text-slate-400 hover:text-white text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4 text-xs">
+        <!-- Info Junction -->
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Titik Junction:</span>
+            <span id="modalNodeLabel" class="font-bold text-slate-800 text-sm">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Elevasi Titik ($z$):</span>
+            <span id="modalNodeElevation" class="font-semibold text-slate-700">-</span>
+          </div>
+        </div>
+
+        <!-- Form Input Demand & Tekanan -->
+        <div class="space-y-3">
+          <!-- Input Demand EPANET -->
+          <div class="bg-blue-50/70 p-3 rounded-lg border border-blue-200 space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="font-bold text-blue-950 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                <span>Demand / Pemakaian Air (EPANET):</span>
+              </label>
+              <span class="text-[10px] font-semibold text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded">Liter/detik</span>
+            </div>
+            <div class="flex gap-2 items-center">
+              <input 
+                type="number" 
+                id="modalDemandInput" 
+                step="0.1" 
+                placeholder="Contoh: 0 atau 2.0" 
+                class="flex-1 px-3 py-1.5 border border-blue-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
+              />
+              <span class="text-xs font-bold text-blue-900">L/s</span>
+            </div>
+            <p class="text-[10px] text-blue-800">
+              💡 <i>Di EPANET, jika Anda ubah demand di sini, debit pipa hulu dan tekanan junction otomatis menyesuaikan.</i>
+            </p>
+          </div>
+
+          <!-- Input Tekanan Lapangan (Manometer) -->
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+            <label class="block font-bold text-slate-700">Tekanan Manometer Terukur (Lapangan):</label>
+            <div class="flex gap-2">
+              <input 
+                type="number" 
+                id="modalPressureInput" 
+                step="0.01" 
+                placeholder="Contoh: 5.62" 
+                class="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
+              />
+              <select id="modalPressureUnit" class="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-100 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+                <option value="bar">bar</option>
+                <option value="mH2O">mH2O (meter)</option>
+                <option value="psi">psi</option>
+                <option value="kPa">kPa</option>
+                <option value="kgcm2">kg/cm²</option>
+              </select>
+            </div>
+            <p class="text-[10px] text-slate-500">Hasil bacaan manometer riil di titik junction ini.</p>
+          </div>
+        </div>
+
+        <!-- Preview Kalkulasi Total Head -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 space-y-1">
+          <div class="text-emerald-900 font-semibold flex items-center justify-between">
+            <span>Tinggi Tekan Total (HGL = $z + P/\gamma$):</span>
+            <span id="modalConvertedPressure" class="text-xs text-emerald-700 font-mono">-</span>
+          </div>
+          <div class="text-xl font-black text-emerald-700 font-mono" id="modalTotalHeadPreview">
+            -
+          </div>
+          <p class="text-[10px] text-emerald-800">Total head ini yang digunakan untuk menghitung beda tinggi tekan ($\Delta H$) dan debit Hazen-Williams.</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button id="btnDeletePressureModal" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold transition-colors">
+          Reset Titik
+        </button>
+        <div class="flex gap-2">
+          <button onclick="UIController.closePressureModal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors">
+            Batal
+          </button>
+          <button id="btnSavePressureModal" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors">
+            Simpan Nilai
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PENGATURAN SUMBER: POMPA & GRAVITASI RESERVOIR (RESPONSIVE BOTTOM SHEET ON MOBILE) -->
+  <div id="sourceSettingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[88vh] sm:max-h-[90vh] overflow-hidden transform transition-all animate-sheet-up">
+      <div class="bottom-sheet-handle sm:hidden"></div>
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 flex items-center justify-between border-b border-indigo-900/50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-400 shadow-inner">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm tracking-wide">Pengaturan Sumber Air: Pompa & Gravitasi</h3>
+            <p class="text-[11px] text-slate-300">Konfigurasi kapasitas pompa transmisi atau sistem gravitasi reservoir</p>
+          </div>
+        </div>
+        <button id="btnCloseSourceModal" class="text-slate-400 hover:text-white text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
+        <!-- 1. Pilihan Mode Sistem Pengaliran -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+          <label class="block font-bold text-slate-800 text-xs">Pilih Sistem Pengaliran Air:</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <label id="optModePumpCard" class="flex items-start gap-2.5 p-3 rounded-lg border-2 border-indigo-600 bg-indigo-50/50 cursor-pointer transition-all">
+              <input type="radio" name="modalSystemMode" id="optModePump" value="pump" checked class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+              <div>
+                <div class="font-bold text-indigo-950 flex items-center gap-1.5">
+                  <span>⚡ Sistem Pemompaan (Pumped)</span>
+                </div>
+                <p class="text-[10px] text-slate-600 mt-0.5">Air dari reservoir dinaikkan tekanannya oleh pompa PMP4 ke junction transmisi J66.</p>
+              </div>
+            </label>
+
+            <label id="optModeGravityCard" class="flex items-start gap-2.5 p-3 rounded-lg border-2 border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition-all">
+              <input type="radio" name="modalSystemMode" id="optModeGravity" value="gravity" class="mt-0.5 text-blue-600 focus:ring-blue-500">
+              <div>
+                <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                  <span>💧 Sistem Gravitasi (Gravity)</span>
+                </div>
+                <p class="text-[10px] text-slate-600 mt-0.5">Pompa mati/bypass (+0 m). Air mengalir murni memanfaatkan beda tinggi alami elevasi reservoir.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Form Pengaturan Pompa Transmisi (PMP4) -->
+        <div id="sectionPumpSettings" class="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-3">
+          <div class="flex items-center justify-between border-b border-indigo-100 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-violet-600"></span>
+              <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wide">1. Parameter Pompa Transmisi (PMP4)</h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-slate-500 font-medium">Status Pompa:</span>
+              <select id="modalPumpStatus" class="px-2 py-0.5 text-xs font-semibold rounded border border-indigo-300 bg-white text-indigo-900">
+                <option value="on">Aktif (ON)</option>
+                <option value="off">Mati / Bypass (OFF)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Edit Kapasitas Head Pompa -->
+            <div class="space-y-1">
+              <label class="block font-bold text-slate-800 text-xs">Kapasitas Head Pompa ($H_{pompa}$):</label>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="number" 
+                  id="modalPumpHead" 
+                  step="0.5" 
+                  min="0"
+                  max="300"
+                  placeholder="Contoh: 50.0" 
+                  class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-hidden bg-white"
+                />
+                <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1.5 rounded-lg border border-slate-200">m</span>
+              </div>
+              <p class="text-[10px] text-slate-500">Tinggi angkat / tekanan tambahan yang dihasilkan pompa (meter kolom air).</p>
+            </div>
+
+            <!-- Edit Debit Pompa -->
+            <div class="space-y-1">
+              <label class="block font-bold text-slate-800 text-xs">Kapasitas Debit Pompa ($Q_{pompa}$):</label>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="number" 
+                  id="modalPumpFlow" 
+                  step="0.1" 
+                  min="0.1"
+                  max="200"
+                  placeholder="Contoh: 10.0" 
+                  class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-hidden bg-white"
+                />
+                <select id="modalPumpFlowUnit" class="text-xs font-semibold rounded-lg border border-slate-300 bg-slate-100 px-2 py-1.5 text-slate-700">
+                  <option value="lps">L/s</option>
+                  <option value="m3h">m³/jam</option>
+                </select>
+              </div>
+              <p class="text-[10px] text-slate-500">Debit kapasitas kerja pompa air yang dipompakan ke jaringan pipa.</p>
+            </div>
+          </div>
+
+          <!-- Kalkulasi Otomatis Pompa -->
+          <div class="bg-white/80 p-2.5 rounded-lg border border-indigo-100 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span class="text-slate-500 text-[11px]">Total Head Keluar (J66):</span>
+              <div id="previewPumpOutletHead" class="font-bold font-mono text-indigo-700 text-sm">585.0 m</div>
+            </div>
+            <div>
+              <span class="text-slate-500 text-[11px]">Estimasi Daya Hidrolis Pompa:</span>
+              <div id="previewPumpPower" class="font-bold font-mono text-slate-800 text-sm">4.91 kW (6.6 HP)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Form Pengaturan Reservoir Air & Gravitasi -->
+        <div id="sectionReservoirSettings" class="p-4 rounded-xl border border-blue-200 bg-blue-50/40 space-y-3">
+          <div class="flex items-center justify-between border-b border-blue-100 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blue-600"></span>
+              <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wide">2. Parameter Reservoir Air (R4) & Gravitasi</h4>
+            </div>
+            <span class="text-[10px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">Sumber Gravitasi</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Edit Debit di Reservoir -->
+            <div class="space-y-1">
+              <label class="block font-bold text-blue-950 text-xs">Setting Debit di Reservoir ($Q_{reservoir}$):</label>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="number" 
+                  id="modalReservoirFlow" 
+                  step="0.1" 
+                  min="0.1"
+                  max="200"
+                  placeholder="Contoh: 10.0" 
+                  class="w-full px-3 py-1.5 border border-blue-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
+                />
+                <select id="modalReservoirFlowUnit" class="text-xs font-semibold rounded-lg border border-slate-300 bg-slate-100 px-2 py-1.5 text-slate-700">
+                  <option value="lps">L/s</option>
+                  <option value="m3h">m³/jam</option>
+                </select>
+              </div>
+              <p class="text-[10px] text-blue-800">Debit suplai keluaran dari reservoir menuju sistem transmisi (khususnya saat sistem gravitasi).</p>
+            </div>
+
+            <!-- Edit Elevasi Muka Air Reservoir -->
+            <div class="space-y-1">
+              <label class="block font-bold text-slate-800 text-xs">Elevasi Muka Air Reservoir ($z_{res}$):</label>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="number" 
+                  id="modalReservoirElev" 
+                  step="0.5" 
+                  placeholder="Contoh: 535.0" 
+                  class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
+                />
+                <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1.5 rounded-lg border border-slate-200">m dpl</span>
+              </div>
+              <p class="text-[10px] text-slate-500">Ketinggian muka air reservoir dari atas permukaan laut.</p>
+            </div>
+          </div>
+
+          <!-- Kalkulasi Beda Tinggi Gravitasi -->
+          <div class="bg-white/80 p-2.5 rounded-lg border border-blue-100 text-xs flex items-center justify-between">
+            <div>
+              <span class="text-slate-500 text-[11px]">Beda Tinggi Statis Alami ke Titik Terendah (J49: 496m):</span>
+              <div id="previewGravityHeadDrop" class="font-bold text-blue-700 text-sm">Δz = 39.0 meter (Potensi Tekanan Gravitasi 3.82 bar)</div>
+            </div>
+            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-1 rounded">Aliran Alami</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button id="btnResetSourceModal" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors">
+          Reset ke Default
+        </button>
+        <div class="flex gap-2">
+          <button onclick="UIController.closeSourceSettingsModal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors">
+            Batal
+          </button>
+          <button id="btnSaveSourceModal" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors">
+            Simpan & Terapkan Perhitungan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT MODULES -->
+  <script src="js/config.js"></script>
+  <script src="js/hydraulic_engine.js"></script>
+  <script src="js/map_manager.js"></script>
+  <script src="js/chart_controller.js"></script>
+  <script src="js/ui_controller.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
