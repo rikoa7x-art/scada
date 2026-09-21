@@ -18,6 +18,8 @@ const MapManager = (() => {
   let onPipeClickCallback = null;
   let onPumpClickCallback = null;
   let currentSelectedPipeId = null;
+  let userLocationMarker = null;
+  let userLocationCircle = null;
 
   /**
    * Inisialisasi Peta Leaflet
@@ -202,17 +204,29 @@ const MapManager = (() => {
 
       polyline.bindTooltip(tooltipContent, { sticky: true, className: 'custom-leaflet-tooltip' });
 
-      // Event klik pipa
-      polyline.on('click', () => {
+      const onPipeSelected = () => {
         currentSelectedPipeId = pipe.id;
         highlightPipe(pipe.id);
         if (onPipeClickCallback) {
           onPipeClickCallback(pipe, pipeCalc, startNode, endNode);
         }
-      });
+      };
 
+      // Event klik pipa utama
+      polyline.on('click', onPipeSelected);
       polyline.pipeId = pipe.id;
       pipeLayersGroup.addLayer(polyline);
+
+      // Hit-target transparan lebih lebar untuk mempermudah sentuhan jempol di layar ponsel
+      const hitPolyline = L.polyline(coords, {
+        weight: Math.max(28, weight + 18),
+        opacity: 0,
+        interactive: true,
+        lineCap: 'round',
+        lineJoin: 'round'
+      });
+      hitPolyline.on('click', onPipeSelected);
+      pipeLayersGroup.addLayer(hitPolyline);
 
       // Render Panah Arah Aliran Air jika sudah terhitung
       if (isCalculated && pipeCalc.direction !== 'none') {
@@ -221,18 +235,19 @@ const MapManager = (() => {
     });
 
     // 2. Render Junctions, Reservoir, dan Pompa
+    const isMobileDevice = window.innerWidth < 768;
     networkData.nodes.forEach(node => {
       const nodeState = nodesStateMap ? nodesStateMap.get(node.id) : null;
       const isReservoir = node.type === 'reservoir';
       const isPumpNode = networkData.pumps?.some(p => p.startNodeId === node.id || p.endNodeId === node.id);
 
       let fillColor = AppConfig.nodeStyle.node?.measuredFill || '#10b981';
-      let radius = AppConfig.nodeStyle.junction.radius;
+      let radius = isMobileDevice ? (AppConfig.nodeStyle.junction.radius + 2) : AppConfig.nodeStyle.junction.radius;
       let strokeColor = '#ffffff';
 
       if (isReservoir) {
         fillColor = AppConfig.nodeStyle.reservoir.fill;
-        radius = AppConfig.nodeStyle.reservoir.radius;
+        radius = isMobileDevice ? (AppConfig.nodeStyle.reservoir.radius + 2) : AppConfig.nodeStyle.reservoir.radius;
       } else if (nodeState) {
         if (nodeState.isMeasured) {
           fillColor = '#10b981'; // Hijau: terukur
@@ -252,6 +267,18 @@ const MapManager = (() => {
         opacity: 1,
         fillOpacity: 0.95
       });
+
+      // Hit-target transparan lebar khusus ponsel agar sentuhan akurat
+      const hitTargetMarker = L.circleMarker([node.lat, node.lng], {
+        radius: radius + 10,
+        opacity: 0,
+        fillOpacity: 0,
+        interactive: true
+      });
+      hitTargetMarker.on('click', () => {
+        if (onNodeClickCallback) onNodeClickCallback(node, nodeState);
+      });
+      nodeLayersGroup.addLayer(hitTargetMarker);
 
       // Label teks di atas marker
       const labelIcon = L.divIcon({
@@ -636,6 +663,59 @@ const MapManager = (() => {
     map.setView([lat, lng], zoom, { animate: true });
   }
 
+  /**
+   * Lacak posisi GPS petugas di lapangan secara real-time
+   */
+  function locateUser() {
+    if (!map) return;
+    if (!navigator.geolocation) {
+      if (window.UIController) UIController.showToast('Perangkat tidak mendukung GPS Geolocation', 'warning');
+      return;
+    }
+
+    if (window.UIController) UIController.showToast('📡 Menghubungi satelit GPS...', 'info');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const accuracy = pos.coords.accuracy;
+
+        if (userLocationMarker && map.hasLayer(userLocationMarker)) map.removeLayer(userLocationMarker);
+        if (userLocationCircle && map.hasLayer(userLocationCircle)) map.removeLayer(userLocationCircle);
+
+        const gpsIcon = L.divIcon({
+          className: 'user-gps-marker',
+          html: '<div class="user-gps-pulse"></div>',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9]
+        });
+
+        userLocationMarker = L.marker([lat, lng], { icon: gpsIcon }).addTo(map);
+        userLocationMarker.bindTooltip(`📍 Posisi Anda di Lapangan (Akurasi: ±${Math.round(accuracy)}m)`, { permanent: false });
+
+        userLocationCircle = L.circle([lat, lng], {
+          radius: accuracy,
+          color: '#2563eb',
+          fillColor: '#3b82f6',
+          fillOpacity: 0.12,
+          weight: 1.5
+        }).addTo(map);
+
+        map.setView([lat, lng], 17, { animate: true });
+        if (window.UIController) UIController.showToast(`📍 Lokasi GPS ditemukan (Akurasi: ±${Math.round(accuracy)}m)`, 'success');
+      },
+      (err) => {
+        console.warn('Geolocation error:', err);
+        let msg = 'Gagal mengakses GPS: ' + err.message;
+        if (err.code === 1) msg = 'Akses lokasi GPS ditolak oleh browser.';
+        else if (err.code === 2) msg = 'Sinyal satelit GPS tidak terdeteksi.';
+        if (window.UIController) UIController.showToast(msg, 'warning');
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    );
+  }
+
   return {
     init,
     switchBaseLayer,
@@ -647,6 +727,7 @@ const MapManager = (() => {
     highlightPipe,
     fitNetworkBounds,
     panToNode,
+    locateUser,
     getMap: () => map
   };
 })();

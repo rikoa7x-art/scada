@@ -9,6 +9,21 @@ const UIController = (() => {
   let onSaveSourceConfigCallback = null;
   let currentSourceConfig = null;
 
+  // Cache data jaringan untuk fitur pencarian & render ulang di mobile
+  let cachedNetworkData = null;
+  let cachedNodesMap = null;
+  let cachedPipesMap = null;
+  let cachedSequenceSteps = null;
+
+  let junctionSearchTerm = '';
+  let junctionFilterStatus = 'all';
+
+  let pipeSearchTerm = '';
+  let pipeFilterStatus = 'all';
+
+  let pipeViewMode = window.innerWidth < 768 ? 'card' : 'table';
+  let sequenceViewMode = window.innerWidth < 768 ? 'card' : 'table';
+
   /**
    * Inisialisasi Event Listener UI
    */
@@ -78,6 +93,15 @@ const UIController = (() => {
     document.getElementById('btnExportCSV')?.addEventListener('click', onExportCSV);
     document.getElementById('btnPrintReport')?.addEventListener('click', printReport);
     document.getElementById('btnFitMap')?.addEventListener('click', () => MapManager.fitNetworkBounds());
+
+    // Tombol Floating Map Mobile: Fit Bounds & GPS Lokasi Lapangan
+    document.getElementById('btnMobileFitMap')?.addEventListener('click', () => {
+      MapManager.fitNetworkBounds();
+      showToast('🗺️ Peta dipusatkan ke seluruh jaringan', 'info');
+    });
+    document.getElementById('btnMobileGps')?.addEventListener('click', () => {
+      MapManager.locateUser();
+    });
 
     // Tombol Modal Pengaturan Sumber (Pompa & Gravitasi)
     document.getElementById('btnSourceSettings')?.addEventListener('click', () => openSourceSettingsModal());
@@ -169,6 +193,11 @@ const UIController = (() => {
     document.getElementById('btnCloseMobileMenuBtn')?.addEventListener('click', () => {
       mobileActionMenu?.classList.add('hidden');
     });
+    mobileActionMenu?.addEventListener('click', (e) => {
+      if (e.target === mobileActionMenu) {
+        mobileActionMenu.classList.add('hidden');
+      }
+    });
 
     // Mobile BaseLayer Selector Sync
     const selectBaseMobile = document.getElementById('selectBaseLayerMobile');
@@ -221,28 +250,63 @@ const UIController = (() => {
       });
     }
 
-    // Mobile Sidebar Drawer Toggle & Close
+    // Mobile Sidebar Drawer Toggle & Close + Backdrop
     const btnToggleMobileSidebar = document.getElementById('btnToggleMobileSidebar');
     const btnCloseMobileSidebar = document.getElementById('btnCloseMobileSidebar');
     const sidebarContainer = document.getElementById('sidebarJunctionsContainer');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
-    btnToggleMobileSidebar?.addEventListener('click', () => {
+    const openMobileSidebar = () => {
       sidebarContainer?.classList.remove('hidden');
       sidebarContainer?.classList.add('flex');
-      btnToggleMobileSidebar.classList.add('hidden');
+      sidebarBackdrop?.classList.add('active');
+      btnToggleMobileSidebar?.classList.add('hidden');
       setTimeout(() => {
         MapManager.getMap()?.invalidateSize();
       }, 200);
-    });
+    };
 
-    btnCloseMobileSidebar?.addEventListener('click', () => {
+    const closeMobileSidebar = () => {
       sidebarContainer?.classList.add('hidden');
       sidebarContainer?.classList.remove('flex');
+      sidebarBackdrop?.classList.remove('active');
       btnToggleMobileSidebar?.classList.remove('hidden');
       setTimeout(() => {
         MapManager.getMap()?.invalidateSize();
       }, 200);
+    };
+
+    btnToggleMobileSidebar?.addEventListener('click', openMobileSidebar);
+    btnCloseMobileSidebar?.addEventListener('click', closeMobileSidebar);
+    sidebarBackdrop?.addEventListener('click', closeMobileSidebar);
+
+    // Backdrop Kartu Detail Pipa
+    const pipeDetailBackdrop = document.getElementById('pipeDetailBackdrop');
+    pipeDetailBackdrop?.addEventListener('click', () => {
+      document.getElementById('pipeDetailCard')?.classList.add('hidden');
+      pipeDetailBackdrop?.classList.remove('active');
     });
+
+    // Backdrop Click to Dismiss pada Modals
+    const pressureModal = document.getElementById('pressureModal');
+    pressureModal?.addEventListener('click', (e) => {
+      if (e.target === pressureModal) {
+        closePressureModal();
+      }
+    });
+
+    const sourceModal = document.getElementById('sourceSettingsModal');
+    sourceModal?.addEventListener('click', (e) => {
+      if (e.target === sourceModal) {
+        closeSourceSettingsModal();
+      }
+    });
+
+    // Setup Pencarian & Filter Simpul Junction di Sidebar
+    setupJunctionFilters();
+
+    // Setup Tampilan Switcher Tab 2 & Tab 3
+    setupViewSwitchers();
 
     // Modal Form Events (Tekanan Junction)
     document.getElementById('btnSavePressureModal')?.addEventListener('click', savePressureFromModal);
@@ -259,6 +323,178 @@ const UIController = (() => {
 
     // Tombol Layar Penuh (Fullscreen Map)
     setupMapFullscreen();
+  }
+
+  /**
+   * Setup Filter & Pencarian Cepat Junction di Sidebar
+   */
+  function setupJunctionFilters() {
+    const inputSearch = document.getElementById('inputSearchJunctions');
+    const btnClear = document.getElementById('btnClearJunctionSearch');
+    const filterPills = document.querySelectorAll('#sidebarJunctionsContainer .filter-pill, [data-junction-filter], [data-filter]');
+
+    inputSearch?.addEventListener('input', (e) => {
+      junctionSearchTerm = e.target.value.toLowerCase().trim();
+      if (btnClear) {
+        btnClear.classList.toggle('hidden', !junctionSearchTerm);
+      }
+      reRenderJunctionsSidebar();
+    });
+
+    btnClear?.addEventListener('click', () => {
+      if (inputSearch) inputSearch.value = '';
+      junctionSearchTerm = '';
+      btnClear.classList.add('hidden');
+      reRenderJunctionsSidebar();
+    });
+
+    filterPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        filterPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        junctionFilterStatus = pill.getAttribute('data-junction-filter') || pill.getAttribute('data-filter') || 'all';
+        reRenderJunctionsSidebar();
+      });
+    });
+  }
+
+  /**
+   * Re-render daftar junction di sidebar menggunakan cache
+   */
+  function reRenderJunctionsSidebar() {
+    if (cachedNetworkData && cachedNodesMap) {
+      renderJunctionsSidebarTable(cachedNetworkData, cachedNodesMap, currentSourceConfig);
+    }
+  }
+
+  /**
+   * Setup Segmented View Switchers (Card vs Table) untuk Tab 2 & Tab 3 serta Filter Pipa
+   */
+  function setupViewSwitchers() {
+    // -------------------------------------------------------------
+    // Tab 2: Tabel Monitoring Pipa (Card View vs Full Table)
+    // -------------------------------------------------------------
+    const btnViewPipesCard = document.getElementById('btnViewPipesCard');
+    const btnViewPipesTable = document.getElementById('btnViewPipesTable');
+    const desktopPipesTable = document.getElementById('desktopPipesTableContainer');
+    const mobilePipesCard = document.getElementById('mobilePipesCardContainer');
+
+    function setPipeView(mode) {
+      pipeViewMode = mode;
+      btnViewPipesCard?.classList.toggle('active', mode === 'card');
+      btnViewPipesTable?.classList.toggle('active', mode === 'table');
+
+      if (mode === 'card') {
+        mobilePipesCard?.classList.remove('hidden');
+        desktopPipesTable?.classList.add('hidden');
+      } else {
+        desktopPipesTable?.classList.remove('hidden');
+        mobilePipesCard?.classList.add('hidden');
+      }
+    }
+
+    btnViewPipesCard?.addEventListener('click', () => setPipeView('card'));
+    btnViewPipesTable?.addEventListener('click', () => setPipeView('table'));
+
+    // Default mode: Card pada layar kecil (<768px), Table pada desktop
+    if (window.innerWidth < 768) {
+      setPipeView('card');
+    } else {
+      setPipeView('table');
+    }
+
+    // Pencarian & Filter Pipa Tab 2
+    const inputSearchPipes = document.getElementById('inputSearchPipes');
+    const btnClearPipeSearch = document.getElementById('btnClearPipeSearch');
+    const pipeFilterPills = document.querySelectorAll('[data-pipe-filter]');
+
+    inputSearchPipes?.addEventListener('input', (e) => {
+      pipeSearchTerm = e.target.value.toLowerCase().trim();
+      if (btnClearPipeSearch) {
+        btnClearPipeSearch.classList.toggle('hidden', !pipeSearchTerm);
+      }
+      reRenderPipesTable();
+    });
+
+    btnClearPipeSearch?.addEventListener('click', () => {
+      if (inputSearchPipes) inputSearchPipes.value = '';
+      pipeSearchTerm = '';
+      btnClearPipeSearch.classList.add('hidden');
+      reRenderPipesTable();
+    });
+
+    pipeFilterPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        pipeFilterPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        pipeFilterStatus = pill.getAttribute('data-pipe-filter') || 'all';
+        reRenderPipesTable();
+      });
+    });
+
+    // -------------------------------------------------------------
+    // Tab 3: Alur Berurutan (Flow Step Journey vs Full Table)
+    // -------------------------------------------------------------
+    const btnViewSeqCard = document.getElementById('btnViewSequenceCard');
+    const btnViewSeqTable = document.getElementById('btnViewSequenceTable');
+    const desktopSeqTable = document.getElementById('desktopSequenceTableContainer');
+    const mobileSeqFlow = document.getElementById('mobileSequenceFlowContainer');
+
+    function setSequenceView(mode) {
+      sequenceViewMode = mode;
+      btnViewSeqCard?.classList.toggle('active', mode === 'card');
+      btnViewSeqTable?.classList.toggle('active', mode === 'table');
+
+      if (mode === 'card') {
+        mobileSeqFlow?.classList.remove('hidden');
+        desktopSeqTable?.classList.add('hidden');
+      } else {
+        desktopSeqTable?.classList.remove('hidden');
+        mobileSeqFlow?.classList.add('hidden');
+      }
+    }
+
+    btnViewSeqCard?.addEventListener('click', () => setSequenceView('card'));
+    btnViewSeqTable?.addEventListener('click', () => setSequenceView('table'));
+
+    if (window.innerWidth < 768) {
+      setSequenceView('card');
+    } else {
+      setSequenceView('table');
+    }
+  }
+
+  /**
+   * Re-render tabel & kartu pipa dari cache
+   */
+  function reRenderPipesTable() {
+    if (cachedNetworkData && cachedNodesMap && cachedPipesMap) {
+      renderPipesTable(cachedNetworkData, cachedNodesMap, cachedPipesMap);
+    }
+  }
+
+  /**
+   * Buka Kartu Detail Pipa berdasarkan ID pipa (shortcut dari Card View Tab 2 / Tab 3)
+   */
+  function showPipeDetailCardFromId(pipeId) {
+    if (!cachedNetworkData || !cachedNodesMap || !cachedPipesMap) return;
+    const pipe = cachedNetworkData.pipes.find(p => p.id === pipeId);
+    if (!pipe) return;
+    const calc = cachedPipesMap.get(pipeId)?.calculation;
+    const startNode = cachedNodesMap.get(pipe.startNodeId);
+    const endNode = cachedNodesMap.get(pipe.endNodeId);
+    showPipeDetailCard(pipe, calc, startNode, endNode);
+  }
+
+  /**
+   * Buka Modal Input Tekanan berdasarkan ID simpul (shortcut dari Kartu Detail & Journey)
+   */
+  function openPressureModalForNodeId(nodeId) {
+    if (!cachedNetworkData || !cachedNodesMap) return;
+    const node = cachedNetworkData.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+    const nodeState = cachedNodesMap.get(nodeId);
+    openPressureModal(node, nodeState);
   }
 
   /**
@@ -840,6 +1076,7 @@ const UIController = (() => {
    */
   function showPipeDetailCard(pipe, pipeCalc, startNode, endNode) {
     const container = document.getElementById('pipeDetailCard');
+    const backdrop = document.getElementById('pipeDetailBackdrop');
     if (!container) return;
 
     const startLabel = startNode?.label || 'N/A';
@@ -850,26 +1087,29 @@ const UIController = (() => {
         <div class="bottom-sheet-handle sm:hidden"></div>
         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
           <div>
-            <h4 class="font-bold text-slate-800 text-sm">Detail Pipa: ${startLabel} &rarr; ${endLabel}</h4>
+            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+              <span>Detail Pipa:</span>
+              <span class="text-blue-700 font-mono font-black">${startLabel} &rarr; ${endLabel}</span>
+            </h4>
             <span class="text-xs text-slate-500">ID: ${pipe.id.substring(0, 8)}... | Material: ${pipe.material || 'PVC'}</span>
           </div>
-          <button onclick="document.getElementById('pipeDetailCard').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
+          <button onclick="document.getElementById('pipeDetailCard').classList.add('hidden'); document.getElementById('pipeDetailBackdrop')?.classList.remove('active');" class="text-slate-400 hover:text-slate-600 text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-slate-50 p-2 rounded border border-slate-200/60">
+          <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
             <span class="text-slate-500">Diameter ($D$):</span>
             <div class="font-bold text-slate-800 text-sm">${pipe.diameter} mm</div>
           </div>
-          <div class="bg-slate-50 p-2 rounded border border-slate-200/60">
+          <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
             <span class="text-slate-500">Panjang ($L$):</span>
             <div class="font-bold text-slate-800 text-sm">${pipe.length} m</div>
           </div>
-          <div class="bg-slate-50 p-2 rounded border border-slate-200/60">
+          <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
             <span class="text-slate-500">Kekasaran ($C$):</span>
             <div class="font-bold text-slate-800 text-sm">${pipe.roughness || 140}</div>
           </div>
-          <div class="bg-slate-50 p-2 rounded border border-slate-200/60">
+          <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
             <span class="text-slate-500">Resistansi ($R$):</span>
             <div class="font-bold text-slate-800 text-sm">${pipeCalc?.resistanceR ? pipeCalc.resistanceR.toFixed(1) : '-'}</div>
           </div>
@@ -879,7 +1119,7 @@ const UIController = (() => {
     if (pipeCalc && pipeCalc.status === 'calculated') {
       const dirText = pipeCalc.direction === 'forward' ? `${startLabel} ke ${endLabel}` : `${endLabel} ke ${startLabel}`;
       html += `
-        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 space-y-2">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs text-emerald-800 font-semibold">HASIL ANALISA DEBIT:</span>
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${pipeCalc.velocityBadgeClass}">
@@ -912,22 +1152,43 @@ const UIController = (() => {
           </div>
         ` : ''}
 
-        <div class="text-[11px] bg-slate-100 p-2 rounded text-slate-600 font-mono">
+        <div class="text-[11px] bg-slate-100 p-2 rounded-lg text-slate-600 font-mono">
           Rumus: $Q = (|\\Delta H| / R)^{1/1.852} = (${pipeCalc.headLoss.toFixed(2)} / ${pipeCalc.resistanceR.toFixed(0)})^{0.54} = ${(pipeCalc.flowRateM3s * 1000).toFixed(2)}$ L/s
         </div>
       `;
     } else {
       html += `
-        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
           <b>Status: Belum Terhitung</b><br>
           Tekanan salah satu atau kedua junction (${startLabel} & ${endLabel}) belum diinput di lapangan.
         </div>
       `;
     }
 
+    // Pintasan Langsung Input Tekanan Simpul Hulu & Hilir
+    html += `
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+        <div class="text-[11px] font-bold text-slate-700">Pintasan Ukur Tekanan Simpul:</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button 
+            onclick="UIController.openPressureModalForNodeId('${pipe.startNodeId}')" 
+            class="py-2 px-2 bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 shadow-2xs active-press"
+          >
+            <span>📍 Titik ${startLabel}</span>
+          </button>
+          <button 
+            onclick="UIController.openPressureModalForNodeId('${pipe.endNodeId}')" 
+            class="py-2 px-2 bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 shadow-2xs active-press"
+          >
+            <span>📍 Titik ${endLabel}</span>
+          </button>
+        </div>
+      </div>
+    `;
+
     html += `
       <div class="pt-1 flex gap-2 sm:hidden">
-        <button onclick="document.getElementById('pipeDetailCard').classList.add('hidden')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs active-press">
+        <button onclick="document.getElementById('pipeDetailCard').classList.add('hidden'); document.getElementById('pipeDetailBackdrop')?.classList.remove('active');" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs active-press">
           Tutup Rincian Pipa
         </button>
       </div>
@@ -936,6 +1197,7 @@ const UIController = (() => {
     html += `</div>`;
     container.innerHTML = html;
     container.classList.remove('hidden');
+    backdrop?.classList.add('active');
   }
 
   /**
@@ -964,73 +1226,223 @@ const UIController = (() => {
         criticalBadge.classList.add('bg-emerald-500');
       }
     }
+
+    // Update badge notifikasi pipa bermasalah pada navigasi mobile bawah
+    const mobileBadge = document.getElementById('mobileTabTableBadge');
+    if (mobileBadge) {
+      if (summary.criticalPipes > 0) {
+        mobileBadge.textContent = summary.criticalPipes;
+        mobileBadge.classList.remove('hidden');
+      } else {
+        mobileBadge.classList.add('hidden');
+      }
+    }
   }
 
   /**
-   * Render Tabel Monitoring Pipa
+   * Render Tabel Monitoring Pipa (Dual Mode: Desktop Table & Mobile Card View + Search & Filter)
    */
   function renderPipesTable(networkData, nodesMap, pipesMap) {
+    cachedNetworkData = networkData;
+    cachedNodesMap = nodesMap;
+    cachedPipesMap = pipesMap;
+
     const tbody = document.getElementById('tablePipesBody');
+    const cardContainer = document.getElementById('mobilePipesCardContainer');
+    const countBadge = document.getElementById('pipesCountBadge');
     if (!tbody) return;
 
-    let rows = '';
-    networkData.pipes.forEach((pipe, idx) => {
+    // Filter pipa berdasarkan search & status filter
+    const filteredPipes = networkData.pipes.filter(pipe => {
       const calc = pipesMap.get(pipe.id)?.calculation;
       const startNode = nodesMap.get(pipe.startNodeId);
       const endNode = nodesMap.get(pipe.endNodeId);
-
-      const startLabel = startNode?.label || 'N/A';
-      const endLabel = endNode?.label || 'N/A';
+      const startLabel = (startNode?.label || '').toLowerCase();
+      const endLabel = (endNode?.label || '').toLowerCase();
+      const pipeId = (pipe.id || '').toLowerCase();
       const isCalculated = calc && calc.status === 'calculated';
 
-      let directionBadge = '-';
-      if (isCalculated && calc.direction !== 'none') {
-        directionBadge = calc.direction === 'forward' 
-          ? `<span class="text-blue-600 font-semibold">${startLabel} &rarr; ${endLabel}</span>`
-          : `<span class="text-indigo-600 font-semibold">${endLabel} &rarr; ${startLabel}</span>`;
+      // Filter status
+      if (pipeFilterStatus === 'calculated' && !isCalculated) return false;
+      if (pipeFilterStatus === 'unmeasured' && isCalculated) return false;
+      if (pipeFilterStatus === 'critical') {
+        if (!isCalculated || (calc.velocityStatus !== 'warning' && calc.velocityStatus !== 'danger')) return false;
       }
 
-      rows += `
-        <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 text-xs">
-          <td class="p-2.5 font-bold text-slate-800">${idx + 1}</td>
-          <td class="p-2.5 font-semibold text-slate-800">
-            ${startLabel} &rarr; ${endLabel}
-          </td>
-          <td class="p-2.5 text-slate-600">${pipe.diameter} mm</td>
-          <td class="p-2.5 text-slate-600">${pipe.length} m</td>
-          <td class="p-2.5 text-slate-600">${pipe.roughness || 140}</td>
-          <td class="p-2.5 text-slate-700 font-mono">${isCalculated ? calc.headLoss.toFixed(2) + ' m' : '-'}</td>
-          <td class="p-2.5 font-bold ${isCalculated ? 'text-emerald-700 font-mono text-sm' : 'text-slate-400'}">
-            ${isCalculated ? calc.flowRateLps.toFixed(2) : '-'}
-          </td>
-          <td class="p-2.5 font-semibold ${isCalculated ? 'text-slate-700 font-mono' : 'text-slate-400'}">
-            ${isCalculated ? calc.flowRateM3h.toFixed(1) : '-'}
-          </td>
-          <td class="p-2.5 font-mono ${isCalculated ? 'text-slate-800' : 'text-slate-400'}">
-            ${isCalculated ? calc.velocity.toFixed(2) : '-'}
-          </td>
-          <td class="p-2.5">
-            ${isCalculated 
-              ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${calc.velocityBadgeClass}">${calc.velocityStatus.toUpperCase()}</span>`
-              : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500">BELUM DIUKUR</span>`}
-          </td>
-          <td class="p-2.5">${directionBadge}</td>
-          <td class="p-2.5 text-center">
-            <button onclick="App.locatePipe('${pipe.id}')" class="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-[11px] font-medium transition-colors">
-              Lihat di Peta
-            </button>
+      // Filter search
+      if (pipeSearchTerm) {
+        const matchesStart = startLabel.includes(pipeSearchTerm);
+        const matchesEnd = endLabel.includes(pipeSearchTerm);
+        const matchesId = pipeId.includes(pipeSearchTerm);
+        if (!matchesStart && !matchesEnd && !matchesId) return false;
+      }
+
+      return true;
+    });
+
+    if (countBadge) {
+      countBadge.textContent = `${filteredPipes.length} / ${networkData.pipes.length} Pipa`;
+    }
+
+    // 1. Render Desktop Table Body
+    let rows = '';
+    if (filteredPipes.length === 0) {
+      rows = `
+        <tr>
+          <td colspan="12" class="text-center py-8 text-slate-400">
+            Tidak ada pipa yang sesuai kriteria pencarian atau filter.
           </td>
         </tr>
       `;
-    });
+    } else {
+      filteredPipes.forEach((pipe, idx) => {
+        const calc = pipesMap.get(pipe.id)?.calculation;
+        const startNode = nodesMap.get(pipe.startNodeId);
+        const endNode = nodesMap.get(pipe.endNodeId);
+        const startLabel = startNode?.label || 'N/A';
+        const endLabel = endNode?.label || 'N/A';
+        const isCalculated = calc && calc.status === 'calculated';
 
+        let directionBadge = '-';
+        if (isCalculated && calc.direction !== 'none') {
+          directionBadge = calc.direction === 'forward' 
+            ? `<span class="text-blue-600 font-semibold">${startLabel} &rarr; ${endLabel}</span>`
+            : `<span class="text-indigo-600 font-semibold">${endLabel} &rarr; ${startLabel}</span>`;
+        }
+
+        rows += `
+          <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 text-xs">
+            <td class="p-2.5 font-bold text-slate-800">${idx + 1}</td>
+            <td class="p-2.5 font-semibold text-slate-800">
+              ${startLabel} &rarr; ${endLabel}
+            </td>
+            <td class="p-2.5 text-slate-600">${pipe.diameter} mm</td>
+            <td class="p-2.5 text-slate-600">${pipe.length} m</td>
+            <td class="p-2.5 text-slate-600">${pipe.roughness || 140}</td>
+            <td class="p-2.5 text-slate-700 font-mono">${isCalculated ? calc.headLoss.toFixed(2) + ' m' : '-'}</td>
+            <td class="p-2.5 font-bold ${isCalculated ? 'text-emerald-700 font-mono text-sm' : 'text-slate-400'}">
+              ${isCalculated ? calc.flowRateLps.toFixed(2) : '-'}
+            </td>
+            <td class="p-2.5 font-semibold ${isCalculated ? 'text-slate-700 font-mono' : 'text-slate-400'}">
+              ${isCalculated ? calc.flowRateM3h.toFixed(1) : '-'}
+            </td>
+            <td class="p-2.5 font-mono ${isCalculated ? 'text-slate-800' : 'text-slate-400'}">
+              ${isCalculated ? calc.velocity.toFixed(2) : '-'}
+            </td>
+            <td class="p-2.5">
+              ${isCalculated 
+                ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${calc.velocityBadgeClass}">${calc.velocityStatus.toUpperCase()}</span>`
+                : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500">BELUM DIUKUR</span>`}
+            </td>
+            <td class="p-2.5">${directionBadge}</td>
+            <td class="p-2.5 text-center">
+              <button onclick="App.locatePipe('${pipe.id}')" class="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-[11px] font-medium transition-colors">
+                Lihat di Peta
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
     tbody.innerHTML = rows;
+
+    // 2. Render Mobile Card Container
+    if (cardContainer) {
+      if (filteredPipes.length === 0) {
+        cardContainer.innerHTML = `
+          <div class="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-300 p-6">
+            <div class="text-3xl mb-2">🔍</div>
+            <div class="font-bold text-slate-700 text-sm">Tidak Ditemukan</div>
+            <div class="text-xs text-slate-500 mt-1">Tidak ada pipa yang cocok dengan pencarian atau filter saat ini.</div>
+          </div>
+        `;
+      } else {
+        let cardsHtml = '';
+        filteredPipes.forEach((pipe, idx) => {
+          const calc = pipesMap.get(pipe.id)?.calculation;
+          const startNode = nodesMap.get(pipe.startNodeId);
+          const endNode = nodesMap.get(pipe.endNodeId);
+          const startLabel = startNode?.label || 'N/A';
+          const endLabel = endNode?.label || 'N/A';
+          const isCalculated = calc && calc.status === 'calculated';
+
+          let statusBadge = isCalculated
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${calc.velocityBadgeClass}">${calc.velocityLabel || calc.velocityStatus.toUpperCase()}</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500">BELUM DIUKUR</span>`;
+
+          cardsHtml += `
+            <div class="mobile-pipe-card ${isCalculated && (calc.velocityStatus === 'warning' || calc.velocityStatus === 'danger') ? 'border-amber-300 bg-amber-50/20' : ''}">
+              <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center flex-none">
+                    ${idx + 1}
+                  </span>
+                  <div class="font-bold text-slate-900 text-sm">
+                    ${startLabel} &rarr; ${endLabel}
+                  </div>
+                </div>
+                ${statusBadge}
+              </div>
+
+              <!-- Nilai Utama Debit & Kecepatan -->
+              <div class="grid grid-cols-2 gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/50">
+                <div>
+                  <div class="text-[10px] font-medium text-slate-500">Debit Aliran (Q):</div>
+                  <div class="font-black text-slate-900 text-base flex items-baseline gap-1">
+                    <span class="${isCalculated ? 'text-emerald-700' : 'text-slate-400'}">${isCalculated ? calc.flowRateLps.toFixed(2) : '-'}</span>
+                    <span class="text-[10px] font-semibold text-slate-500">L/s</span>
+                  </div>
+                  <div class="text-[10px] text-slate-400 font-mono">${isCalculated ? calc.flowRateM3h.toFixed(1) + ' m³/jam' : '-'}</div>
+                </div>
+                <div>
+                  <div class="text-[10px] font-medium text-slate-500">Kecepatan (v):</div>
+                  <div class="font-black text-slate-900 text-base flex items-baseline gap-1">
+                    <span class="${isCalculated ? 'text-blue-700' : 'text-slate-400'}">${isCalculated ? calc.velocity.toFixed(2) : '-'}</span>
+                    <span class="text-[10px] font-semibold text-slate-500">m/s</span>
+                  </div>
+                  <div class="text-[10px] text-slate-400">Head Loss: <b class="text-slate-600">${isCalculated ? calc.headLoss.toFixed(2) + ' m' : '-'}</b></div>
+                </div>
+              </div>
+
+              <!-- Detail Spesifikasi Pipa -->
+              <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
+                <span>&empty; <b>${pipe.diameter} mm</b></span>
+                <span>Panjang: <b>${pipe.length} m</b></span>
+                <span>C: <b>${pipe.roughness || 140}</b></span>
+              </div>
+
+              <!-- Tombol Aksi Mobile -->
+              <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                <button 
+                  onclick="App.locatePipe('${pipe.id}')"
+                  class="py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 active-press"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>Peta GIS</span>
+                </button>
+                <button 
+                  onclick="UIController.showPipeDetailCardFromId('${pipe.id}')"
+                  class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 active-press"
+                >
+                  <span>Rincian &rarr;</span>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        cardContainer.innerHTML = cardsHtml;
+      }
+    }
   }
 
   /**
-   * Render Tabel Input Batch Junction di Sidebar
+   * Render Tabel Input Batch Junction di Sidebar (dengan Filter Status & Pencarian Cepat)
    */
   function renderJunctionsSidebarTable(networkData, nodesMap, sourceConfig = null) {
+    cachedNetworkData = networkData;
+    cachedNodesMap = nodesMap;
+    if (sourceConfig) currentSourceConfig = sourceConfig;
+
     const container = document.getElementById('junctionsSidebarList');
     if (!container) return;
 
@@ -1044,116 +1456,153 @@ const UIController = (() => {
 
     let html = '';
 
-    // 1. Card Reservoir Air (R4)
-    html += `
-      <div class="p-2.5 bg-blue-50/90 rounded-lg border border-blue-200 shadow-2xs hover:border-blue-400 transition-all flex items-center justify-between gap-2 text-xs">
-        <div class="cursor-pointer flex-1" onclick="UIController.openSourceSettingsModal('reservoir')">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full bg-blue-600 flex-none"></span>
-            <span class="font-bold text-blue-950 text-sm">Reservoir R4</span>
-            <span class="text-[10px] ${isGravity ? 'bg-blue-200 text-blue-900' : 'bg-slate-200 text-slate-700'} px-1.5 py-0.2 rounded font-semibold">${isGravity ? 'Gravitasi' : 'Suplai'}</span>
-          </div>
-          <div class="text-[11px] text-slate-600 mt-0.5">
-            Muka Air: <b>${resElev}m</b> &bull; Debit: <b class="text-blue-800">${resFlow.toFixed(1)} L/s</b>
-          </div>
-        </div>
-        <button 
-          onclick="UIController.openSourceSettingsModal('reservoir')"
-          class="px-2 py-1 bg-white hover:bg-blue-100 text-blue-700 rounded border border-blue-300 font-semibold text-[11px] transition-colors flex items-center gap-1 shadow-2xs cursor-pointer flex-none"
-          title="Setting Debit di Reservoir"
-        >
-          <span>⚙️ Setting</span>
-        </button>
-      </div>
-    `;
-
-    // 2. Card Pompa Transmisi (PMP4)
-    html += `
-      <div class="p-2.5 bg-indigo-50/90 rounded-lg border border-indigo-200 shadow-2xs hover:border-indigo-400 transition-all flex items-center justify-between gap-2 text-xs">
-        <div class="cursor-pointer flex-1" onclick="UIController.openSourceSettingsModal('pump')">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full ${isPumpActive ? 'bg-violet-600' : 'bg-slate-400'} flex-none"></span>
-            <span class="font-bold text-indigo-950 text-sm">Pompa PMP4</span>
-            <span class="text-[10px] ${isPumpActive ? 'bg-indigo-200 text-indigo-900' : 'bg-slate-200 text-slate-700'} px-1.5 py-0.2 rounded font-semibold">${isPumpActive ? 'Aktif' : 'Bypass'}</span>
-          </div>
-          <div class="text-[11px] text-slate-600 mt-0.5">
-            Head: <b class="text-indigo-800">${isPumpActive ? curPumpHead.toFixed(1) + 'm' : '0m'}</b> &bull; Debit: <b class="text-indigo-800">${curPumpFlow.toFixed(1)} L/s</b>
-          </div>
-        </div>
-        <button 
-          onclick="UIController.openSourceSettingsModal('pump')"
-          class="px-2 py-1 bg-white hover:bg-indigo-100 text-indigo-700 rounded border border-indigo-300 font-semibold text-[11px] transition-colors flex items-center gap-1 shadow-2xs cursor-pointer flex-none"
-          title="Edit Kapasitas Head & Debit Pompa"
-        >
-          <span>⚙️ Setting</span>
-        </button>
-      </div>
-    `;
-
-    // Garis Pemisah Junction Lapangan
-    html += `
-      <div class="pt-1 pb-0.5 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-        <span>Tekanan Junction Lapangan</span>
-        <div class="flex-1 border-t border-slate-200"></div>
-      </div>
-    `;
-
-    // 3. Daftar Junction (Kecuali Reservoir)
-    networkData.nodes.filter(n => n.type !== 'reservoir').forEach(node => {
-      const state = nodesMap.get(node.id);
-      const isMeasured = state?.isMeasured;
-      const val = state?.pressureValue !== null && state?.pressureValue !== undefined ? state.pressureValue : '';
-      const unit = state?.pressureUnit || 'bar';
-
+    // Hanya tampilkan Reservoir & Pompa jika filter 'Semua' dan tidak sedang mencari junction spesifik
+    if (junctionFilterStatus === 'all' && !junctionSearchTerm) {
+      // 1. Card Reservoir Air (R4)
       html += `
-        <div class="p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs hover:border-blue-300 transition-all flex items-center justify-between gap-2 text-xs">
-          <div class="cursor-pointer" onclick="App.locateNode('${node.id}')">
+        <div class="p-2.5 bg-blue-50/90 rounded-xl border border-blue-200 shadow-2xs hover:border-blue-400 transition-all flex items-center justify-between gap-2 text-xs">
+          <div class="cursor-pointer flex-1 min-w-0" onclick="UIController.openSourceSettingsModal('reservoir')">
             <div class="flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full ${isMeasured ? 'bg-emerald-500' : 'bg-amber-400'}"></span>
-              <span class="font-bold text-slate-800 text-sm">${node.label}</span>
-              <span class="text-[10px] text-slate-500">(${node.elevation}m)</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-600 flex-none"></span>
+              <span class="font-bold text-blue-950 text-sm">Reservoir R4</span>
+              <span class="text-[10px] ${isGravity ? 'bg-blue-200 text-blue-900' : 'bg-slate-200 text-slate-700'} px-1.5 py-0.2 rounded font-semibold">${isGravity ? 'Gravitasi' : 'Suplai'}</span>
             </div>
-            <div class="text-[11px] text-slate-500 mt-0.5">
-              ${isMeasured ? `Total Head: <b>${state.totalHead.toFixed(1)}m</b>` : 'Tekanan belum ada'}
+            <div class="text-[11px] text-slate-600 mt-0.5 truncate">
+              Muka Air: <b>${resElev}m</b> &bull; Debit: <b class="text-blue-800">${resFlow.toFixed(1)} L/s</b>
             </div>
           </div>
-
-          <div class="flex items-center gap-1">
-            <input 
-              type="number" 
-              step="0.01" 
-              placeholder="Tekanan" 
-              value="${val}" 
-              id="inline-pressure-${node.id}" 
-              class="w-16 px-1.5 py-1 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 focus:outline-hidden font-mono text-right"
-            />
-            <select id="inline-unit-${node.id}" class="text-[11px] py-1 px-1 border border-slate-300 rounded bg-slate-50 text-slate-700">
-              <option value="bar" ${unit === 'bar' ? 'selected' : ''}>bar</option>
-              <option value="mH2O" ${unit === 'mH2O' ? 'selected' : ''}>mH2O</option>
-              <option value="psi" ${unit === 'psi' ? 'selected' : ''}>psi</option>
-            </select>
-            <button 
-              onclick="App.saveInlinePressure('${node.id}')"
-              class="p-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded border border-emerald-200 transition-colors"
-              title="Simpan Tekanan"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-          </div>
+          <button 
+            onclick="UIController.openSourceSettingsModal('reservoir')"
+            class="px-2.5 py-1.5 bg-white hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-300 font-semibold text-[11px] transition-colors flex items-center gap-1 shadow-2xs cursor-pointer flex-none active-press"
+            title="Setting Debit di Reservoir"
+          >
+            <span>⚙️ Setting</span>
+          </button>
         </div>
       `;
+
+      // 2. Card Pompa Transmisi (PMP4)
+      html += `
+        <div class="p-2.5 bg-indigo-50/90 rounded-xl border border-indigo-200 shadow-2xs hover:border-indigo-400 transition-all flex items-center justify-between gap-2 text-xs">
+          <div class="cursor-pointer flex-1 min-w-0" onclick="UIController.openSourceSettingsModal('pump')">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full ${isPumpActive ? 'bg-violet-600' : 'bg-slate-400'} flex-none"></span>
+              <span class="font-bold text-indigo-950 text-sm">Pompa PMP4</span>
+              <span class="text-[10px] ${isPumpActive ? 'bg-indigo-200 text-indigo-900' : 'bg-slate-200 text-slate-700'} px-1.5 py-0.2 rounded font-semibold">${isPumpActive ? 'Aktif' : 'Bypass'}</span>
+            </div>
+            <div class="text-[11px] text-slate-600 mt-0.5 truncate">
+              Head: <b class="text-indigo-800">${isPumpActive ? curPumpHead.toFixed(1) + 'm' : '0m'}</b> &bull; Debit: <b class="text-indigo-800">${curPumpFlow.toFixed(1)} L/s</b>
+            </div>
+          </div>
+          <button 
+            onclick="UIController.openSourceSettingsModal('pump')"
+            class="px-2.5 py-1.5 bg-white hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-300 font-semibold text-[11px] transition-colors flex items-center gap-1 shadow-2xs cursor-pointer flex-none active-press"
+            title="Edit Kapasitas Head & Debit Pompa"
+          >
+            <span>⚙️ Setting</span>
+          </button>
+        </div>
+      `;
+
+      // Garis Pemisah Junction Lapangan
+      html += `
+        <div class="pt-1 pb-0.5 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <span>Tekanan Simpul / Junction Lapangan</span>
+          <div class="flex-1 border-t border-slate-200"></div>
+        </div>
+      `;
+    }
+
+    // Filter junctions
+    const filteredJunctions = networkData.nodes.filter(n => n.type !== 'reservoir').filter(node => {
+      const state = nodesMap.get(node.id);
+      const isMeasured = state?.isMeasured;
+      const label = (node.label || '').toLowerCase();
+      const id = (node.id || '').toLowerCase();
+
+      // Filter status
+      if (junctionFilterStatus === 'measured' && !isMeasured) return false;
+      if (junctionFilterStatus === 'unmeasured' && isMeasured) return false;
+
+      // Filter pencarian
+      if (junctionSearchTerm) {
+        const matchesLabel = label.includes(junctionSearchTerm);
+        const matchesId = id.includes(junctionSearchTerm);
+        if (!matchesLabel && !matchesId) return false;
+      }
+
+      return true;
     });
+
+    if (filteredJunctions.length === 0) {
+      html += `
+        <div class="p-6 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <div class="text-2xl mb-1">🔍</div>
+          <div class="text-xs font-semibold text-slate-600">Tidak ada junction yang sesuai</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Ubah kata kunci pencarian atau filter status.</div>
+        </div>
+      `;
+    } else {
+      filteredJunctions.forEach(node => {
+        const state = nodesMap.get(node.id);
+        const isMeasured = state?.isMeasured;
+        const val = state?.pressureValue !== null && state?.pressureValue !== undefined ? state.pressureValue : '';
+        const unit = state?.pressureUnit || 'bar';
+
+        html += `
+          <div class="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:border-blue-300 transition-all flex items-center justify-between gap-2 text-xs">
+            <div class="cursor-pointer flex-1 min-w-0" onclick="App.locateNode('${node.id}')">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full ${isMeasured ? 'bg-emerald-500' : 'bg-amber-400'} flex-none"></span>
+                <span class="font-bold text-slate-800 text-sm truncate">${node.label}</span>
+                <span class="text-[10px] text-slate-500 flex-none">(${node.elevation}m)</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5 truncate">
+                ${isMeasured ? `Total Head: <b>${state.totalHead.toFixed(1)}m</b>` : 'Tekanan belum ada'}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 flex-none">
+              <input 
+                type="number" 
+                inputmode="decimal"
+                step="0.01" 
+                placeholder="Tekanan" 
+                value="${val}" 
+                id="inline-pressure-${node.id}" 
+                class="w-16 px-1.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-mono text-right"
+              />
+              <select id="inline-unit-${node.id}" class="text-[11px] py-1.5 px-1 border border-slate-300 rounded-lg bg-slate-50 text-slate-700">
+                <option value="bar" ${unit === 'bar' ? 'selected' : ''}>bar</option>
+                <option value="mH2O" ${unit === 'mH2O' ? 'selected' : ''}>mH2O</option>
+                <option value="psi" ${unit === 'psi' ? 'selected' : ''}>psi</option>
+              </select>
+              <button 
+                onclick="App.saveInlinePressure('${node.id}')"
+                class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 transition-colors active-press"
+                title="Simpan Tekanan"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
 
     container.innerHTML = html;
   }
 
   /**
-   * Render Tabel Alur Hidrolis Berurutan (Sequential Cascade dari Reservoir ke Ujung)
+   * Render Tabel Alur Hidrolis Berurutan (Dual Mode: Desktop Table & Mobile Flow Journey Steps)
    */
   function renderSequentialFlowTable(sequenceSteps) {
+    cachedSequenceSteps = sequenceSteps;
     const tbody = document.getElementById('tableSequenceBody');
+    const flowContainer = document.getElementById('mobileSequenceFlowContainer');
     if (!tbody) return;
 
+    // 1. Render Desktop Table
     let rows = '';
     sequenceSteps.forEach((step) => {
       const isSource = step.type === 'source';
@@ -1237,6 +1686,126 @@ const UIController = (() => {
     });
 
     tbody.innerHTML = rows;
+
+    // 2. Render Mobile Sequence Flow Steps
+    if (flowContainer) {
+      let cardsHtml = '';
+      sequenceSteps.forEach((step) => {
+        const isSource = step.type === 'source';
+        const isPump = step.type === 'pump';
+        const isPipe = step.type === 'pipe';
+
+        let badgeType = '';
+        if (isSource) {
+          badgeType = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">SUMBER AIR</span>';
+        } else if (isPump) {
+          badgeType = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-300">POMPA</span>';
+        } else if (step.demand > 0) {
+          badgeType = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">DEMAND ${step.demand} L/s</span>`;
+        } else if (step.depth >= 3) {
+          badgeType = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">UJUNG JARINGAN</span>';
+        } else {
+          badgeType = '<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">TRANSMISI</span>';
+        }
+
+        const qDisplay = step.flowRateLps > 0 ? step.flowRateLps.toFixed(2) : '-';
+        const qM3hDisplay = step.flowRateM3h > 0 ? step.flowRateM3h.toFixed(1) : '-';
+        const vDisplay = step.velocity > 0 ? step.velocity.toFixed(2) : '-';
+        const hfDisplay = step.headLoss > 0 ? step.headLoss.toFixed(2) : '-';
+
+        let actionBtn = '';
+        if (isPipe) {
+          actionBtn = `
+            <button onclick="App.locatePipe('${step.pipeId}')" class="flex-1 py-2 px-3 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 active-press">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Peta GIS</span>
+            </button>
+            <button onclick="UIController.showPipeDetailCardFromId('${step.pipeId}')" class="flex-1 py-2 px-3 bg-slate-100 text-slate-800 hover:bg-slate-200 rounded-xl text-xs font-bold transition-colors active-press">
+              Rincian &rarr;
+            </button>
+          `;
+        } else if (isSource) {
+          actionBtn = `
+            <button onclick="UIController.openSourceSettingsModal('reservoir')" class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 active-press">
+              <span>⚙️ Setting Reservoir R4</span>
+            </button>
+          `;
+        } else if (isPump) {
+          actionBtn = `
+            <button onclick="UIController.openSourceSettingsModal('pump')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 active-press">
+              <span>⚙️ Setting Pompa PMP4</span>
+            </button>
+          `;
+        } else {
+          actionBtn = `
+            <button onclick="App.locateNode('${step.nodeId}')" class="flex-1 py-2 px-3 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 active-press">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Peta GIS</span>
+            </button>
+            <button onclick="UIController.openPressureModalForNodeId('${step.nodeId}')" class="flex-1 py-2 px-3 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-xl text-xs font-bold transition-colors active-press">
+              Ukur Tekanan ✍️
+            </button>
+          `;
+        }
+
+        cardsHtml += `
+          <div class="mobile-flow-step ${isSource ? 'border-blue-300 bg-blue-50/20' : (isPump ? 'border-purple-300 bg-purple-50/20' : '')}">
+            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-6 h-6 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center flex-none">
+                  ${step.stepNumber}
+                </span>
+                <div class="min-w-0">
+                  <div class="font-bold text-slate-900 text-sm truncate">${step.pipeLabel || step.nodeLabel}</div>
+                  <div class="text-[10px] text-slate-500 truncate">${step.description || ''}</div>
+                </div>
+              </div>
+              ${badgeType}
+            </div>
+
+            <!-- Metrik Alur -->
+            <div class="grid grid-cols-3 gap-2 bg-slate-50/80 p-2 rounded-xl text-center border border-slate-200/50 text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 block">Jarak</span>
+                <span class="font-bold font-mono text-slate-800">${step.cumulativeDistance ? Math.round(step.cumulativeDistance) + 'm' : '0m'}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block">Tekanan</span>
+                <span class="font-bold font-mono text-blue-700">${step.pressureBar ? step.pressureBar.toFixed(2) + ' bar' : '0 bar'}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block">Total Head</span>
+                <span class="font-bold font-mono text-emerald-700">${step.totalHead ? step.totalHead.toFixed(1) + 'm' : '-'}</span>
+              </div>
+            </div>
+
+            ${qDisplay !== '-' || vDisplay !== '-' || hfDisplay !== '-' ? `
+              <div class="grid grid-cols-3 gap-2 px-1 text-xs">
+                <div>
+                  <span class="text-[10px] text-slate-400 block">Debit (Q):</span>
+                  <span class="font-bold font-mono text-emerald-800">${qDisplay} L/s</span>
+                  <span class="text-[9px] text-slate-400 block">${qM3hDisplay} m³/h</span>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 block">Kecepatan (v):</span>
+                  <span class="font-bold font-mono text-slate-800">${vDisplay} m/s</span>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 block">Head Loss:</span>
+                  <span class="font-bold font-mono text-slate-600">${hfDisplay !== '-' ? hfDisplay + 'm' : '-'}</span>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Tombol Aksi -->
+            <div class="flex items-center gap-2 pt-1 border-t border-slate-100">
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      });
+      flowContainer.innerHTML = cardsHtml;
+    }
 
     // Perbarui Box Konseptual Sumber & Pompa secara dinamis
     const boxHeader = document.getElementById('boxSequenceSourceHeader');
@@ -1373,6 +1942,8 @@ const UIController = (() => {
     closeSourceSettingsModal,
     updateSourceBadge,
     showPipeDetailCard,
+    showPipeDetailCardFromId,
+    openPressureModalForNodeId,
     updateSummaryCards,
     renderPipesTable,
     renderJunctionsSidebarTable,
@@ -1384,9 +1955,12 @@ const UIController = (() => {
 })();
 
 // Expose global shortcut untuk inline HTML onclick
+window.UIController = UIController;
 window.toggleDashboard = () => UIController.toggleDashboard();
 window.savePressureFromModal = () => UIController.savePressureFromModal();
 window.deletePressureFromModal = () => UIController.deletePressureFromModal();
 window.closePressureModal = () => UIController.closePressureModal();
+window.openPressureModalForNodeId = (id) => UIController.openPressureModalForNodeId(id);
+window.showPipeDetailCardFromId = (id) => UIController.showPipeDetailCardFromId(id);
 
 

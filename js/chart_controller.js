@@ -47,6 +47,8 @@ const ChartController = (() => {
     const hglData = [];
     const pressureData = [];
 
+    const isMobile = window.innerWidth < 640;
+
     pathNodes.forEach((node, index) => {
       if (index > 0) {
         // Cari pipa penghubung
@@ -58,7 +60,13 @@ const ChartController = (() => {
         cumulativeDistance += pipe ? Number(pipe.length) : 200;
       }
 
-      labels.push(`${node.label} (${Math.round(cumulativeDistance)}m)`);
+      // Gunakan multiline array label di mobile agar tidak bertumpuk
+      if (isMobile) {
+        labels.push([node.label, `${Math.round(cumulativeDistance)}m`]);
+      } else {
+        labels.push(`${node.label} (${Math.round(cumulativeDistance)}m)`);
+      }
+      
       elevationData.push(node.elevation);
 
       const totalHead = node.state && node.state.totalHead !== null ? Number(node.state.totalHead.toFixed(2)) : null;
@@ -78,25 +86,25 @@ const ChartController = (() => {
         labels: labels,
         datasets: [
           {
-            label: 'Garis Derajat Hidrolis / HGL (m)',
+            label: isMobile ? 'HGL (m)' : 'Garis Derajat Hidrolis / HGL (m)',
             data: hglData,
             borderColor: '#10b981',
             backgroundColor: 'rgba(16, 185, 129, 0.15)',
-            borderWidth: 3,
+            borderWidth: isMobile ? 2 : 3,
             pointBackgroundColor: '#059669',
-            pointRadius: 5,
+            pointRadius: isMobile ? 3 : 5,
             fill: false,
             tension: 0.2
           },
           {
-            label: 'Elevasi Muka Tanah (m dpl)',
+            label: isMobile ? 'Tanah (m)' : 'Elevasi Muka Tanah (m dpl)',
             data: elevationData,
             borderColor: '#64748b',
             backgroundColor: 'rgba(100, 116, 139, 0.2)',
-            borderWidth: 2,
-            borderDash: [5, 5],
+            borderWidth: isMobile ? 1.5 : 2,
+            borderDash: [4, 4],
             pointBackgroundColor: '#475569',
-            pointRadius: 4,
+            pointRadius: isMobile ? 2.5 : 4,
             fill: true,
             tension: 0.2
           }
@@ -113,8 +121,10 @@ const ChartController = (() => {
           legend: {
             position: 'top',
             labels: {
-              font: { family: 'sans-serif', size: 12, weight: 'bold' },
-              usePointStyle: true
+              font: { family: 'sans-serif', size: isMobile ? 10 : 12, weight: 'bold' },
+              usePointStyle: true,
+              boxWidth: isMobile ? 6 : 10,
+              padding: isMobile ? 8 : 12
             }
           },
           tooltip: {
@@ -131,17 +141,26 @@ const ChartController = (() => {
         scales: {
           x: {
             title: {
-              display: true,
+              display: !isMobile,
               text: 'Titik Junction & Jarak Kumulatif (m)',
               font: { weight: 'bold', size: 11 }
+            },
+            ticks: {
+              font: { size: isMobile ? 8.5 : 10 },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: isMobile ? 8 : 15
             },
             grid: { color: 'rgba(203, 213, 225, 0.4)' }
           },
           y: {
             title: {
               display: true,
-              text: 'Elevasi & Head (meter)',
-              font: { weight: 'bold', size: 11 }
+              text: isMobile ? 'Head (m)' : 'Elevasi & Head (meter)',
+              font: { weight: 'bold', size: isMobile ? 9 : 11 }
+            },
+            ticks: {
+              font: { size: isMobile ? 8.5 : 10 }
             },
             grid: { color: 'rgba(203, 213, 225, 0.4)' }
           }

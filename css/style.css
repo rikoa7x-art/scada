@@ -299,3 +299,198 @@
   border-color: #38bdf8;
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
 }
+
+/* ======================================================
+   KOMPONEN TAMBAHAN MOBILE PHONE (SMARTPHONE UI/UX)
+   ====================================================== */
+
+/* Backdrop Gelap untuk Bottom Sheet Mobile & Modals */
+.mobile-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(2px);
+  z-index: 39;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.mobile-sheet-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Tombol Aksi Terapung Peta (Floating Action Buttons - FAB) */
+.map-fab-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.map-fab-btn:hover {
+  background: #ffffff;
+  color: #0284c7;
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.map-fab-btn:active {
+  transform: scale(0.92);
+}
+
+/* Mobile Pipe Card (Tampilan Kartu Pipa Mobile) */
+.mobile-pipe-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 14px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mobile-pipe-card:active {
+  transform: scale(0.985);
+}
+
+.mobile-pipe-card.status-critical {
+  border-left: 4px solid #ef4444;
+}
+
+.mobile-pipe-card.status-warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.mobile-pipe-card.status-normal {
+  border-left: 4px solid #10b981;
+}
+
+.mobile-pipe-card.status-low {
+  border-left: 4px solid #0284c7;
+}
+
+.mobile-pipe-card.status-unmeasured {
+  border-left: 4px solid #94a3b8;
+}
+
+/* Mobile Sequential Flow Step Card */
+.mobile-flow-step {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.mobile-flow-step::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  bottom: -16px;
+  width: 2px;
+  height: 16px;
+  background-color: #cbd5e1;
+}
+
+.mobile-flow-step:last-child::before {
+  display: none;
+}
+
+/* Segmented Control Pill (Toggle Tampilan Kartu vs Tabel) */
+.segmented-control-wrapper {
+  display: inline-flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.segmented-toggle-btn {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 9px;
+  color: #64748b;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.segmented-toggle-btn.active {
+  background: #ffffff;
+  color: #0284c7;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+/* Marker GPS Lokasi Pengguna */
+.user-gps-pulse {
+  width: 18px;
+  height: 18px;
+  background: #2563eb;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35);
+  animation: gpsPulse 2s infinite;
+}
+
+@keyframes gpsPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+/* Touch indicator bar pada modal sheet */
+.sheet-drag-pill {
+  width: 42px;
+  height: 5px;
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  margin: 8px auto 6px auto;
+  cursor: grab;
+}
+
+/* Filter badge pill horizontal scroll */
+.filter-pills-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-pill {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-pill.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+

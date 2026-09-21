@@ -817,6 +817,7 @@ const App = (() => {
     if (!networkData) return;
     const node = networkData.nodes.find(n => n.id === nodeId);
     if (node) {
+      document.getElementById('btn-tabMap')?.click();
       MapManager.panToNode(node.lat, node.lng, 18);
       if (node.type !== 'reservoir') {
         const state = currentHydraulicResult?.nodes.get(node.id);
