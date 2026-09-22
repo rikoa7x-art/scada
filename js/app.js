@@ -818,6 +818,9 @@ const App = (() => {
     const node = networkData.nodes.find(n => n.id === nodeId);
     if (node) {
       document.getElementById('btn-tabMap')?.click();
+      if (window.innerWidth < 640) {
+        UIController.closeSidebar?.();
+      }
       MapManager.panToNode(node.lat, node.lng, 18);
       if (node.type !== 'reservoir') {
         const state = currentHydraulicResult?.nodes.get(node.id);
@@ -857,7 +860,13 @@ const App = (() => {
    */
   function refreshProfileChart() {
     if (networkData && currentHydraulicResult) {
-      ChartController.renderProfileChart('profileChartCanvas', networkData, currentHydraulicResult.nodes);
+      const sequenceSteps = HydraulicEngine.buildSequentialNetworkFlow(
+        networkData,
+        currentHydraulicResult.nodes,
+        currentHydraulicResult.pipes,
+        sourceConfig
+      );
+      ChartController.renderProfileChart('profileChartCanvas', networkData, currentHydraulicResult.nodes, sequenceSteps);
     }
   }
 
@@ -923,6 +932,9 @@ const App = (() => {
     getNetworkData: () => networkData
   };
 })();
+
+// Expose global
+window.App = App;
 
 // Jalankan aplikasi saat DOM siap
 document.addEventListener('DOMContentLoaded', () => {

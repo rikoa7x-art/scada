@@ -23,6 +23,9 @@ const UIController = (() => {
 
   let pipeViewMode = window.innerWidth < 768 ? 'card' : 'table';
   let sequenceViewMode = window.innerWidth < 768 ? 'card' : 'table';
+  let activeTabId = 'tabMap';
+  let setPipeView = null;
+  let setSequenceView = null;
 
   /**
    * Inisialisasi Event Listener UI
@@ -91,7 +94,7 @@ const UIController = (() => {
     document.getElementById('btnResetData')?.addEventListener('click', onResetData);
     document.getElementById('btnSolveNetwork')?.addEventListener('click', onSolveNetwork);
     document.getElementById('btnExportCSV')?.addEventListener('click', onExportCSV);
-    document.getElementById('btnPrintReport')?.addEventListener('click', printReport);
+    document.getElementById('btnPrintReport')?.addEventListener('click', () => window.print());
     document.getElementById('btnFitMap')?.addEventListener('click', () => MapManager.fitNetworkBounds());
 
     // Tombol Floating Map Mobile: Fit Bounds & GPS Lokasi Lapangan
@@ -250,36 +253,6 @@ const UIController = (() => {
       });
     }
 
-    // Mobile Sidebar Drawer Toggle & Close + Backdrop
-    const btnToggleMobileSidebar = document.getElementById('btnToggleMobileSidebar');
-    const btnCloseMobileSidebar = document.getElementById('btnCloseMobileSidebar');
-    const sidebarContainer = document.getElementById('sidebarJunctionsContainer');
-    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-
-    const openMobileSidebar = () => {
-      sidebarContainer?.classList.remove('hidden');
-      sidebarContainer?.classList.add('flex');
-      sidebarBackdrop?.classList.add('active');
-      btnToggleMobileSidebar?.classList.add('hidden');
-      setTimeout(() => {
-        MapManager.getMap()?.invalidateSize();
-      }, 200);
-    };
-
-    const closeMobileSidebar = () => {
-      sidebarContainer?.classList.add('hidden');
-      sidebarContainer?.classList.remove('flex');
-      sidebarBackdrop?.classList.remove('active');
-      btnToggleMobileSidebar?.classList.remove('hidden');
-      setTimeout(() => {
-        MapManager.getMap()?.invalidateSize();
-      }, 200);
-    };
-
-    btnToggleMobileSidebar?.addEventListener('click', openMobileSidebar);
-    btnCloseMobileSidebar?.addEventListener('click', closeMobileSidebar);
-    sidebarBackdrop?.addEventListener('click', closeMobileSidebar);
-
     // Backdrop Kartu Detail Pipa
     const pipeDetailBackdrop = document.getElementById('pipeDetailBackdrop');
     pipeDetailBackdrop?.addEventListener('click', () => {
@@ -323,6 +296,9 @@ const UIController = (() => {
 
     // Tombol Layar Penuh (Fullscreen Map)
     setupMapFullscreen();
+
+    // Setup Sidebar Input Tekanan Lapangan (Desktop & Mobile)
+    setupSidebar();
   }
 
   /**
@@ -379,7 +355,7 @@ const UIController = (() => {
     const desktopPipesTable = document.getElementById('desktopPipesTableContainer');
     const mobilePipesCard = document.getElementById('mobilePipesCardContainer');
 
-    function setPipeView(mode) {
+    setPipeView = function(mode) {
       pipeViewMode = mode;
       btnViewPipesCard?.classList.toggle('active', mode === 'card');
       btnViewPipesTable?.classList.toggle('active', mode === 'table');
@@ -391,7 +367,7 @@ const UIController = (() => {
         desktopPipesTable?.classList.remove('hidden');
         mobilePipesCard?.classList.add('hidden');
       }
-    }
+    };
 
     btnViewPipesCard?.addEventListener('click', () => setPipeView('card'));
     btnViewPipesTable?.addEventListener('click', () => setPipeView('table'));
@@ -440,7 +416,7 @@ const UIController = (() => {
     const desktopSeqTable = document.getElementById('desktopSequenceTableContainer');
     const mobileSeqFlow = document.getElementById('mobileSequenceFlowContainer');
 
-    function setSequenceView(mode) {
+    setSequenceView = function(mode) {
       sequenceViewMode = mode;
       btnViewSeqCard?.classList.toggle('active', mode === 'card');
       btnViewSeqTable?.classList.toggle('active', mode === 'table');
@@ -452,7 +428,7 @@ const UIController = (() => {
         desktopSeqTable?.classList.remove('hidden');
         mobileSeqFlow?.classList.add('hidden');
       }
-    }
+    };
 
     btnViewSeqCard?.addEventListener('click', () => setSequenceView('card'));
     btnViewSeqTable?.addEventListener('click', () => setSequenceView('table'));
@@ -498,6 +474,71 @@ const UIController = (() => {
   }
 
   /**
+   * Mengaktifkan Tab Navigasi (Peta, Tabel Monitoring, Alur Berurutan, Profil HGL)
+   * Sinkronisasi Tampilan Desktop & Mobile
+   */
+  function activateTab(tabId) {
+    activeTabId = tabId;
+    const tabs = ['tabMap', 'tabTable', 'tabSequence', 'tabProfile'];
+    const mobileBtnMap = {
+      'tabMap': 'btnMobileTabMap',
+      'tabTable': 'btnMobileTabTable',
+      'tabSequence': 'btnMobileTabSequence',
+      'tabProfile': 'btnMobileTabProfile'
+    };
+
+    tabs.forEach(t => {
+      const el = document.getElementById(t);
+      const b = document.getElementById(`btn-${t}`);
+      const mb = document.getElementById(mobileBtnMap[t]);
+
+      if (t === tabId) {
+        if (el) {
+          el.classList.remove('hidden');
+          el.style.display = '';
+        }
+        b?.classList.add('bg-blue-600', 'text-white');
+        b?.classList.remove('text-slate-600', 'hover:bg-slate-100');
+        if (mb) {
+          mb.classList.add('text-blue-600', 'font-bold');
+          mb.classList.remove('text-slate-500', 'hover:text-slate-800', 'font-medium');
+        }
+      } else {
+        if (el) {
+          el.classList.add('hidden');
+        }
+        b?.classList.remove('bg-blue-600', 'text-white');
+        b?.classList.add('text-slate-600', 'hover:bg-slate-100');
+        if (mb) {
+          mb.classList.remove('text-blue-600', 'font-bold');
+          mb.classList.add('text-slate-500', 'hover:text-slate-800', 'font-medium');
+        }
+      }
+    });
+
+    // Refresh map atau chart saat tab aktif
+    if (tabId === 'tabMap') {
+      setTimeout(() => {
+        MapManager.getMap()?.invalidateSize();
+      }, 150);
+    } else if (tabId === 'tabTable') {
+      if (typeof setPipeView === 'function') {
+        setPipeView(pipeViewMode || (window.innerWidth < 768 ? 'card' : 'table'));
+      }
+    } else if (tabId === 'tabSequence') {
+      if (typeof setSequenceView === 'function') {
+        setSequenceView(sequenceViewMode || (window.innerWidth < 768 ? 'card' : 'table'));
+      }
+    } else if (tabId === 'tabProfile') {
+      setTimeout(() => {
+        if (window.App && typeof window.App.refreshProfileChart === 'function') {
+          window.App.refreshProfileChart();
+        }
+      }, 50);
+    }
+  }
+
+  /**
    * Setup Navigasi Tab (Peta, Tabel Monitoring, Alur Berurutan, Profil HGL) - Desktop & Mobile Sync
    */
   function setupTabs() {
@@ -509,44 +550,15 @@ const UIController = (() => {
       'tabProfile': 'btnMobileTabProfile'
     };
 
-    function activateTab(tabId) {
-      tabs.forEach(t => {
-        const el = document.getElementById(t);
-        const b = document.getElementById(`btn-${t}`);
-        const mb = document.getElementById(mobileBtnMap[t]);
-
-        if (t === tabId) {
-          el?.classList.remove('hidden');
-          b?.classList.add('bg-blue-600', 'text-white');
-          b?.classList.remove('text-slate-600', 'hover:bg-slate-100');
-          if (mb) {
-            mb.classList.add('text-blue-600', 'font-bold');
-            mb.classList.remove('text-slate-500', 'hover:text-slate-800', 'font-medium');
-          }
-        } else {
-          el?.classList.add('hidden');
-          b?.classList.remove('bg-blue-600', 'text-white');
-          b?.classList.add('text-slate-600', 'hover:bg-slate-100');
-          if (mb) {
-            mb.classList.remove('text-blue-600', 'font-bold');
-            mb.classList.add('text-slate-500', 'hover:text-slate-800', 'font-medium');
-          }
-        }
-      });
-
-      // Refresh map atau chart saat tab aktif
-      if (tabId === 'tabMap') {
-        setTimeout(() => {
-          MapManager.getMap()?.invalidateSize();
-        }, 150);
-      } else if (tabId === 'tabProfile') {
-        App.refreshProfileChart();
-      }
-    }
-
     tabs.forEach(tabId => {
-      document.getElementById(`btn-${tabId}`)?.addEventListener('click', () => activateTab(tabId));
-      document.getElementById(mobileBtnMap[tabId])?.addEventListener('click', () => activateTab(tabId));
+      document.getElementById(`btn-${tabId}`)?.addEventListener('click', (e) => {
+        e.preventDefault();
+        activateTab(tabId);
+      });
+      document.getElementById(mobileBtnMap[tabId])?.addEventListener('click', (e) => {
+        e.preventDefault();
+        activateTab(tabId);
+      });
     });
   }
 
@@ -696,6 +708,161 @@ const UIController = (() => {
     });
     document.addEventListener('webkitfullscreenchange', () => {
       setTimeout(() => MapManager.getMap()?.invalidateSize(), 200);
+    });
+  }
+
+  let isSidebarOpen = false;
+  let isSidebarMinimized = false;
+
+  /**
+   * Set status Buka / Tutup Sidebar Input Tekanan Lapangan
+   */
+  function setSidebarOpen(open, savePref = true) {
+    isSidebarOpen = !!open;
+    const sidebarContainer = document.getElementById('sidebarJunctionsContainer');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar') || document.getElementById('btnToggleMobileSidebar');
+    const btnNavToggle = document.getElementById('btnNavToggleSidebar');
+
+    if (!sidebarContainer) return;
+
+    if (isSidebarOpen) {
+      sidebarContainer.classList.remove('hidden');
+      sidebarContainer.classList.add('flex');
+      
+      // Backdrop hanya aktif pada mobile phone (< 640px)
+      if (window.innerWidth < 640) {
+        sidebarBackdrop?.classList.add('active');
+      } else {
+        sidebarBackdrop?.classList.remove('active');
+      }
+
+      btnToggleSidebar?.classList.add('hidden');
+      if (btnNavToggle) {
+        btnNavToggle.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+        btnNavToggle.classList.remove('text-slate-700', 'bg-slate-50/90');
+      }
+    } else {
+      sidebarContainer.classList.add('hidden');
+      sidebarContainer.classList.remove('flex');
+      sidebarBackdrop?.classList.remove('active');
+      btnToggleSidebar?.classList.remove('hidden');
+      if (btnNavToggle) {
+        btnNavToggle.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300');
+        btnNavToggle.classList.add('text-slate-700', 'bg-slate-50/90');
+      }
+    }
+
+    if (savePref) {
+      try {
+        localStorage.setItem('pdam_spam_sidebar_open', isSidebarOpen ? 'true' : 'false');
+      } catch (e) {
+        console.warn('Gagal menyimpan status sidebar:', e);
+      }
+    }
+
+    setTimeout(() => {
+      MapManager.getMap()?.invalidateSize();
+    }, 150);
+  }
+
+  function toggleSidebar() {
+    setSidebarOpen(!isSidebarOpen);
+  }
+
+  function openSidebar() {
+    setSidebarOpen(true);
+  }
+
+  function closeSidebar() {
+    setSidebarOpen(false);
+  }
+
+  /**
+   * Set status Minimize / Ciutkan Body Sidebar
+   */
+  function setSidebarMinimized(minimized) {
+    isSidebarMinimized = !!minimized;
+    const container = document.getElementById('sidebarJunctionsContainer');
+    const bodyContent = document.getElementById('sidebarBodyContent');
+    const iconMinimize = document.getElementById('iconMinimizeSidebar');
+    const btnMinimize = document.getElementById('btnMinimizeSidebar');
+
+    if (isSidebarMinimized) {
+      container?.classList.add('is-minimized');
+      bodyContent?.classList.add('hidden');
+      iconMinimize?.classList.add('rotate-180');
+      if (btnMinimize) btnMinimize.title = 'Buka / Perbesar Isi Panel';
+    } else {
+      container?.classList.remove('is-minimized');
+      bodyContent?.classList.remove('hidden');
+      iconMinimize?.classList.remove('rotate-180');
+      if (btnMinimize) btnMinimize.title = 'Kecilkan / Ciutkan Isi Panel';
+    }
+
+    setTimeout(() => {
+      MapManager.getMap()?.invalidateSize();
+    }, 150);
+  }
+
+  function toggleSidebarMinimize() {
+    setSidebarMinimized(!isSidebarMinimized);
+  }
+
+  /**
+   * Setup Kontrol Sidebar Input Tekanan Lapangan (Desktop & Mobile)
+   */
+  function setupSidebar() {
+    const STORAGE_KEY = 'pdam_spam_sidebar_open';
+    let initOpen = false; // Default FALSE agar peta langsung luas dan tidak terhalangi sama sekali!
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved !== null) {
+        initOpen = saved === 'true';
+      }
+    } catch (e) {
+      initOpen = false;
+    }
+
+    // Terapkan kondisi awal
+    setSidebarOpen(initOpen, false);
+
+    // Event listener tombol floating pemicu buka (Desktop & Mobile)
+    const btnToggle = document.getElementById('btnToggleSidebar') || document.getElementById('btnToggleMobileSidebar');
+    btnToggle?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openSidebar();
+    });
+
+    // Event listener shortcut di Desktop Navigation bar
+    const btnNavToggle = document.getElementById('btnNavToggleSidebar');
+    btnNavToggle?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSidebar();
+    });
+
+    // Event listener tombol tutup
+    const btnClose = document.getElementById('btnCloseSidebar') || document.getElementById('btnCloseMobileSidebar');
+    btnClose?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSidebar();
+    });
+
+    // Event listener tombol minimize
+    const btnMinimize = document.getElementById('btnMinimizeSidebar');
+    btnMinimize?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSidebarMinimize();
+    });
+
+    // Event listener mobile backdrop click to close
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    sidebarBackdrop?.addEventListener('click', () => {
+      closeSidebar();
     });
   }
 
@@ -1446,6 +1613,15 @@ const UIController = (() => {
     const container = document.getElementById('junctionsSidebarList');
     if (!container) return;
 
+    // Update badge jumlah junction pada floating button & header sidebar
+    if (networkData && networkData.nodes) {
+      const totalJunctions = networkData.nodes.filter(n => n.type !== 'reservoir').length;
+      const badgeBtn = document.getElementById('sidebarNodeCountBadge');
+      const badgeHdr = document.getElementById('sidebarJunctionCountBadge');
+      if (badgeBtn) badgeBtn.textContent = totalJunctions;
+      if (badgeHdr) badgeHdr.textContent = totalJunctions;
+    }
+
     const cfg = sourceConfig || currentSourceConfig;
     const isGravity = cfg?.systemMode === 'gravity';
     const isPumpActive = !isGravity && (cfg?.pump?.status !== 'off');
@@ -1950,13 +2126,30 @@ const UIController = (() => {
     renderSequentialFlowTable,
     updateCloudStatus,
     setActiveRegionDisplay,
-    showToast
+    showToast,
+    activateTab,
+    getActiveTab: () => activeTabId,
+    setPipeView: (m) => setPipeView && setPipeView(m),
+    setSequenceView: (m) => setSequenceView && setSequenceView(m),
+    openSidebar,
+    closeSidebar,
+    toggleSidebar,
+    setSidebarOpen,
+    toggleSidebarMinimize,
+    setSidebarMinimized,
+    isSidebarOpen: () => isSidebarOpen,
+    isSidebarMinimized: () => isSidebarMinimized
   };
 })();
 
 // Expose global shortcut untuk inline HTML onclick
 window.UIController = UIController;
+window.activateTab = (tabId) => UIController.activateTab(tabId);
 window.toggleDashboard = () => UIController.toggleDashboard();
+window.toggleSidebar = () => UIController.toggleSidebar();
+window.openSidebar = () => UIController.openSidebar();
+window.closeSidebar = () => UIController.closeSidebar();
+window.toggleSidebarMinimize = () => UIController.toggleSidebarMinimize();
 window.savePressureFromModal = () => UIController.savePressureFromModal();
 window.deletePressureFromModal = () => UIController.deletePressureFromModal();
 window.closePressureModal = () => UIController.closePressureModal();

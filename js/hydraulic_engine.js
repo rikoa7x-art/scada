@@ -360,10 +360,22 @@ const HydraulicEngine = (() => {
 
     const isGravity = sourceConfig?.systemMode === 'gravity';
     const isPumpActive = !isGravity && (sourceConfig?.pump?.status !== 'off');
-    const pumpHeadAdd = isPumpActive ? (Number(sourceConfig?.pump?.head) ?? Number(pump?.designHead) ?? 50) : 0;
-    const pumpFlow = Number(sourceConfig?.pump?.flow) ?? Number(pump?.designFlow) ?? 10;
-    const resFlow = Number(sourceConfig?.reservoir?.flow) ?? 10;
-    const resElev = Number(sourceConfig?.reservoir?.elevation) ?? reservoir.elevation;
+    const pumpHeadAdd = isPumpActive 
+      ? (sourceConfig?.pump?.head != null && !isNaN(Number(sourceConfig.pump.head)) 
+          ? Number(sourceConfig.pump.head) 
+          : (pump?.designHead != null && !isNaN(Number(pump.designHead)) ? Number(pump.designHead) : 50)) 
+      : 0;
+    const pumpFlow = sourceConfig?.pump?.flow != null && !isNaN(Number(sourceConfig.pump.flow)) 
+      ? Number(sourceConfig.pump.flow) 
+      : (pump?.designFlow != null && !isNaN(Number(pump.designFlow)) ? Number(pump.designFlow) : 10);
+    const resFlow = sourceConfig?.reservoir?.flow != null && !isNaN(Number(sourceConfig.reservoir.flow)) 
+      ? Number(sourceConfig.reservoir.flow) 
+      : 10;
+    const resElev = sourceConfig?.reservoir?.elevation != null && !isNaN(Number(sourceConfig.reservoir.elevation)) 
+      ? Number(sourceConfig.reservoir.elevation) 
+      : (reservoir?.elevation != null && !isNaN(Number(reservoir.elevation)) 
+          ? Number(reservoir.elevation) 
+          : (reservoir?.totalHead != null && !isNaN(Number(reservoir.totalHead)) ? Number(reservoir.totalHead) : 500));
 
     // Susun adjacency list (jalur searah dari hulu ke hilir)
     const downstreamAdj = new Map();

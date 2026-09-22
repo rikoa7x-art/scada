@@ -8,23 +8,117 @@ const ChartController = (() => {
   /**
    * Ekstrak jalur transmisi utama atau rute terpanjang dari reservoir ke titik terjauh
    */
-  function extractMainPath(networkData, nodesStateMap) {
-    // Jalur transmisi tipikal dari R4 / J66 menuju J59
+  function extractMainPath(networkData, nodesStateMap, sequenceSteps = null) {
+    if (!networkData || !networkData.nodes) return [];
+
+    // Jalur transmisi tipikal dari R4 / J66 menuju J59 (SPAM Bunihayu)
     const preferredLabels = ['R4', 'J66', 'J46', 'J47', 'J48', 'J49', 'J50', 'J51', 'J52', 'J54', 'J57', 'J55', 'J59'];
-    const pathNodes = [];
+    const preferredNodes = [];
 
     preferredLabels.forEach(lbl => {
       const node = networkData.nodes.find(n => n.label === lbl);
       if (node) {
         const state = nodesStateMap ? nodesStateMap.get(node.id) : null;
-        pathNodes.push({
+        preferredNodes.push({
           ...node,
           state: state
         });
       }
     });
 
-    return pathNodes;
+    if (preferredNodes.length >= 4) {
+      return preferredNodes;
+    }
+
+    // Fallback Cerdas: Ekstrak dari sequenceSteps (Berlaku untuk semua 9 Wilayah SPAM)
+    if (sequenceSteps && sequenceSteps.length > 0) {
+      const path = [];
+      const sourceStep = sequenceSteps.find(s => s.type === 'source');
+      if (sourceStep) {
+        path.push({
+          id: sourceStep.nodeId,
+          label: sourceStep.nodeLabel || 'Reservoir',
+          elevation: Number(sourceStep.elevation) || 0,
+          state: {
+            totalHead: sourceStep.totalHead,
+            pressureHeadMeters: sourceStep.pressureM || 0
+          },
+          cumulativeDistance: 0
+        });
+      }
+
+      const pumpStep = sequenceSteps.find(s => s.type === 'pump');
+      if (pumpStep) {
+        path.push({
+          id: pumpStep.nodeId,
+          label: pumpStep.nodeLabel || 'Pompa',
+          elevation: Number(pumpStep.elevation) || 0,
+          state: {
+            totalHead: pumpStep.totalHead,
+            pressureHeadMeters: pumpStep.pressureM || 0
+          },
+          cumulativeDistance: 0
+        });
+      }
+
+      // Telusuri pipa hilir secara berantai mengikuti diameter terbesar
+      const pipeSteps = sequenceSteps.filter(s => s.type === 'pipe');
+      if (pipeSteps.length > 0) {
+        const adj = new Map();
+        pipeSteps.forEach(ps => {
+          if (!adj.has(ps.startNodeId)) adj.set(ps.startNodeId, []);
+          adj.get(ps.startNodeId).push(ps);
+        });
+
+        let currNodeId = pumpStep ? pumpStep.nodeId : (sourceStep ? sourceStep.nodeId : pipeSteps[0].startNodeId);
+        if (!adj.has(currNodeId) && pipeSteps.length > 0) {
+          currNodeId = pipeSteps[0].startNodeId;
+        }
+
+        const visited = new Set();
+        let cumDist = 0;
+        while (path.length < 25) {
+          visited.add(currNodeId);
+          const nextSteps = (adj.get(currNodeId) || []).filter(s => !visited.has(s.endNodeId));
+          if (nextSteps.length === 0) break;
+          // Prioritaskan pipa diameter terbesar
+          nextSteps.sort((a, b) => (Number(b.diameter) || 0) - (Number(a.diameter) || 0));
+          const chosen = nextSteps[0];
+          cumDist += (Number(chosen.length) || 100);
+          path.push({
+            id: chosen.endNodeId,
+            label: chosen.endNodeLabel || chosen.endNodeId,
+            elevation: Number(chosen.elevation) || 0,
+            state: {
+              totalHead: chosen.totalHead,
+              pressureHeadMeters: chosen.pressureM || 0
+            },
+            cumulativeDistance: cumDist
+          });
+          currNodeId = chosen.endNodeId;
+        }
+      }
+
+      if (path.length >= 2) {
+        return path;
+      }
+    }
+
+    // Fallback Terakhir: Ambil simpul reservoir dan sambungan pipa pertama
+    const reservoir = networkData.nodes.find(n => n.type === 'reservoir') || networkData.nodes[0];
+    const fallbackPath = [];
+    if (reservoir) {
+      const resState = nodesStateMap ? nodesStateMap.get(reservoir.id) : null;
+      fallbackPath.push({ ...reservoir, state: resState });
+    }
+    const sampleNodes = networkData.nodes.slice(0, 15);
+    sampleNodes.forEach(n => {
+      if (!fallbackPath.some(p => p.id === n.id)) {
+        fallbackPath.push({ ...n, state: nodesStateMap ? nodesStateMap.get(n.id) : null });
+      }
+    });
+
+    return fallbackPath;
   }
 
   /**
@@ -32,13 +126,15 @@ const ChartController = (() => {
    * @param {string} canvasId - ID elemen canvas
    * @param {Object} networkData - Data jaringan
    * @param {Map} nodesStateMap - Map data node hasil perhitungan
+   * @param {Array} sequenceSteps - Alur langkah hidrolis berurutan (opsional)
    */
-  function renderProfileChart(canvasId, networkData, nodesStateMap) {
+  function renderProfileChart(canvasId, networkData, nodesStateMap, sequenceSteps = null) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    const pathNodes = extractMainPath(networkData, nodesStateMap);
+    const pathNodes = extractMainPath(networkData, nodesStateMap, sequenceSteps);
+    if (!pathNodes || pathNodes.length === 0) return;
 
     // Hitung jarak kumulatif (meter)
     let cumulativeDistance = 0;
@@ -50,29 +146,36 @@ const ChartController = (() => {
     const isMobile = window.innerWidth < 640;
 
     pathNodes.forEach((node, index) => {
-      if (index > 0) {
+      if (node.cumulativeDistance !== undefined) {
+        cumulativeDistance = node.cumulativeDistance;
+      } else if (index > 0) {
         // Cari pipa penghubung
         const prevNode = pathNodes[index - 1];
-        const pipe = networkData.pipes.find(
+        const pipe = networkData.pipes?.find(
           p => (p.startNodeId === prevNode.id && p.endNodeId === node.id) ||
                (p.startNodeId === node.id && p.endNodeId === prevNode.id)
         );
         cumulativeDistance += pipe ? Number(pipe.length) : 200;
       }
 
+      const nodeLabel = node.label || node.id || `Simpul ${index + 1}`;
       // Gunakan multiline array label di mobile agar tidak bertumpuk
       if (isMobile) {
-        labels.push([node.label, `${Math.round(cumulativeDistance)}m`]);
+        labels.push([nodeLabel, `${Math.round(cumulativeDistance)}m`]);
       } else {
-        labels.push(`${node.label} (${Math.round(cumulativeDistance)}m)`);
+        labels.push(`${nodeLabel} (${Math.round(cumulativeDistance)}m)`);
       }
       
-      elevationData.push(node.elevation);
+      elevationData.push(node.elevation != null ? Number(node.elevation) : 0);
 
-      const totalHead = node.state && node.state.totalHead !== null ? Number(node.state.totalHead.toFixed(2)) : null;
+      const totalHead = node.state && node.state.totalHead !== null && node.state.totalHead !== undefined 
+        ? Number(node.state.totalHead.toFixed(2)) 
+        : null;
       hglData.push(totalHead);
 
-      const pMeters = node.state && node.state.pressureHeadMeters !== null ? Number(node.state.pressureHeadMeters.toFixed(2)) : 0;
+      const pMeters = node.state && node.state.pressureHeadMeters !== null && node.state.pressureHeadMeters !== undefined 
+        ? Number(node.state.pressureHeadMeters.toFixed(2)) 
+        : 0;
       pressureData.push(pMeters);
     });
 
@@ -131,7 +234,7 @@ const ChartController = (() => {
             callbacks: {
               afterBody: function(context) {
                 const idx = context[0].dataIndex;
-                const p = pressureData[idx];
+                const p = pressureData[idx] || 0;
                 const pBar = (p / 10.19716).toFixed(2);
                 return `Sisa Tekan: ${p.toFixed(2)} mH2O (${pBar} bar)`;
               }
@@ -170,6 +273,7 @@ const ChartController = (() => {
   }
 
   return {
-    renderProfileChart
+    renderProfileChart,
+    getChartInstance: () => profileChart
   };
 })();
