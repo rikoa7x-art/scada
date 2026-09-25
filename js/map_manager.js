@@ -63,22 +63,11 @@ const MapManager = (() => {
       'Google Streets': L.tileLayer(tiles.googleStreets.url, {
         attribution: tiles.googleStreets.attribution,
         maxZoom: tiles.googleStreets.maxZoom
-      }),
-      'Carto Light': L.tileLayer(tiles.cartoLight.url, {
-        attribution: tiles.cartoLight.attribution,
-        maxZoom: tiles.cartoLight.maxZoom
-      }),
-      'Carto Dark': L.tileLayer(tiles.cartoDark.url, {
-        attribution: tiles.cartoDark.attribution,
-        maxZoom: tiles.cartoDark.maxZoom
       })
     };
 
-    // [OPTIMASI MOBILE] Default tile:
-    // - Mobile (< 768px): Carto Light — tile lebih kecil & ringan, hemat kuota data
-    // - Desktop: Google Hybrid seperti biasa (resolusi tinggi, detail jalan & satelit)
-    const defaultLayer = window.innerWidth < 768 ? 'Carto Light' : 'Google Hybrid';
-    baseLayers[defaultLayer].addTo(map);
+    // Set default base layer: Google Hybrid
+    baseLayers['Google Hybrid'].addTo(map);
 
     return map;
   }

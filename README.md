@@ -34,7 +34,7 @@ Aplikasi Web GIS & Engine Hidrolika Realtime untuk monitoring aliran debit air, 
 
 3. **Peta Jaringan GIS Interaktif (Leaflet)**:
    - Visualisasi topologi pipa, reservoir, junction, dan pompa air.
-   - Pilihan peta satelit (*Google Hybrid, Google Satellite, OSM, Carto Light/Dark*).
+   - Pilihan peta satelit (*Google Hybrid, Google Satellite, OSM, Google Streets*).
    - Tampilan angka debit langsung pada setiap ruas pipa (`💧 10.0 L/s` atau `m³/h`).
    - Panah denyut penunjuk arah aliran (*flow direction pulse animation*).
    - Indikator warna status kecepatan hidrolika (Ideal, Rendah, Waspada, Kritis).

@@ -33,18 +33,6 @@ const AppConfig = {
         url: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
         attribution: '&copy; Google Maps',
         maxZoom: 20
-      },
-      cartoLight: {
-        name: 'CartoDB Light (Kontras Bersih)',
-        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-        attribution: '&copy; CartoDB',
-        maxZoom: 19
-      },
-      cartoDark: {
-        name: 'CartoDB Dark (Mode Malam)',
-        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        attribution: '&copy; CartoDB',
-        maxZoom: 19
       }
     }
   },
