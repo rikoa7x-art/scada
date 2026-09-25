@@ -74,8 +74,11 @@ const MapManager = (() => {
       })
     };
 
-    // Set default base layer: Google Hybrid
-    baseLayers['Google Hybrid'].addTo(map);
+    // [OPTIMASI MOBILE] Default tile:
+    // - Mobile (< 768px): Carto Light — tile lebih kecil & ringan, hemat kuota data
+    // - Desktop: Google Hybrid seperti biasa (resolusi tinggi, detail jalan & satelit)
+    const defaultLayer = window.innerWidth < 768 ? 'Carto Light' : 'Google Hybrid';
+    baseLayers[defaultLayer].addTo(map);
 
     return map;
   }
@@ -106,6 +109,8 @@ const MapManager = (() => {
 
   /**
    * Render seluruh jaringan pipa dan node ke peta
+   * [OPTIMASI MOBILE] Menggunakan batched rendering dengan requestAnimationFrame
+   * untuk mencegah UI freeze saat memuat jaringan besar (200+ simpul).
    * @param {Object} networkData - Data jaringan { nodes, pipes, pumps }
    * @param {Map} nodesStateMap - Map hasil hidrolika dari HydraulicEngine
    * @param {Map} pipesStateMap - Map hasil hidrolika dari HydraulicEngine
@@ -123,58 +128,56 @@ const MapManager = (() => {
     flowLabelLayersGroup.clearLayers();
     nodeLayersGroup.clearLayers();
 
-    // 1. Render Pipa
-    networkData.pipes.forEach(pipe => {
+    // [OPTIMASI MOBILE] Deteksi perangkat mobile sekali di awal
+    const isMobileDevice = window.innerWidth < 768;
+
+    // Ukuran batch per animationFrame: lebih kecil di mobile agar browser tetap responsif
+    const PIPE_BATCH = isMobileDevice ? 25 : 80;
+    const NODE_BATCH = isMobileDevice ? 35 : 100;
+
+    // ---- Helper: render satu pipa ----
+    function _renderOnePipe(pipe) {
       const pipeCalc = pipesStateMap ? pipesStateMap.get(pipe.id)?.calculation : null;
       const startNode = nodesStateMap?.get(pipe.startNodeId);
       const endNode = nodesStateMap?.get(pipe.endNodeId);
 
-      // Ambil rute koordinat (jika ada routeCoordinates dari survey jalan, gunakan itu)
       let coords = pipe.routeCoordinates;
       if (!coords || coords.length === 0) {
         if (startNode && endNode) {
-          coords = [
-            [startNode.lat, startNode.lng],
-            [endNode.lat, endNode.lng]
-          ];
-        } else {
-          return;
-        }
+          coords = [[startNode.lat, startNode.lng], [endNode.lat, endNode.lng]];
+        } else { return; }
       }
 
-      // Tentukan warna dan ketebalan berdasarkan status perhitungan dan diameter
       const isCalculated = pipeCalc && pipeCalc.status === 'calculated';
       let strokeColor = AppConfig.pipeStyle.colors.unmeasured;
       let dashArray = null;
 
       if (isCalculated) {
-        if (pipeCalc.velocityStatus === 'critical') {
-          strokeColor = AppConfig.pipeStyle.colors.criticalVelocity;
-        } else if (pipeCalc.velocityStatus === 'warning') {
-          strokeColor = AppConfig.pipeStyle.colors.warningVelocity;
-        } else if (pipeCalc.velocityStatus === 'low' || pipeCalc.velocityStatus === 'very_low') {
-          strokeColor = AppConfig.pipeStyle.colors.lowVelocity;
-        } else {
-          strokeColor = AppConfig.pipeStyle.colors.normalVelocity;
-        }
+        if (pipeCalc.velocityStatus === 'critical')      strokeColor = AppConfig.pipeStyle.colors.criticalVelocity;
+        else if (pipeCalc.velocityStatus === 'warning')  strokeColor = AppConfig.pipeStyle.colors.warningVelocity;
+        else if (pipeCalc.velocityStatus === 'low' || pipeCalc.velocityStatus === 'very_low')
+                                                         strokeColor = AppConfig.pipeStyle.colors.lowVelocity;
+        else                                             strokeColor = AppConfig.pipeStyle.colors.normalVelocity;
       } else {
-        dashArray = '6, 6'; // Garis putus-putus jika belum terukur
+        dashArray = '6, 6';
       }
 
       const diameter = Number(pipe.diameter) || 100;
-      const weight = AppConfig.pipeStyle.diameterWeights[diameter] || (diameter >= 150 ? 6 : (diameter >= 100 ? 5 : 4));
+      let weight = AppConfig.pipeStyle.diameterWeights[diameter] || (diameter >= 150 ? 6 : (diameter >= 100 ? 5 : 4));
 
-      // Buat Polyline Pipa
+      // [OPTIMASI MOBILE] Di mobile, beri weight lebih tebal agar jari mudah menyentuh
+      // tanpa perlu layer hit-target transparan tambahan (hemat ~50% layer Leaflet)
+      const renderWeight = isMobileDevice ? Math.max(weight, 8) : weight;
+
       const polyline = L.polyline(coords, {
         color: strokeColor,
-        weight: pipe.id === currentSelectedPipeId ? weight + 4 : weight,
+        weight: pipe.id === currentSelectedPipeId ? renderWeight + 4 : renderWeight,
         opacity: 0.9,
         dashArray: dashArray,
         lineCap: 'round',
         lineJoin: 'round'
       });
 
-      // Tooltip informatif
       const startLabel = startNode?.label || 'N/A';
       const endLabel = endNode?.label || 'N/A';
       let tooltipContent = `
@@ -185,61 +188,52 @@ const MapManager = (() => {
           </div>
           <div class="text-slate-600 mt-1">Panjang: <b>${pipe.length} m</b> | Material: <b>${pipe.material || 'PVC'}</b></div>
       `;
-
       if (isCalculated) {
         tooltipContent += `
           <div class="mt-1.5 pt-1.5 border-t border-slate-200 space-y-0.5">
-            <div class="text-emerald-700 font-semibold">Debit: <b>${pipeCalc.flowRateLps.toFixed(2)} L/det</b> (${pipeCalc.flowRateM3h.toFixed(1)} m³/jam)</div>
+            <div class="text-emerald-700 font-semibold">Debit: <b>${pipeCalc.flowRateLps.toFixed(2)} L/det</b> (${pipeCalc.flowRateM3h.toFixed(1)} mÂ³/jam)</div>
             <div class="text-slate-700">Kecepatan: <b>${pipeCalc.velocity.toFixed(2)} m/s</b> (${pipeCalc.velocityLabel})</div>
             <div class="text-slate-600">Head Loss: <b>${pipeCalc.headLoss.toFixed(2)} m</b> (${pipeCalc.unitHeadLoss.toFixed(2)} m/km)</div>
             <div class="text-sky-700 font-medium">Arah: <b>${pipeCalc.direction === 'forward' ? `${startLabel} &rarr; ${endLabel}` : `${endLabel} &rarr; ${startLabel}`}</b></div>
-          </div>
-        `;
+          </div>`;
       } else {
-        tooltipContent += `
-          <div class="mt-1.5 text-amber-600 font-medium italic">Tekanan kedua junction belum terisi</div>
-        `;
+        tooltipContent += `<div class="mt-1.5 text-amber-600 font-medium italic">Tekanan kedua junction belum terisi</div>`;
       }
       tooltipContent += `</div>`;
-
       polyline.bindTooltip(tooltipContent, { sticky: true, className: 'custom-leaflet-tooltip' });
 
       const onPipeSelected = () => {
         currentSelectedPipeId = pipe.id;
         highlightPipe(pipe.id);
-        if (onPipeClickCallback) {
-          onPipeClickCallback(pipe, pipeCalc, startNode, endNode);
-        }
+        if (onPipeClickCallback) onPipeClickCallback(pipe, pipeCalc, startNode, endNode);
       };
-
-      // Event klik pipa utama
       polyline.on('click', onPipeSelected);
       polyline.pipeId = pipe.id;
       pipeLayersGroup.addLayer(polyline);
 
-      // Hit-target transparan lebih lebar untuk mempermudah sentuhan jempol di layar ponsel
-      const hitPolyline = L.polyline(coords, {
-        weight: Math.max(28, weight + 18),
-        opacity: 0,
-        interactive: true,
-        lineCap: 'round',
-        lineJoin: 'round'
-      });
-      hitPolyline.on('click', onPipeSelected);
-      pipeLayersGroup.addLayer(hitPolyline);
+      // [OPTIMASI MOBILE] Hit-target transparan HANYA di desktop.
+      // Di mobile sudah digantikan dengan weight lebih tebal, hemat ~50% layer.
+      if (!isMobileDevice) {
+        const hitPolyline = L.polyline(coords, {
+          weight: Math.max(28, weight + 18),
+          opacity: 0,
+          interactive: true,
+          lineCap: 'round',
+          lineJoin: 'round'
+        });
+        hitPolyline.on('click', onPipeSelected);
+        pipeLayersGroup.addLayer(hitPolyline);
+      }
 
-      // Render Panah Arah Aliran Air jika sudah terhitung
       if (isCalculated && pipeCalc.direction !== 'none') {
         renderFlowArrows(coords, pipeCalc.direction, strokeColor);
       }
-    });
+    }
 
-    // 2. Render Junctions, Reservoir, dan Pompa
-    const isMobileDevice = window.innerWidth < 768;
-    networkData.nodes.forEach(node => {
+    // ---- Helper: render satu node ----
+    function _renderOneNode(node) {
       const nodeState = nodesStateMap ? nodesStateMap.get(node.id) : null;
       const isReservoir = node.type === 'reservoir';
-      const isPumpNode = networkData.pumps?.some(p => p.startNodeId === node.id || p.endNodeId === node.id);
 
       let fillColor = AppConfig.nodeStyle.node?.measuredFill || '#10b981';
       let radius = isMobileDevice ? (AppConfig.nodeStyle.junction.radius + 2) : AppConfig.nodeStyle.junction.radius;
@@ -249,53 +243,36 @@ const MapManager = (() => {
         fillColor = AppConfig.nodeStyle.reservoir.fill;
         radius = isMobileDevice ? (AppConfig.nodeStyle.reservoir.radius + 2) : AppConfig.nodeStyle.reservoir.radius;
       } else if (nodeState) {
-        if (nodeState.isMeasured) {
-          fillColor = '#10b981'; // Hijau: terukur
-        } else if (nodeState.isEstimated) {
-          fillColor = '#6366f1'; // Indigo: estimasi solver
-        } else {
-          fillColor = '#f59e0b'; // Kuning: belum diisi
-        }
+        if (nodeState.isMeasured)      fillColor = '#10b981';
+        else if (nodeState.isEstimated) fillColor = '#6366f1';
+        else                            fillColor = '#f59e0b';
       }
 
-      // Marker Lingkaran
       const marker = L.circleMarker([node.lat, node.lng], {
-        radius: radius,
-        fillColor: fillColor,
-        color: strokeColor,
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.95
+        radius, fillColor, color: strokeColor, weight: 2, opacity: 1, fillOpacity: 0.95
       });
 
-      // Hit-target transparan lebar khusus ponsel agar sentuhan akurat
-      const hitTargetMarker = L.circleMarker([node.lat, node.lng], {
-        radius: radius + 10,
-        opacity: 0,
-        fillOpacity: 0,
-        interactive: true
-      });
-      hitTargetMarker.on('click', () => {
-        if (onNodeClickCallback) onNodeClickCallback(node, nodeState);
-      });
-      nodeLayersGroup.addLayer(hitTargetMarker);
+      // Hit-target transparan untuk sentuhan akurat di ponsel
+      const hitTarget = L.circleMarker([node.lat, node.lng], { radius: radius + 10, opacity: 0, fillOpacity: 0, interactive: true });
+      hitTarget.on('click', () => { if (onNodeClickCallback) onNodeClickCallback(node, nodeState); });
+      nodeLayersGroup.addLayer(hitTarget);
 
       // Label teks di atas marker
-      const labelIcon = L.divIcon({
-        className: 'node-map-label',
-        html: `<div class="bg-white/90 backdrop-blur-xs px-1.5 py-0.5 rounded shadow-xs text-[11px] font-bold text-slate-800 border border-slate-300 pointer-events-none transform -translate-y-6">${node.label}</div>`,
-        iconSize: [0, 0]
-      });
-      const textLabelMarker = L.marker([node.lat, node.lng], { icon: labelIcon, interactive: false });
-      nodeLayersGroup.addLayer(textLabelMarker);
+      nodeLayersGroup.addLayer(L.marker([node.lat, node.lng], {
+        icon: L.divIcon({
+          className: 'node-map-label',
+          html: `<div class="bg-white/90 backdrop-blur-xs px-1.5 py-0.5 rounded shadow-xs text-[11px] font-bold text-slate-800 border border-slate-300 pointer-events-none transform -translate-y-6">${node.label}</div>`,
+          iconSize: [0, 0]
+        }),
+        interactive: false
+      }));
 
-      // Tooltip Node
+      // Tooltip
       let nodeTooltip = '';
       if (isReservoir) {
         const isGravity = sourceConfig?.systemMode === 'gravity';
         const resFlow = Number(sourceConfig?.reservoir?.flow) || 10;
         const resElev = Number(sourceConfig?.reservoir?.elevation) || node.elevation;
-
         nodeTooltip = `
           <div class="p-1 font-sans text-xs">
             <div class="font-bold text-blue-900 text-sm flex items-center justify-between gap-2">
@@ -304,13 +281,10 @@ const MapManager = (() => {
                 ${isGravity ? 'SISTEM GRAVITASI' : 'SUPLAI POMPA'}
               </span>
             </div>
-            <div class="text-slate-600 mt-1">Muka Air Reservoir ($z$): <b class="text-blue-700">${resElev} m dpl</b></div>
-            <div class="text-slate-600">Setting Debit Reservoir: <b class="text-emerald-700">${resFlow.toFixed(1)} L/det</b> (${(resFlow * 3.6).toFixed(0)} m³/jam)</div>
-            <div class="mt-1.5 pt-1 border-t border-slate-200 text-blue-600 font-semibold text-[11px]">
-              👉 Klik untuk setting debit reservoir & gravitasi
-            </div>
-          </div>
-        `;
+            <div class="text-slate-600 mt-1">Muka Air Reservoir: <b class="text-blue-700">${resElev} m dpl</b></div>
+            <div class="text-slate-600">Setting Debit: <b class="text-emerald-700">${resFlow.toFixed(1)} L/det</b> (${(resFlow * 3.6).toFixed(0)} mÂ³/jam)</div>
+            <div class="mt-1.5 pt-1 border-t border-slate-200 text-blue-600 font-semibold text-[11px]">ðŸ‘‰ Klik untuk setting debit reservoir & gravitasi</div>
+          </div>`;
       } else {
         nodeTooltip = `
           <div class="p-1 font-sans text-xs">
@@ -320,43 +294,30 @@ const MapManager = (() => {
                 ${nodeState?.isMeasured ? 'Terukur' : (nodeState?.isEstimated ? 'Estimasi' : 'Belum Terukur')}
               </span>
             </div>
-            <div class="text-slate-600 mt-1">Elevasi Tanah ($z$): <b>${node.elevation} m dpl</b></div>
-        `;
-
+            <div class="text-slate-600 mt-1">Elevasi Tanah: <b>${node.elevation} m dpl</b></div>`;
         if (nodeState && nodeState.pressureHeadMeters !== null) {
           const pBar = (nodeState.pressureHeadMeters / 10.19716).toFixed(2);
           const pMeters = nodeState.pressureHeadMeters.toFixed(2);
           const totalHead = nodeState.totalHead ? nodeState.totalHead.toFixed(2) : '-';
-
           nodeTooltip += `
             <div class="mt-1 pt-1 border-t border-slate-200 text-slate-700">
               <div>Tekanan: <b class="text-blue-700">${pBar} bar</b> (${pMeters} mH2O)</div>
               <div>Total Head (HGL): <b class="text-emerald-700">${totalHead} m</b></div>
-            </div>
-          `;
+            </div>`;
         } else {
-          nodeTooltip += `
-            <div class="mt-1 text-amber-600 italic">Klik untuk input tekanan lapangan</div>
-          `;
+          nodeTooltip += `<div class="mt-1 text-amber-600 italic">Klik untuk input tekanan lapangan</div>`;
         }
         nodeTooltip += `</div>`;
       }
-
       marker.bindTooltip(nodeTooltip, { sticky: true, className: 'custom-leaflet-tooltip' });
-
-      // Event klik node
-      marker.on('click', () => {
-        if (onNodeClickCallback) {
-          onNodeClickCallback(node, nodeState);
-        }
-      });
-
+      marker.on('click', () => { if (onNodeClickCallback) onNodeClickCallback(node, nodeState); });
       marker.nodeId = node.id;
       nodeLayersGroup.addLayer(marker);
-    });
+    }
 
-    // 3. Render Ikon Pompa khusus jika ada
-    if (networkData.pumps && networkData.pumps.length > 0) {
+    // ---- Helper: render semua pompa ----
+    function _renderPumps() {
+      if (!networkData.pumps || networkData.pumps.length === 0) return;
       const isGravity = sourceConfig?.systemMode === 'gravity';
       const isPumpActive = !isGravity && (sourceConfig?.pump?.status !== 'off');
       const curHead = isPumpActive ? (Number(sourceConfig?.pump?.head) ?? 50) : 0;
@@ -365,50 +326,55 @@ const MapManager = (() => {
       networkData.pumps.forEach(pump => {
         const startNode = nodesStateMap?.get(pump.startNodeId);
         const endNode = nodesStateMap?.get(pump.endNodeId);
-        if (startNode && endNode) {
-          const midLat = (startNode.lat + endNode.lat) / 2;
-          const midLng = (startNode.lng + endNode.lng) / 2;
+        if (!(startNode && endNode)) return;
 
-          const pumpIcon = L.divIcon({
-            className: 'pump-map-marker',
-            html: `
-              <div class="w-8 h-8 rounded-full ${isPumpActive ? 'bg-violet-600' : 'bg-slate-500'} text-white shadow-lg flex items-center justify-center border-2 border-white cursor-pointer transform -translate-x-4 -translate-y-4 hover:scale-110 transition-transform" title="Pompa: ${pump.label}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </div>
-            `,
-            iconSize: [32, 32]
-          });
-
-          const pumpMarker = L.marker([midLat, midLng], { icon: pumpIcon });
-          pumpMarker.bindTooltip(`
-            <div class="p-1 font-sans text-xs">
-              <div class="font-bold ${isPumpActive ? 'text-violet-800' : 'text-slate-700'} text-sm flex items-center justify-between gap-2">
-                <span>Pompa ${pump.label}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${isPumpActive ? 'bg-violet-100 text-violet-800' : 'bg-slate-200 text-slate-700'}">
-                  ${isPumpActive ? 'AKTIF' : 'BYPASS (OFF)'}
-                </span>
-              </div>
-              <div class="text-slate-600 mt-1">Kapasitas Head: <b class="text-indigo-700">${isPumpActive ? curHead.toFixed(1) + ' m' : '0 m (Bypass Gravitasi)'}</b></div>
-              <div class="text-slate-600">Kapasitas Debit: <b class="text-emerald-700">${curFlow.toFixed(1)} L/det</b> (${(curFlow * 3.6).toFixed(0)} m³/jam)</div>
-              <div class="mt-1.5 pt-1 border-t border-slate-200 text-indigo-600 font-semibold text-[11px]">
-                👉 Klik untuk edit kapasitas head & debit pompa
-              </div>
+        const midLat = (startNode.lat + endNode.lat) / 2;
+        const midLng = (startNode.lng + endNode.lng) / 2;
+        const pumpIcon = L.divIcon({
+          className: 'pump-map-marker',
+          html: `
+            <div class="w-8 h-8 rounded-full ${isPumpActive ? 'bg-violet-600' : 'bg-slate-500'} text-white shadow-lg flex items-center justify-center border-2 border-white cursor-pointer transform -translate-x-4 -translate-y-4 hover:scale-110 transition-transform" title="Pompa: ${pump.label}">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>`,
+          iconSize: [32, 32]
+        });
+        const pumpMarker = L.marker([midLat, midLng], { icon: pumpIcon });
+        pumpMarker.bindTooltip(`
+          <div class="p-1 font-sans text-xs">
+            <div class="font-bold ${isPumpActive ? 'text-violet-800' : 'text-slate-700'} text-sm flex items-center justify-between gap-2">
+              <span>Pompa ${pump.label}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${isPumpActive ? 'bg-violet-100 text-violet-800' : 'bg-slate-200 text-slate-700'}">${isPumpActive ? 'AKTIF' : 'BYPASS (OFF)'}</span>
             </div>
-          `, { sticky: true });
-
-          pumpMarker.on('click', () => {
-            if (onPumpClickCallback) {
-              onPumpClickCallback(pump);
-            }
-          });
-
-          nodeLayersGroup.addLayer(pumpMarker);
-        }
+            <div class="text-slate-600 mt-1">Kapasitas Head: <b class="text-indigo-700">${isPumpActive ? curHead.toFixed(1) + ' m' : '0 m (Bypass Gravitasi)'}</b></div>
+            <div class="text-slate-600">Kapasitas Debit: <b class="text-emerald-700">${curFlow.toFixed(1)} L/det</b> (${(curFlow * 3.6).toFixed(0)} mÂ³/jam)</div>
+            <div class="mt-1.5 pt-1 border-t border-slate-200 text-indigo-600 font-semibold text-[11px]">ðŸ‘‰ Klik untuk edit kapasitas head & debit pompa</div>
+          </div>`, { sticky: true });
+        pumpMarker.on('click', () => { if (onPumpClickCallback) onPumpClickCallback(pump); });
+        nodeLayersGroup.addLayer(pumpMarker);
       });
     }
 
-    // 4. Render Badge Angka Debit pada Garis Pipa
-    renderPipeFlowLabels();
+    // [OPTIMASI MOBILE] Batched rendering dengan requestAnimationFrame.
+    // Elemen di-render per-batch kecil sehingga browser bisa "bernapas" di antara batch.
+    // Ini mencegah UI freeze / "not responding" di handphone saat load jaringan besar.
+    function _batchRender(items, renderFn, batchSize, onDone) {
+      let idx = 0;
+      function step() {
+        const end = Math.min(idx + batchSize, items.length);
+        for (; idx < end; idx++) renderFn(items[idx]);
+        if (idx < items.length) requestAnimationFrame(step);
+        else if (onDone) onDone();
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Urutan: pipa dulu â†’ node â†’ pompa & label debit
+    _batchRender(networkData.pipes, _renderOnePipe, PIPE_BATCH, () => {
+      _batchRender(networkData.nodes, _renderOneNode, NODE_BATCH, () => {
+        _renderPumps();
+        renderPipeFlowLabels();
+      });
+    });
   }
 
   /**
@@ -536,9 +502,9 @@ const MapManager = (() => {
       // Format teks debit sesuai mode satuan aktif
       let flowText = '';
       if (flowLabelMode === 'm3h') {
-        flowText = `${pipeCalc.flowRateM3h.toFixed(1)} m³/j`;
+        flowText = `${pipeCalc.flowRateM3h.toFixed(1)} mÂ³/j`;
       } else if (flowLabelMode === 'both') {
-        flowText = `${pipeCalc.flowRateLps.toFixed(1)} L/s (${pipeCalc.flowRateM3h.toFixed(0)} m³/j)`;
+        flowText = `${pipeCalc.flowRateLps.toFixed(1)} L/s (${pipeCalc.flowRateM3h.toFixed(0)} mÂ³/j)`;
       } else {
         // default 'lps'
         flowText = `${pipeCalc.flowRateLps.toFixed(1)} L/s`;
@@ -563,11 +529,11 @@ const MapManager = (() => {
 
       const startLabel = startNode?.label || 'N/A';
       const endLabel = endNode?.label || 'N/A';
-      const tooltipTitle = `Pipa: ${startLabel} ➔ ${endLabel}&#10;Debit: ${pipeCalc.flowRateLps.toFixed(2)} L/s (${pipeCalc.flowRateM3h.toFixed(1)} m³/jam)&#10;Kecepatan: ${pipeCalc.velocity.toFixed(2)} m/s (${pipeCalc.velocityLabel})&#10;👉 Klik untuk sorot & lihat detail`;
+      const tooltipTitle = `Pipa: ${startLabel} âž” ${endLabel}&#10;Debit: ${pipeCalc.flowRateLps.toFixed(2)} L/s (${pipeCalc.flowRateM3h.toFixed(1)} mÂ³/jam)&#10;Kecepatan: ${pipeCalc.velocity.toFixed(2)} m/s (${pipeCalc.velocityLabel})&#10;ðŸ‘‰ Klik untuk sorot & lihat detail`;
 
       const badgeHtml = `
         <div class="pipe-flow-badge ${badgeClass} ${isSelected ? 'selected' : ''}" data-pipe-id="${pipe.id}" title="${tooltipTitle}">
-          <span class="text-sky-500 font-bold text-[10px]">💧</span>
+          <span class="text-sky-500 font-bold text-[10px]">ðŸ’§</span>
           <span>${flowText}</span>
         </div>
       `;
@@ -673,7 +639,7 @@ const MapManager = (() => {
       return;
     }
 
-    if (window.UIController) UIController.showToast('📡 Menghubungi satelit GPS...', 'info');
+    if (window.UIController) UIController.showToast('ðŸ“¡ Menghubungi satelit GPS...', 'info');
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -692,7 +658,7 @@ const MapManager = (() => {
         });
 
         userLocationMarker = L.marker([lat, lng], { icon: gpsIcon }).addTo(map);
-        userLocationMarker.bindTooltip(`📍 Posisi Anda di Lapangan (Akurasi: ±${Math.round(accuracy)}m)`, { permanent: false });
+        userLocationMarker.bindTooltip(`ðŸ“ Posisi Anda di Lapangan (Akurasi: Â±${Math.round(accuracy)}m)`, { permanent: false });
 
         userLocationCircle = L.circle([lat, lng], {
           radius: accuracy,
@@ -703,7 +669,7 @@ const MapManager = (() => {
         }).addTo(map);
 
         map.setView([lat, lng], 17, { animate: true });
-        if (window.UIController) UIController.showToast(`📍 Lokasi GPS ditemukan (Akurasi: ±${Math.round(accuracy)}m)`, 'success');
+        if (window.UIController) UIController.showToast(`ðŸ“ Lokasi GPS ditemukan (Akurasi: Â±${Math.round(accuracy)}m)`, 'success');
       },
       (err) => {
         console.warn('Geolocation error:', err);
