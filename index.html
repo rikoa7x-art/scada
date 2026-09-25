@@ -334,6 +334,15 @@
           <span>Unggah File JSON Jaringan</span>
           <input type="file" id="inputJsonFileMobile" accept=".json" class="hidden">
         </label>
+
+        <!-- Tombol Refresh Cache Data Jaringan -->
+        <button id="btnRefreshTopologyMobile"
+          onclick="App.forceRefreshTopology().then(() => { document.getElementById('mobileActionMenu')?.classList.add('hidden'); })"
+          class="w-full flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-700 p-3 rounded-xl border border-amber-300 font-bold active-press"
+          title="Hapus cache lokal dan unduh ulang data jaringan dari server (gunakan jika topologi diperbarui)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+          <span>🔄 Refresh Data Jaringan (Hapus Cache)</span>
+        </button>
       </div>
 
       <div class="p-3 bg-slate-100 border-t border-slate-200 text-center">

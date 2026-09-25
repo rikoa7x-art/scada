@@ -33,6 +33,14 @@ const App = (() => {
 
   const REGION_STORAGE_KEY = 'pdam_spam_current_region';
 
+  // === CACHE TOPOLOGI JSON ===
+  // Topologi jaringan (nodes, pipes, pumps) disimpan di localStorage agar tidak
+  // perlu fetch ulang dari server setiap kali aplikasi dibuka.
+  // CACHE_VERSION: naikkan angka ini jika ada perubahan pada file JSON di server
+  // agar cache lama di HP pengguna otomatis diperbarui.
+  const TOPOLOGY_CACHE_PREFIX = 'pdam_topo_v2_';
+  const CACHE_VERSION = '2026.09.25'; // Format: YYYY.MM.DD — update jika JSON berubah
+
   /**
    * Helper Dapatkan Konfigurasi Wilayah Aktif
    */
@@ -250,17 +258,106 @@ const App = (() => {
   }
 
   /**
+   * Simpan topologi wilayah ke localStorage cache
+   * @param {string} regionId - ID wilayah
+   * @param {Object} data - Data topologi (nodes, pipes, pumps)
+   */
+  function saveTopologyToCache(regionId, data) {
+    try {
+      const cacheKey = TOPOLOGY_CACHE_PREFIX + regionId;
+      const payload = JSON.stringify({ version: CACHE_VERSION, data });
+      localStorage.setItem(cacheKey, payload);
+      console.log(`💾 Cache topologi ${regionId} disimpan (${(payload.length / 1024).toFixed(0)} KB)`);
+    } catch (e) {
+      // localStorage penuh — hapus cache wilayah lain yang tidak aktif
+      console.warn('localStorage penuh, membersihkan cache lama...', e);
+      _evictOldTopologyCaches(regionId);
+      try {
+        const cacheKey = TOPOLOGY_CACHE_PREFIX + regionId;
+        localStorage.setItem(cacheKey, JSON.stringify({ version: CACHE_VERSION, data }));
+      } catch (e2) {
+        console.warn('Cache tidak bisa disimpan (storage penuh):', e2);
+      }
+    }
+  }
+
+  /**
+   * Muat topologi wilayah dari localStorage cache
+   * @param {string} regionId - ID wilayah
+   * @returns {Object|null} Data topologi jika cache valid, null jika tidak ada atau expired
+   */
+  function loadTopologyFromCache(regionId) {
+    try {
+      const cacheKey = TOPOLOGY_CACHE_PREFIX + regionId;
+      const raw = localStorage.getItem(cacheKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Validasi versi — jika CACHE_VERSION berubah, cache lama dianggap kadaluarsa
+      if (parsed.version !== CACHE_VERSION) {
+        console.log(`🗑️ Cache ${regionId} kadaluarsa (v${parsed.version}), akan diperbarui.`);
+        localStorage.removeItem(cacheKey);
+        return null;
+      }
+      if (!parsed.data?.nodes || !parsed.data?.pipes) return null;
+      console.log(`⚡ Cache topologi ${regionId} ditemukan — skip fetch jaringan`);
+      return parsed.data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Hapus semua cache topologi (kecuali wilayah aktif) untuk bebaskan ruang
+   */
+  function _evictOldTopologyCaches(keepRegionId) {
+    AppConfig.regions?.forEach(r => {
+      if (r.id !== keepRegionId) {
+        localStorage.removeItem(TOPOLOGY_CACHE_PREFIX + r.id);
+      }
+    });
+  }
+
+  /**
+   * Hapus cache satu wilayah (untuk force-refresh)
+   */
+  function clearTopologyCache(regionId) {
+    localStorage.removeItem(TOPOLOGY_CACHE_PREFIX + (regionId || currentRegionId));
+  }
+
+  /**
    * Muat Topologi Jaringan Wilayah
+   * Urutan prioritas:
+   *   1. localStorage cache (paling cepat — tidak butuh network)
+   *   2. Supabase Cloud topology (jika ada backup khusus)
+   *   3. Fetch file JSON dari server (fallback terakhir)
    */
   async function loadRegionalTopology(region) {
     try {
-      // 1. Periksa apakah ada topologi khusus yang dicadangkan di Supabase
+      // === 1. Cek localStorage cache terlebih dahulu ===
+      const cached = loadTopologyFromCache(region.id);
+      if (cached) {
+        networkData = cached;
+        // Inisialisasi demand dari cache
+        networkData.nodes.forEach(node => {
+          if (userDemands[node.id] === undefined) {
+            userDemands[node.id] = Number(node.demand) || 0;
+          } else {
+            node.demand = userDemands[node.id];
+          }
+        });
+        initSourceConfigFromNetwork(region);
+        UIController.showToast(`⚡ Jaringan ${region.name} dimuat dari cache lokal`, 'info');
+        return; // Selesai — tidak perlu fetch ke server
+      }
+
+      // === 2. Cek Supabase Cloud topology ===
+      UIController.showToast(`📡 Mengunduh data jaringan ${region.name}...`, 'info');
       const cloudTopology = await SupabaseClient.fetchRegionTopology(region.id);
       if (cloudTopology && cloudTopology.nodes && cloudTopology.pipes) {
         console.log(`Memuat topologi ${region.name} dari Supabase Cloud.`);
         networkData = cloudTopology;
       } else {
-        // 2. Muat file JSON lokal
+        // === 3. Fetch file JSON dari server (fallback) ===
         const response = await fetch(region.file);
         if (!response.ok) {
           throw new Error(`Gagal memuat ${region.file} (HTTP ${response.status})`);
@@ -268,7 +365,7 @@ const App = (() => {
         networkData = await response.json();
       }
 
-      // Inisialisasi demand awal dari JSON jika belum diubah
+      // Inisialisasi demand awal dari JSON
       networkData.nodes.forEach(node => {
         if (userDemands[node.id] === undefined) {
           userDemands[node.id] = Number(node.demand) || 0;
@@ -277,8 +374,12 @@ const App = (() => {
         }
       });
 
-      // Sinkronkan parameter sumber dari data jaringan atau preset wilayah
       initSourceConfigFromNetwork(region);
+
+      // === Simpan ke localStorage cache untuk load berikutnya ===
+      saveTopologyToCache(region.id, networkData);
+      UIController.showToast(`✅ Data jaringan ${region.name} berhasil diunduh & dicache`, 'success');
+
     } catch (err) {
       console.error(`Gagal memuat data jaringan untuk wilayah ${region.name}:`, err);
       UIController.showToast(`Gagal memuat jaringan ${region.name}: ${err.message}`, 'error');
@@ -929,7 +1030,13 @@ const App = (() => {
     syncCurrentRegionTelemetry,
     backupCurrentRegionToCloud,
     getCurrentRegion,
-    getNetworkData: () => networkData
+    getNetworkData: () => networkData,
+    // Cache management — digunakan oleh UI untuk force-refresh dari server
+    clearTopologyCache,
+    forceRefreshTopology: async () => {
+      clearTopologyCache(currentRegionId);
+      await switchRegion(currentRegionId, true);
+    }
   };
 })();
 
