@@ -5,34 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>PDAM SPAM - Monitoring Debit Air Jaringan Pipa (Hazen-Williams)</title>
   
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            pdam: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
-              500: '#0ea5e9',
-              600: '#0284c7',
-              700: '#0369a1',
-              800: '#075985',
-              900: '#0c4a6e'
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Tailwind CSS Pre-compiled (OPTIMASI: ganti CDN JIT compiler 300KB → 7.6KB pre-built) -->
+  <link rel="stylesheet" href="css/tailwind-compiled.css">
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js: Lazy-loaded saat tab Profil HGL dibuka (lihat chart_controller.js) -->
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/style.css?v=1.2.0">
@@ -1040,7 +1021,7 @@
   </div>
 
   <!-- SUPABASE & JAVASCRIPT MODULES -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/config.js?v=1.2.2"></script>
   <script src="js/supabase_client.js?v=1.2.2"></script>
   <script src="js/hydraulic_engine.js?v=1.2.2"></script>

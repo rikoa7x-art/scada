@@ -389,6 +389,7 @@ const UIController = (() => {
       if (btnClearPipeSearch) {
         btnClearPipeSearch.classList.toggle('hidden', !pipeSearchTerm);
       }
+      window.pipeMobileCardsMax = 20;
       reRenderPipesTable();
     });
 
@@ -396,6 +397,7 @@ const UIController = (() => {
       if (inputSearchPipes) inputSearchPipes.value = '';
       pipeSearchTerm = '';
       btnClearPipeSearch.classList.add('hidden');
+      window.pipeMobileCardsMax = 20;
       reRenderPipesTable();
     });
 
@@ -404,6 +406,7 @@ const UIController = (() => {
         pipeFilterPills.forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
         pipeFilterStatus = pill.getAttribute('data-pipe-filter') || 'all';
+        window.pipeMobileCardsMax = 20;
         reRenderPipesTable();
       });
     });
@@ -529,12 +532,11 @@ const UIController = (() => {
       if (typeof setSequenceView === 'function') {
         setSequenceView(sequenceViewMode || (window.innerWidth < 768 ? 'card' : 'table'));
       }
-    } else if (tabId === 'tabProfile') {
-      setTimeout(() => {
-        if (window.App && typeof window.App.refreshProfileChart === 'function') {
-          window.App.refreshProfileChart();
-        }
-      }, 50);
+    }
+
+    // [OPTIMASI MOBILE] Beri tahu App bahwa tab berubah untuk me-render konten yang kotor
+    if (window.App && typeof window.App.onTabActivated === 'function') {
+      window.App.onTabActivated(tabId);
     }
   }
 
@@ -1524,8 +1526,13 @@ const UIController = (() => {
           </div>
         `;
       } else {
+        // [OPTIMASI MOBILE] Pagination untuk kartu pipa agar tidak lag
+        window.pipeMobileCardsMax = window.pipeMobileCardsMax || 20;
+        
         let cardsHtml = '';
-        filteredPipes.forEach((pipe, idx) => {
+        const visiblePipes = filteredPipes.slice(0, window.pipeMobileCardsMax);
+        
+        visiblePipes.forEach((pipe, idx) => {
           const calc = pipesMap.get(pipe.id)?.calculation;
           const startNode = nodesMap.get(pipe.startNodeId);
           const endNode = nodesMap.get(pipe.endNodeId);
@@ -1597,6 +1604,19 @@ const UIController = (() => {
             </div>
           `;
         });
+        
+        // Tombol Muat Lebih Banyak
+        if (filteredPipes.length > window.pipeMobileCardsMax) {
+          cardsHtml += `
+            <div class="pt-3 text-center pb-6">
+              <button onclick="window.pipeMobileCardsMax += 20; UIController.reRenderPipesTable();" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-full text-xs transition-colors shadow-md active-press flex items-center gap-2 mx-auto">
+                <span>Tampilkan Lebih Banyak (${window.pipeMobileCardsMax} dari ${filteredPipes.length})</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
+          `;
+        }
+        
         cardContainer.innerHTML = cardsHtml;
       }
     }
@@ -2122,6 +2142,7 @@ const UIController = (() => {
     openPressureModalForNodeId,
     updateSummaryCards,
     renderPipesTable,
+    reRenderPipesTable,
     renderJunctionsSidebarTable,
     renderSequentialFlowTable,
     updateCloudStatus,

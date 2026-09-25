@@ -24,6 +24,21 @@
   transform-origin: center;
 }
 
+@media (max-width: 768px) {
+  .flow-pulse svg {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-pulse svg {
+    animation: none !important;
+  }
+  .user-gps-pulse {
+    animation: none !important;
+  }
+}
+
 /* Kustom Tooltip Leaflet */
 .leaflet-tooltip.custom-leaflet-tooltip {
   background: rgba(255, 255, 255, 0.98);

@@ -4,6 +4,31 @@
 
 const ChartController = (() => {
   let profileChart = null;
+  let chartJsLoaded = typeof Chart !== 'undefined';
+  let chartJsLoading = false;
+
+  /**
+   * [OPTIMASI MOBILE] Muat Chart.js hanya saat dibutuhkan (~200KB hemat di load awal)
+   */
+  async function ensureChartJs() {
+    if (chartJsLoaded) return true;
+    if (chartJsLoading) {
+      // Tunggu loading yang sudah berjalan
+      return new Promise(resolve => {
+        const check = setInterval(() => {
+          if (chartJsLoaded) { clearInterval(check); resolve(true); }
+        }, 100);
+      });
+    }
+    chartJsLoading = true;
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      script.onload = () => { chartJsLoaded = true; chartJsLoading = false; resolve(true); };
+      script.onerror = () => { chartJsLoading = false; reject(new Error('Gagal memuat Chart.js')); };
+      document.head.appendChild(script);
+    });
+  }
 
   /**
    * Ekstrak jalur transmisi utama atau rute terpanjang dari reservoir ke titik terjauh
@@ -128,9 +153,17 @@ const ChartController = (() => {
    * @param {Map} nodesStateMap - Map data node hasil perhitungan
    * @param {Array} sequenceSteps - Alur langkah hidrolis berurutan (opsional)
    */
-  function renderProfileChart(canvasId, networkData, nodesStateMap, sequenceSteps = null) {
+  async function renderProfileChart(canvasId, networkData, nodesStateMap, sequenceSteps = null) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+
+    // [OPTIMASI MOBILE] Muat Chart.js on-demand
+    try {
+      await ensureChartJs();
+    } catch (err) {
+      console.warn('Chart.js tidak tersedia:', err);
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
     const pathNodes = extractMainPath(networkData, nodesStateMap, sequenceSteps);

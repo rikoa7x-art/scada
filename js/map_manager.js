@@ -33,7 +33,8 @@ const MapManager = (() => {
       zoom: config.defaultZoom,
       minZoom: config.minZoom,
       maxZoom: config.maxZoom,
-      zoomControl: false // Kita posisikan di tempat yang lebih rapi
+      zoomControl: false, // Kita posisikan di tempat yang lebih rapi
+      preferCanvas: true  // [OPTIMASI MOBILE] Canvas renderer jauh lebih ringan dari SVG untuk banyak layer
     });
 
     // Posisikan zoom control di kanan bawah agar tidak menabrak panel
@@ -44,6 +45,18 @@ const MapManager = (() => {
     arrowLayersGroup = L.featureGroup().addTo(map);
     flowLabelLayersGroup = L.featureGroup().addTo(map);
     nodeLayersGroup = L.featureGroup().addTo(map);
+
+    // [OPTIMASI MOBILE] Sembunyikan label debit & panah arah pada zoom rendah
+    map.on('zoomend', () => {
+      const zoom = map.getZoom();
+      if (zoom < 15) {
+        if (map.hasLayer(flowLabelLayersGroup)) map.removeLayer(flowLabelLayersGroup);
+        if (map.hasLayer(arrowLayersGroup)) map.removeLayer(arrowLayersGroup);
+      } else {
+        if (!map.hasLayer(flowLabelLayersGroup)) map.addLayer(flowLabelLayersGroup);
+        if (!map.hasLayer(arrowLayersGroup)) map.addLayer(arrowLayersGroup);
+      }
+    });
 
     // Siapkan Base Tile Layers
     const tiles = config.tileLayers;

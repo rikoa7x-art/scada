@@ -586,7 +586,51 @@ const App = (() => {
   }
 
   /**
-   * Hitung Ulang Hidrolika dan Perbarui Semua Komponen UI
+   * [OPTIMASI MOBILE] Set tab yang sedang aktif & tracking tab kotor
+   */
+  const dirtyTabs = new Set();
+  let activeTabId = 'tabMap';
+
+  /**
+   * Dipanggil oleh UIController saat user pindah tab
+   */
+  function onTabActivated(tabId) {
+    activeTabId = tabId;
+    if (dirtyTabs.has(tabId)) {
+      renderTabContent(tabId);
+      dirtyTabs.delete(tabId);
+    }
+  }
+
+  /**
+   * Render konten satu tab yang spesifik
+   */
+  function renderTabContent(tabId) {
+    if (!networkData || !currentHydraulicResult) return;
+
+    switch (tabId) {
+      case 'tabMap':
+        MapManager.renderNetwork(networkData, currentHydraulicResult.nodes, currentHydraulicResult.pipes, sourceConfig);
+        break;
+      case 'tabTable':
+        UIController.renderPipesTable(networkData, currentHydraulicResult.nodes, currentHydraulicResult.pipes);
+        break;
+      case 'tabSequence': {
+        const seqSteps = HydraulicEngine.buildSequentialNetworkFlow(
+          networkData, currentHydraulicResult.nodes, currentHydraulicResult.pipes, sourceConfig
+        );
+        UIController.renderSequentialFlowTable(seqSteps);
+        break;
+      }
+      case 'tabProfile':
+        refreshProfileChart();
+        break;
+    }
+  }
+
+  /**
+   * Hitung Ulang Hidrolika dan Perbarui Komponen UI
+   * [OPTIMASI MOBILE] Hanya render tab aktif, tandai tab lain sebagai 'kotor'
    */
   function recalculateAndRender() {
     if (!networkData) return;
@@ -600,10 +644,7 @@ const App = (() => {
 
     if (!currentHydraulicResult) return;
 
-    // 2. Render Peta GIS
-    MapManager.renderNetwork(networkData, currentHydraulicResult.nodes, currentHydraulicResult.pipes, sourceConfig);
-
-    // 3. Update Ringkasan KPI & Badge Sumber
+    // 2. Update KPI (ringan, selalu diupdate)
     UIController.updateSummaryCards(
       currentHydraulicResult.summary,
       currentHydraulicResult.nodes,
@@ -611,31 +652,22 @@ const App = (() => {
     );
     UIController.updateSourceBadge(sourceConfig);
 
-    // 4. Render Tabel Pipa
-    UIController.renderPipesTable(
-      networkData,
-      currentHydraulicResult.nodes,
-      currentHydraulicResult.pipes
-    );
-
-    // 5. Render Daftar Batch Input di Sidebar
+    // 3. Render Sidebar Junction List (ringan, selalu diupdate karena terlihat)
     UIController.renderJunctionsSidebarTable(
       networkData,
       currentHydraulicResult.nodes,
       sourceConfig
     );
 
-    // 6. Susun dan Render Skema Alur Hidrolis Berurutan (Reservoir -> Ujung)
-    const sequenceSteps = HydraulicEngine.buildSequentialNetworkFlow(
-      networkData,
-      currentHydraulicResult.nodes,
-      currentHydraulicResult.pipes,
-      sourceConfig
-    );
-    UIController.renderSequentialFlowTable(sequenceSteps);
-
-    // 7. Update Grafik Profil HGL jika terlihat
-    refreshProfileChart();
+    // 4. [OPTIMASI MOBILE] Render HANYA tab aktif, tandai tab lain sebagai kotor
+    const allTabs = ['tabMap', 'tabTable', 'tabSequence', 'tabProfile'];
+    allTabs.forEach(tabId => {
+      if (tabId === activeTabId) {
+        renderTabContent(tabId);
+      } else {
+        dirtyTabs.add(tabId);
+      }
+    });
   }
 
   /**
@@ -1026,6 +1058,7 @@ const App = (() => {
     locateNode,
     locatePipe,
     refreshProfileChart,
+    onTabActivated,
     switchRegion,
     syncCurrentRegionTelemetry,
     backupCurrentRegionToCloud,
