@@ -46,15 +46,13 @@ const MapManager = (() => {
     flowLabelLayersGroup = L.featureGroup().addTo(map);
     nodeLayersGroup = L.featureGroup().addTo(map);
 
-    // [OPTIMASI MOBILE] Sembunyikan label debit & panah arah pada zoom rendah
+    // [OPTIMASI MOBILE] Sembunyikan label debit hanya pada zoom sangat jauh (< 12) agar tidak bertumpuk
     map.on('zoomend', () => {
       const zoom = map.getZoom();
-      if (zoom < 15) {
+      if (zoom < 12) {
         if (map.hasLayer(flowLabelLayersGroup)) map.removeLayer(flowLabelLayersGroup);
-        if (map.hasLayer(arrowLayersGroup)) map.removeLayer(arrowLayersGroup);
       } else {
         if (!map.hasLayer(flowLabelLayersGroup)) map.addLayer(flowLabelLayersGroup);
-        if (!map.hasLayer(arrowLayersGroup)) map.addLayer(arrowLayersGroup);
       }
     });
 
