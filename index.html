@@ -601,13 +601,13 @@
               <tr class="bg-slate-100 text-slate-700 font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
                 <th class="p-2.5">No</th>
                 <th class="p-2.5">Pipa (Dari &rarr; Ke)</th>
-                <th class="p-2.5">Diameter ($D$)</th>
-                <th class="p-2.5">Panjang ($L$)</th>
-                <th class="p-2.5">Kekasaran ($C$)</th>
-                <th class="p-2.5">Head Loss ($h_f$)</th>
-                <th class="p-2.5">Debit ($Q$ L/det)</th>
-                <th class="p-2.5">Debit ($Q$ m³/jam)</th>
-                <th class="p-2.5">Kecepatan ($v$)</th>
+                <th class="p-2.5">Diameter (mm)</th>
+                <th class="p-2.5">Panjang (m)</th>
+                <th class="p-2.5">Kekasaran (C)</th>
+                <th class="p-2.5">Kehilangan Tekan (m)</th>
+                <th class="p-2.5">Debit (L/det)</th>
+                <th class="p-2.5">Debit (m³/jam)</th>
+                <th class="p-2.5">Kecepatan (m/s)</th>
                 <th class="p-2.5">Status Aliran</th>
                 <th class="p-2.5">Arah Aliran</th>
                 <th class="p-2.5 text-center">Aksi</th>
@@ -697,13 +697,13 @@
                 <th class="p-2.5">Ruas Jalur Aliran</th>
                 <th class="p-2.5">Kategori</th>
                 <th class="p-2.5">Jarak Kumulatif</th>
-                <th class="p-2.5">Elevasi ($z$)</th>
-                <th class="p-2.5">Sisa Tekanan ($P$)</th>
-                <th class="p-2.5">Total Head ($H$)</th>
-                <th class="p-2.5">Head Loss ($h_f$)</th>
-                <th class="p-2.5">Debit ($Q$ L/det)</th>
-                <th class="p-2.5">Debit ($Q$ m³/jam)</th>
-                <th class="p-2.5">Kecepatan ($v$)</th>
+                <th class="p-2.5">Elevasi (m dpl)</th>
+                <th class="p-2.5">Sisa Tekanan (bar)</th>
+                <th class="p-2.5">Total Head (m)</th>
+                <th class="p-2.5">Kehilangan Tekan (m)</th>
+                <th class="p-2.5">Debit (L/det)</th>
+                <th class="p-2.5">Debit (m³/jam)</th>
+                <th class="p-2.5">Kecepatan (m/s)</th>
                 <th class="p-2.5 text-center">Aksi</th>
               </tr>
             </thead>
@@ -760,7 +760,7 @@
             <span id="modalNodeLabel" class="font-bold text-slate-800 text-sm">-</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-500">Elevasi Titik ($z$):</span>
+            <span class="text-slate-500">Elevasi Titik (m dpl):</span>
             <span id="modalNodeElevation" class="font-semibold text-slate-700">-</span>
           </div>
         </div>
@@ -819,13 +819,13 @@
         <!-- Preview Kalkulasi Total Head -->
         <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 space-y-1">
           <div class="text-emerald-900 font-semibold flex items-center justify-between">
-            <span>Tinggi Tekan Total (HGL = $z + P/\gamma$):</span>
+            <span>Tinggi Tekan Total (HGL = Elevasi + Tekanan):</span>
             <span id="modalConvertedPressure" class="text-xs text-emerald-700 font-mono">-</span>
           </div>
           <div class="text-xl font-black text-emerald-700 font-mono" id="modalTotalHeadPreview">
             -
           </div>
-          <p class="text-[10px] text-emerald-800">Total head ini yang digunakan untuk menghitung beda tinggi tekan ($\Delta H$) dan debit Hazen-Williams.</p>
+          <p class="text-[10px] text-emerald-800">Total head ini yang digunakan untuk menghitung beda tinggi tekan (ΔH) dan debit Hazen-Williams.</p>
         </div>
       </div>
 

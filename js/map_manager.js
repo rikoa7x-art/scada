@@ -184,16 +184,16 @@ const MapManager = (() => {
         <div class="p-1 font-sans text-xs">
           <div class="font-bold text-slate-800 flex items-center gap-1">
             <span>Pipa: ${startLabel} &rarr; ${endLabel}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">DN ${diameter} mm</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">Diameter ${diameter} mm</span>
           </div>
           <div class="text-slate-600 mt-1">Panjang: <b>${pipe.length} m</b> | Material: <b>${pipe.material || 'PVC'}</b></div>
       `;
       if (isCalculated) {
         tooltipContent += `
           <div class="mt-1.5 pt-1.5 border-t border-slate-200 space-y-0.5">
-            <div class="text-emerald-700 font-semibold">Debit: <b>${pipeCalc.flowRateLps.toFixed(2)} L/det</b> (${pipeCalc.flowRateM3h.toFixed(1)} mÂ³/jam)</div>
+            <div class="text-emerald-700 font-semibold">Debit: <b>${pipeCalc.flowRateLps.toFixed(2)} L/det</b> (${pipeCalc.flowRateM3h.toFixed(1)} m³/jam)</div>
             <div class="text-slate-700">Kecepatan: <b>${pipeCalc.velocity.toFixed(2)} m/s</b> (${pipeCalc.velocityLabel})</div>
-            <div class="text-slate-600">Head Loss: <b>${pipeCalc.headLoss.toFixed(2)} m</b> (${pipeCalc.unitHeadLoss.toFixed(2)} m/km)</div>
+            <div class="text-slate-600">Kehilangan Tekan (Head Loss): <b>${pipeCalc.headLoss.toFixed(2)} m</b> (${pipeCalc.unitHeadLoss.toFixed(2)} m/km)</div>
             <div class="text-sky-700 font-medium">Arah: <b>${pipeCalc.direction === 'forward' ? `${startLabel} &rarr; ${endLabel}` : `${endLabel} &rarr; ${startLabel}`}</b></div>
           </div>`;
       } else {
@@ -282,8 +282,8 @@ const MapManager = (() => {
               </span>
             </div>
             <div class="text-slate-600 mt-1">Muka Air Reservoir: <b class="text-blue-700">${resElev} m dpl</b></div>
-            <div class="text-slate-600">Setting Debit: <b class="text-emerald-700">${resFlow.toFixed(1)} L/det</b> (${(resFlow * 3.6).toFixed(0)} mÂ³/jam)</div>
-            <div class="mt-1.5 pt-1 border-t border-slate-200 text-blue-600 font-semibold text-[11px]">ðŸ‘‰ Klik untuk setting debit reservoir & gravitasi</div>
+            <div class="text-slate-600">Setting Debit: <b class="text-emerald-700">${resFlow.toFixed(1)} L/det</b> (${(resFlow * 3.6).toFixed(0)} m³/jam)</div>
+            <div class="mt-1.5 pt-1 border-t border-slate-200 text-blue-600 font-semibold text-[11px]">&bull; Klik untuk setting debit reservoir & gravitasi</div>
           </div>`;
       } else {
         nodeTooltip = `
@@ -346,8 +346,8 @@ const MapManager = (() => {
               <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${isPumpActive ? 'bg-violet-100 text-violet-800' : 'bg-slate-200 text-slate-700'}">${isPumpActive ? 'AKTIF' : 'BYPASS (OFF)'}</span>
             </div>
             <div class="text-slate-600 mt-1">Kapasitas Head: <b class="text-indigo-700">${isPumpActive ? curHead.toFixed(1) + ' m' : '0 m (Bypass Gravitasi)'}</b></div>
-            <div class="text-slate-600">Kapasitas Debit: <b class="text-emerald-700">${curFlow.toFixed(1)} L/det</b> (${(curFlow * 3.6).toFixed(0)} mÂ³/jam)</div>
-            <div class="mt-1.5 pt-1 border-t border-slate-200 text-indigo-600 font-semibold text-[11px]">ðŸ‘‰ Klik untuk edit kapasitas head & debit pompa</div>
+            <div class="text-slate-600">Kapasitas Debit: <b class="text-emerald-700">${curFlow.toFixed(1)} L/det</b> (${(curFlow * 3.6).toFixed(0)} m³/jam)</div>
+            <div class="mt-1.5 pt-1 border-t border-slate-200 text-indigo-600 font-semibold text-[11px]">&bull; Klik untuk edit kapasitas head & debit pompa</div>
           </div>`, { sticky: true });
         pumpMarker.on('click', () => { if (onPumpClickCallback) onPumpClickCallback(pump); });
         nodeLayersGroup.addLayer(pumpMarker);
@@ -368,7 +368,7 @@ const MapManager = (() => {
       requestAnimationFrame(step);
     }
 
-    // Urutan: pipa dulu â†’ node â†’ pompa & label debit
+    // Urutan render: pipa -> node -> pompa & label debit
     _batchRender(networkData.pipes, _renderOnePipe, PIPE_BATCH, () => {
       _batchRender(networkData.nodes, _renderOneNode, NODE_BATCH, () => {
         _renderPumps();
@@ -502,9 +502,9 @@ const MapManager = (() => {
       // Format teks debit sesuai mode satuan aktif
       let flowText = '';
       if (flowLabelMode === 'm3h') {
-        flowText = `${pipeCalc.flowRateM3h.toFixed(1)} mÂ³/j`;
+        flowText = `${pipeCalc.flowRateM3h.toFixed(1)} m³/j`;
       } else if (flowLabelMode === 'both') {
-        flowText = `${pipeCalc.flowRateLps.toFixed(1)} L/s (${pipeCalc.flowRateM3h.toFixed(0)} mÂ³/j)`;
+        flowText = `${pipeCalc.flowRateLps.toFixed(1)} L/s (${pipeCalc.flowRateM3h.toFixed(0)} m³/j)`;
       } else {
         // default 'lps'
         flowText = `${pipeCalc.flowRateLps.toFixed(1)} L/s`;
@@ -529,11 +529,11 @@ const MapManager = (() => {
 
       const startLabel = startNode?.label || 'N/A';
       const endLabel = endNode?.label || 'N/A';
-      const tooltipTitle = `Pipa: ${startLabel} âž” ${endLabel}&#10;Debit: ${pipeCalc.flowRateLps.toFixed(2)} L/s (${pipeCalc.flowRateM3h.toFixed(1)} mÂ³/jam)&#10;Kecepatan: ${pipeCalc.velocity.toFixed(2)} m/s (${pipeCalc.velocityLabel})&#10;ðŸ‘‰ Klik untuk sorot & lihat detail`;
+      const tooltipTitle = `Pipa: ${startLabel} -> ${endLabel}&#10;Debit: ${pipeCalc.flowRateLps.toFixed(2)} L/s (${pipeCalc.flowRateM3h.toFixed(1)} m³/jam)&#10;Kecepatan: ${pipeCalc.velocity.toFixed(2)} m/s (${pipeCalc.velocityLabel})&#10;Klik untuk sorot & lihat detail`;
 
       const badgeHtml = `
         <div class="pipe-flow-badge ${badgeClass} ${isSelected ? 'selected' : ''}" data-pipe-id="${pipe.id}" title="${tooltipTitle}">
-          <span class="text-sky-500 font-bold text-[10px]">ðŸ’§</span>
+          <span class="text-sky-500 font-bold text-[10px]"><svg class="w-3 h-3 text-sky-500 inline-block flex-none" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
           <span>${flowText}</span>
         </div>
       `;
@@ -639,7 +639,7 @@ const MapManager = (() => {
       return;
     }
 
-    if (window.UIController) UIController.showToast('ðŸ“¡ Menghubungi satelit GPS...', 'info');
+    if (window.UIController) UIController.showToast('[GPS] Menghubungi satelit GPS...', 'info');
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -658,7 +658,7 @@ const MapManager = (() => {
         });
 
         userLocationMarker = L.marker([lat, lng], { icon: gpsIcon }).addTo(map);
-        userLocationMarker.bindTooltip(`ðŸ“ Posisi Anda di Lapangan (Akurasi: Â±${Math.round(accuracy)}m)`, { permanent: false });
+        userLocationMarker.bindTooltip(`[GPS] Posisi Anda di Lapangan (Akurasi: ±${Math.round(accuracy)}m)`, { permanent: false });
 
         userLocationCircle = L.circle([lat, lng], {
           radius: accuracy,
@@ -669,7 +669,7 @@ const MapManager = (() => {
         }).addTo(map);
 
         map.setView([lat, lng], 17, { animate: true });
-        if (window.UIController) UIController.showToast(`ðŸ“ Lokasi GPS ditemukan (Akurasi: Â±${Math.round(accuracy)}m)`, 'success');
+        if (window.UIController) UIController.showToast(`[GPS] Lokasi GPS ditemukan (Akurasi: ±${Math.round(accuracy)}m)`, 'success');
       },
       (err) => {
         console.warn('Geolocation error:', err);

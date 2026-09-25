@@ -1265,19 +1265,19 @@ const UIController = (() => {
 
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
-            <span class="text-slate-500">Diameter ($D$):</span>
+            <span class="text-slate-500">Diameter Pipa:</span>
             <div class="font-bold text-slate-800 text-sm">${pipe.diameter} mm</div>
           </div>
           <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
-            <span class="text-slate-500">Panjang ($L$):</span>
+            <span class="text-slate-500">Panjang Pipa:</span>
             <div class="font-bold text-slate-800 text-sm">${pipe.length} m</div>
           </div>
           <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
-            <span class="text-slate-500">Kekasaran ($C$):</span>
+            <span class="text-slate-500">Kekasaran Pipa (C):</span>
             <div class="font-bold text-slate-800 text-sm">${pipe.roughness || 140}</div>
           </div>
           <div class="bg-slate-50 p-2 rounded-lg border border-slate-200/60">
-            <span class="text-slate-500">Resistansi ($R$):</span>
+            <span class="text-slate-500">Hambatan Pipa (R):</span>
             <div class="font-bold text-slate-800 text-sm">${pipeCalc?.resistanceR ? pipeCalc.resistanceR.toFixed(1) : '-'}</div>
           </div>
         </div>
@@ -1299,10 +1299,10 @@ const UIController = (() => {
             <span class="text-xs text-slate-500">(${pipeCalc.flowRateM3h.toFixed(1)} m³/jam)</span>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-emerald-200/60 text-slate-700">
-            <div>Kecepatan ($v$): <b>${pipeCalc.velocity.toFixed(2)} m/s</b></div>
-            <div>Head Loss ($h_f$): <b>${pipeCalc.headLoss.toFixed(2)} m</b></div>
-            <div>Beda Head ($\Delta H$): <b>${pipeCalc.deltaH.toFixed(2)} m</b></div>
-            <div>Gradien ($S$): <b>${pipeCalc.unitHeadLoss.toFixed(2)} m/km</b></div>
+            <div>Kecepatan Aliran: <b>${pipeCalc.velocity.toFixed(2)} m/s</b></div>
+            <div>Kehilangan Tekan (Head Loss): <b>${pipeCalc.headLoss.toFixed(2)} m</b></div>
+            <div>Beda Tekanan (ΔH): <b>${pipeCalc.deltaH.toFixed(2)} m</b></div>
+            <div>Gradien Hidrolik: <b>${pipeCalc.unitHeadLoss.toFixed(2)} m/km</b></div>
           </div>
           <div class="text-xs text-slate-700 pt-1">
             Arah Aliran Aktual: <b class="text-blue-700">${dirText}</b>
@@ -1320,7 +1320,7 @@ const UIController = (() => {
         ` : ''}
 
         <div class="text-[11px] bg-slate-100 p-2 rounded-lg text-slate-600 font-mono">
-          Rumus: $Q = (|\\Delta H| / R)^{1/1.852} = (${pipeCalc.headLoss.toFixed(2)} / ${pipeCalc.resistanceR.toFixed(0)})^{0.54} = ${(pipeCalc.flowRateM3s * 1000).toFixed(2)}$ L/s
+          Rumus: Q = (ΔH / R)^0.54 = (${pipeCalc.headLoss.toFixed(2)} / ${pipeCalc.resistanceR.toFixed(0)})^0.54 = ${(pipeCalc.flowRateM3s * 1000).toFixed(2)} L/det
         </div>
       `;
     } else {
@@ -1573,7 +1573,7 @@ const UIController = (() => {
 
               <!-- Detail Spesifikasi Pipa -->
               <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
-                <span>&empty; <b>${pipe.diameter} mm</b></span>
+                <span>Diameter: <b>${pipe.diameter} mm</b></span>
                 <span>Panjang: <b>${pipe.length} m</b></span>
                 <span>C: <b>${pipe.roughness || 140}</b></span>
               </div>
