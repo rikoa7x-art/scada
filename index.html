@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -18,7 +18,7 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/style.css?v=1.2.0">
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans flex flex-col h-screen overflow-hidden">
+<body class="bg-slate-100 text-slate-800 flex flex-col h-screen overflow-hidden">
 
   <!-- PRINT ONLY HEADER -->
   <div class="print-only p-4 mb-4 border-b-2 border-slate-900">
@@ -30,30 +30,31 @@
   </div>
 
   <!-- HEADER UTAMA APLIKASI (RESPONSIVE DESKTOP & MOBILE) -->
-  <header class="bg-gradient-to-r from-slate-900 via-pdam-900 to-slate-900 text-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-md flex-none z-30 border-b border-slate-800">
+  <header class="text-white px-3 sm:px-4 py-2.5 sm:py-3 flex-none z-30">
     <div class="flex items-center justify-between gap-2 sm:gap-3">
       
-      <!-- Brand & Judul Ringkas -->
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-400 shadow-inner flex-none">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+      <!-- Brand & Logo -->
+      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div class="brand-icon w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-sky-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
         </div>
         <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
-            <h1 class="font-bold text-sm sm:text-base md:text-lg tracking-wide truncate">SPAM PDAM DEBIT</h1>
-            <span class="text-[9px] sm:text-[10px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 px-1.5 py-0.5 rounded-full font-semibold uppercase hidden xs:inline">Hazen-Williams</span>
+          <div class="flex items-center gap-2">
+            <h1 class="header-title-gradient font-black text-sm sm:text-base md:text-lg tracking-tight truncate">SPAM PDAM</h1>
+            <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide hidden xs:inline">HW</span>
           </div>
-          <p id="appSubtitle" class="text-[10px] sm:text-xs text-slate-300 truncate">Bunihayu &bull; Monitoring Tekanan & Debit Pipa</p>
+          <p id="appSubtitle" class="text-[10px] sm:text-[11px] text-slate-400 truncate mt-0.5">Bunihayu &bull; Monitoring Tekanan &amp; Debit Pipa</p>
         </div>
       </div>
 
       <!-- Action Buttons & Quick Controls -->
-      <div class="flex items-center gap-1 sm:gap-2 flex-none">
-        <!-- Selector Wilayah SPAM Terpadu (9 Wilayah) -->
-        <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-800/95 px-1.5 sm:px-2 py-1 rounded-lg border border-slate-700/80 shadow-xs text-xs">
+      <div class="flex items-center gap-1.5 flex-none">
+
+        <!-- Region Selector -->
+        <div class="region-select-wrap">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span class="text-slate-400 font-semibold hidden lg:inline text-[11px]">Wilayah:</span>
-          <select id="selectRegion" class="bg-slate-900 text-sky-300 hover:text-white font-bold text-[11px] sm:text-xs focus:outline-hidden cursor-pointer rounded border-0 max-w-[105px] xs:max-w-[125px] sm:max-w-[165px] truncate" title="Pilih Wilayah SPAM PDAM Kabupaten Subang">
+          <span class="text-slate-400 font-semibold hidden lg:inline text-[10px] uppercase tracking-wide">Wilayah</span>
+          <select id="selectRegion" class="max-w-[105px] xs:max-w-[125px] sm:max-w-[155px] truncate" title="Pilih Wilayah SPAM PDAM Kabupaten Subang">
             <option value="bunihayu">Bunihayu (17 Simpul)</option>
             <option value="cisalak">Cisalak (203 Simpul)</option>
             <option value="jalancagak">Jalancagak (35 Simpul)</option>
@@ -66,144 +67,148 @@
           </select>
         </div>
 
-        <!-- Indikator Status Cloud Supabase (Ringkas di HP) -->
-        <button id="btnCloudStatus" class="flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 px-1.5 sm:px-2 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-colors cursor-pointer" title="Status Koneksi Server Supabase SCADA (Klik untuk Re-Sync)">
-          <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-none"></span>
-          <span id="cloudStatusText" class="hidden md:inline text-[11px] font-mono">Cloud Aktif</span>
+        <!-- Cloud Status Button -->
+        <button id="btnCloudStatus" class="cloud-status-btn text-emerald-300" title="Status Koneksi Server Supabase SCADA (Klik untuk Re-Sync)">
+          <span id="cloudStatusDot" class="status-dot"></span>
+          <span id="cloudStatusText" class="hidden md:inline">Cloud Aktif</span>
         </button>
 
-        <!-- Tombol Setting Sumber: Pompa & Gravitasi -->
-        <button id="btnSourceSettings" class="flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500 text-white text-xs px-1.5 sm:px-2.5 py-1.5 rounded-lg font-medium shadow-xs border border-indigo-400/30 transition-all cursor-pointer active-press" title="Edit Kapasitas Head & Debit Pompa atau Pengaliran Gravitasi Reservoir">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-200 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          <span class="font-semibold hidden lg:inline">Sumber:</span>
-          <span id="sourceBadge" class="bg-indigo-900/60 text-indigo-100 border border-indigo-300/30 px-1 py-0.5 rounded text-[10px] font-bold max-w-[85px] xs:max-w-[110px] sm:max-w-none truncate">⚡ Pompa: 50m / 10 L/s</span>
+        <!-- Source Settings Button -->
+        <button id="btnSourceSettings" class="header-btn header-btn-source active-press" title="Edit Kapasitas Head &amp; Debit Pompa atau Pengaliran Gravitasi Reservoir">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-none opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="hidden lg:inline font-semibold">Sumber:</span>
+          <span id="sourceBadge" class="bg-white/10 border border-white/15 px-1.5 py-0.5 rounded-md text-[10px] font-bold max-w-[80px] xs:max-w-[100px] sm:max-w-none truncate">&#9889; Pompa: 50m / 10 L/s</span>
         </button>
 
-        <!-- Desktop Only Toolbar Buttons -->
-        <div class="hidden md:flex items-center gap-2">
-          <!-- Backdrop Selector -->
-          <div class="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs">
-            <span class="text-slate-400 font-medium">Peta:</span>
-            <select id="selectBaseLayer" class="bg-slate-900 text-white font-medium focus:outline-hidden cursor-pointer">
-              <option value="Google Hybrid" selected>Google Hybrid (Satelit + Jalan)</option>
+        <!-- Desktop Toolbar -->
+        <div class="hidden md:flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 bg-white/6 border border-white/10 px-2.5 py-1.5 rounded-lg text-[11px]">
+            <svg class="w-3.5 h-3.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+            <select id="selectBaseLayer" class="bg-transparent text-slate-300 font-semibold focus:outline-none cursor-pointer text-[11px]">
+              <option value="Google Hybrid" selected>Google Hybrid</option>
               <option value="OpenStreetMap">OpenStreetMap</option>
               <option value="Google Satellite">Google Satellite</option>
               <option value="Google Streets">Google Streets</option>
             </select>
           </div>
 
-          <!-- Tombol Aksi Desktop -->
-          <button id="btnLoadSample" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium shadow-xs transition-colors" title="Muat Contoh Data Uji Lapangan">
+          <button id="btnLoadSample" class="header-btn header-btn-primary active-press" title="Muat Contoh Data Uji Lapangan">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Data Uji</span>
           </button>
 
-          <button id="btnResetData" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors" title="Kosongkan Semua Pengukuran Tekanan">
+          <button id="btnResetData" class="header-btn header-btn-ghost active-press" title="Kosongkan Semua Pengukuran Tekanan">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
             <span>Reset</span>
           </button>
 
-          <button id="btnExportCSV" class="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium shadow-xs transition-colors" title="Ekspor Data ke File CSV / Excel">
+          <button id="btnExportCSV" class="header-btn header-btn-success active-press" title="Ekspor Data ke File CSV / Excel">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-            <span>Ekspor CSV</span>
+            <span>CSV</span>
           </button>
 
-          <button id="btnPrintReport" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors" title="Cetak Laporan Resmi">
+          <button id="btnPrintReport" class="header-btn header-btn-ghost active-press" title="Cetak Laporan Resmi">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Cetak</span>
           </button>
 
-          <!-- Upload JSON Kustom -->
-          <label class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors cursor-pointer" title="Unggah File JSON Jaringan Baru">
+          <label class="header-btn header-btn-ghost active-press cursor-pointer" title="Unggah File JSON Jaringan Baru">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <span>Upload JSON</span>
+            <span>Upload</span>
             <input type="file" id="inputJsonFile" accept=".json" class="hidden">
           </label>
 
-          <!-- Backup Topologi ke Cloud -->
-          <button id="btnBackupCloud" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white text-xs px-2.5 py-1.5 rounded-lg font-medium border border-slate-700 transition-colors cursor-pointer" title="Cadangkan Topologi Jaringan Ini ke Supabase Cloud">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg>
-            <span>Backup Cloud</span>
+          <button id="btnBackupCloud" class="header-btn header-btn-ghost active-press" title="Cadangkan Topologi Jaringan Ini ke Supabase Cloud">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg>
+            <span>Backup</span>
           </button>
         </div>
 
-        <!-- Tombol Toggle Dashboard Informasi (Desktop / Tablet) -->
-        <button id="btnHeaderToggleDashboard" type="button" onclick="UIController.toggleDashboard()" class="hidden sm:flex items-center gap-1 bg-slate-800/90 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer active-press" title="Sembunyikan / Tampilkan Panel Informasi Dashboard">
-          <svg id="headerToggleDashIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-          <span class="text-[11px] hidden lg:inline">Panel Info</span>
+        <!-- Toggle Dashboard (Desktop) -->
+        <button id="btnHeaderToggleDashboard" type="button" onclick="UIController.toggleDashboard()" class="hidden sm:flex items-center gap-1.5 header-btn header-btn-ghost active-press" title="Sembunyikan / Tampilkan Panel Informasi Dashboard">
+          <svg id="headerToggleDashIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+          <span class="hidden lg:inline text-[11px]">Panel</span>
         </button>
 
-        <!-- Mobile Menu Toggle Button (Titik Tiga) -->
-        <button id="btnMobileMenuToggle" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 active-press" title="Buka Menu Aksi Tambahan">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        <!-- Mobile Menu Toggle -->
+        <button id="btnMobileMenuToggle" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-white/6 hover:bg-white/12 text-slate-300 border border-white/10 active-press transition-colors" title="Buka Menu Aksi Tambahan">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
         </button>
       </div>
 
     </div>
 
-    <!-- COLLAPSIBLE CONTAINER FOR DASHBOARD INFO (Sub-Header & KPI Strip) -->
+    <!-- COLLAPSIBLE DASHBOARD -->
     <div id="collapsibleDashboard" class="collapsible-dashboard">
-      <!-- Sub-Header: Mode Switcher & Cloud Quick Sync Responsive -->
-      <div class="mt-2 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
-        <div class="flex items-center bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 text-xs w-full sm:w-auto">
-          <button id="btnModeDemand" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold transition-all bg-emerald-600 text-white shadow-xs flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode EPANET: Input Demand">
+      <!-- Mode Switcher & Sync -->
+      <div class="mt-2.5 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+        <div class="mode-switcher w-full sm:w-auto">
+          <button id="btnModeDemand" class="mode-switcher-btn active flex-1 sm:flex-none" title="Mode EPANET: Input Demand">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
             <span>Demand (EPANET)</span>
           </button>
-          <button id="btnModePressure" class="flex-1 sm:flex-none px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1 text-[11px] sm:text-xs active-press" title="Mode Lapangan: Input Tekanan Manometer">
+          <button id="btnModePressure" class="mode-switcher-btn flex-1 sm:flex-none" title="Mode Lapangan: Input Tekanan Manometer">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span>Tekanan Lapangan</span>
           </button>
         </div>
-
-        <!-- Quick Cloud Sync Button -->
-        <div class="flex items-center gap-2">
-          <button id="btnSyncCloud" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded-lg border border-slate-700 font-medium transition-colors cursor-pointer active-press" title="Tarik pembaruan data tekanan terkini dari server Supabase">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-            <span class="text-[11px]">Sync Cloud</span>
-          </button>
-        </div>
+        <button id="btnSyncCloud" class="flex items-center gap-1.5 header-btn header-btn-ghost active-press" title="Tarik pembaruan data tekanan terkini dari server Supabase">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Sync Cloud</span>
+        </button>
       </div>
 
-      <!-- SUMMARY KPI STRIP RESPONSIVE -->
-      <div class="mt-2 pt-2 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 text-xs">
-        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-          <span class="text-slate-400 text-[11px]">Junction:</span>
-          <span id="kpiMeasuredNodes" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0 / 0</span>
+      <!-- KPI STRIP -->
+      <div class="mt-2 pt-2.5 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2">
+        <div class="kpi-card kpi-card-emerald px-3 py-2.5 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <svg class="w-3.5 h-3.5 text-emerald-400 flex-none opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            <span class="text-slate-400 text-[10px] font-semibold uppercase tracking-wide truncate">Junction</span>
+          </div>
+          <span id="kpiMeasuredNodes" class="font-black text-emerald-400 font-mono text-sm tabular-nums">0 / 0</span>
         </div>
-        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-          <span class="text-slate-400 text-[11px]">Pipa Hitung:</span>
-          <span id="kpiCalculatedPipes" class="font-bold text-sky-400 font-mono text-xs sm:text-sm">0 / 0</span>
+        <div class="kpi-card kpi-card-sky px-3 py-2.5 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <svg class="w-3.5 h-3.5 text-sky-400 flex-none opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <span class="text-slate-400 text-[10px] font-semibold uppercase tracking-wide truncate">Pipa</span>
+          </div>
+          <span id="kpiCalculatedPipes" class="font-black text-sky-400 font-mono text-sm tabular-nums">0 / 0</span>
         </div>
-        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-          <span class="text-slate-400 text-[11px]">Total Debit:</span>
-          <div class="text-right">
-            <span id="kpiTotalDebit" class="font-bold text-emerald-400 font-mono text-xs sm:text-sm">0.0 L/s</span>
-            <span id="kpiTotalDebitM3h" class="text-[9px] sm:text-[10px] text-slate-400 ml-0.5 sm:ml-1">(0 m³/h)</span>
+        <div class="kpi-card kpi-card-violet px-3 py-2.5 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <svg class="w-3.5 h-3.5 text-violet-400 flex-none opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            <span class="text-slate-400 text-[10px] font-semibold uppercase tracking-wide truncate">Debit</span>
+          </div>
+          <div class="text-right flex-none">
+            <div id="kpiTotalDebit" class="font-black text-violet-400 font-mono text-sm tabular-nums leading-none">0.0 L/s</div>
+            <div id="kpiTotalDebitM3h" class="text-[9px] text-slate-500 mt-0.5">(0 mÂ³/h)</div>
           </div>
         </div>
-        <div class="bg-slate-800/70 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-between border border-slate-700/50">
-          <span class="text-slate-400 text-[11px]">Pipa Waspada:</span>
-          <div class="flex items-center gap-1.5">
-            <span id="kpiCriticalBadge" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span id="kpiCriticalPipes" class="font-bold text-white font-mono text-xs sm:text-sm">0</span>
+        <div class="kpi-card kpi-card-amber px-3 py-2.5 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <svg class="w-3.5 h-3.5 text-amber-400 flex-none opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="text-slate-400 text-[10px] font-semibold uppercase tracking-wide truncate">Waspada</span>
+          </div>
+          <div class="flex items-center gap-1.5 flex-none">
+            <span id="kpiCriticalBadge" class="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-none"></span>
+            <span id="kpiCriticalPipes" class="font-black text-white font-mono text-sm tabular-nums">0</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- DEDICATED TOGGLE BAR (Thumb-Friendly, 100% Clickable on Mobile Touchscreens) -->
-    <div class="pt-1 pb-0.5 flex items-center justify-center border-t border-slate-800/80 mt-1">
-      <button 
-        id="btnToggleDashboard" 
-        type="button" 
+    <!-- TOGGLE STRIP -->
+    <div class="toggle-dashboard-strip flex items-center justify-center">
+      <button
+        id="btnToggleDashboard"
+        type="button"
         onclick="UIController.toggleDashboard()"
-        class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 hover:text-white px-3.5 py-1 rounded-full border border-slate-600 shadow-sm text-xs font-semibold flex items-center gap-1.5 transition-all active-press cursor-pointer" 
+        class="toggle-dashboard-btn"
         title="Klik untuk sembunyikan atau tampilkan dashboard informasi"
       >
-        <svg id="toggleDashboardChevron" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+        <svg id="toggleDashboardChevron" xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 transition-transform duration-300 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
         <span id="toggleDashboardText">Sembunyikan Info</span>
-        <span id="toggleDashboardMiniKpi" class="hidden font-mono text-emerald-400 font-bold ml-1 border-l border-slate-600 pl-1.5">0.0 L/s</span>
+        <span id="toggleDashboardMiniKpi" class="hidden mini-kpi">0.0 L/s</span>
       </button>
     </div>
   </header>
@@ -331,58 +336,56 @@
   </div>
 
   <!-- DESKTOP NAVIGATION TABS (Visible only on Tablet / Laptop / PC) -->
-  <nav class="hidden sm:flex bg-white border-b border-slate-200 px-4 items-center justify-between shadow-2xs z-20 flex-none">
-    <div class="flex items-center space-x-1 py-1.5 text-xs font-semibold">
-      <button id="btn-tabMap" class="px-3.5 py-1.5 rounded-md bg-blue-600 text-white transition-colors flex items-center gap-1.5 cursor-pointer active-press" onclick="UIController.activateTab('tabMap')">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-        <span>Peta Jaringan GIS</span>
-      </button>
-      <button id="btn-tabTable" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-1.5 cursor-pointer active-press" onclick="UIController.activateTab('tabTable')">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
-        <span>Tabel Monitoring Pipa</span>
-      </button>
-      <button id="btn-tabSequence" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-1.5 cursor-pointer active-press" onclick="UIController.activateTab('tabSequence')">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-        <span>Alur Berurutan (Reservoir &rarr; Ujung)</span>
-      </button>
-      <button id="btn-tabProfile" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 transition-colors flex items-center gap-1.5 cursor-pointer active-press" onclick="UIController.activateTab('tabProfile')">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        <span>Profil Hidrolis (HGL)</span>
-      </button>
-    </div>
+  <nav class="desktop-nav hidden sm:flex px-4 items-center justify-between z-20 flex-none">
+      <div class="flex items-center space-x-1 py-1.5 text-xs font-semibold">
+        <button id="btn-tabMap" class="nav-tab-btn active active-press" onclick="UIController.activateTab('tabMap')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <span>Peta Jaringan GIS</span>
+        </button>
+        <button id="btn-tabTable" class="nav-tab-btn active-press" onclick="UIController.activateTab('tabTable')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+          <span>Tabel Monitoring Pipa</span>
+        </button>
+        <button id="btn-tabSequence" class="nav-tab-btn active-press" onclick="UIController.activateTab('tabSequence')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+          <span>Alur Berurutan</span>
+        </button>
+        <button id="btn-tabProfile" class="nav-tab-btn active-press" onclick="UIController.activateTab('tabProfile')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span>Profil Hidrolis (HGL)</span>
+        </button>
+      </div>
 
-    <!-- Map Zoom to Fit Shortcut & Sidebar Toggle -->
     <div class="flex items-center gap-2">
-      <button id="btnNavToggleSidebar" class="text-xs text-slate-700 hover:text-blue-600 flex items-center gap-1.5 px-2.5 py-1 rounded-md hover:bg-slate-100 font-semibold transition-colors border border-slate-200 bg-slate-50/90 shadow-2xs cursor-pointer active-press" title="Buka / Tutup Panel Input Tekanan Lapangan">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <button id="btnNavToggleSidebar" class="btn btn-ghost btn-sm flex items-center gap-1.5 border border-slate-200 shadow-sm active-press" title="Buka / Tutup Panel Input Tekanan Lapangan">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         <span>Input Tekanan</span>
       </button>
-
-      <button id="btnFitMap" class="text-xs text-slate-600 hover:text-blue-600 flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-100 font-medium cursor-pointer active-press" title="Pusatkan Peta ke Seluruh Jaringan">
+      <button id="btnFitMap" class="btn btn-ghost btn-xs flex items-center gap-1 active-press" title="Pusatkan Peta ke Seluruh Jaringan">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4"/><path d="M12 16V8"/></svg>
-        <span>Pusatkan Peta</span>
+        <span>Pusatkan</span>
       </button>
     </div>
   </nav>
 
   <!-- MOBILE BOTTOM NAVIGATION BAR (Thumb-Friendly for Smartphones) -->
-  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 shadow-2xl flex items-center justify-around py-1 safe-bottom">
-    <button id="btnMobileTabMap" class="mobile-tab-btn relative flex-1 py-1 flex flex-col items-center justify-center text-blue-600 font-bold active-press cursor-pointer" onclick="UIController.activateTab('tabMap')">
+  <nav class="mobile-bottom-nav sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around py-1 safe-bottom">
+    <button id="btnMobileTabMap" class="mobile-tab-btn active" onclick="UIController.activateTab('tabMap')">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-      <span class="text-[10px] mt-0.5">Peta</span>
+      <span>Peta</span>
     </button>
-    <button id="btnMobileTabTable" class="mobile-tab-btn relative flex-1 py-1 flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 font-medium active-press cursor-pointer" onclick="UIController.activateTab('tabTable')">
+    <button id="btnMobileTabTable" class="mobile-tab-btn" onclick="UIController.activateTab('tabTable')">
       <span id="mobileTabTableBadge" class="hidden absolute top-1 right-6 w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
-      <span class="text-[10px] mt-0.5">Tabel</span>
+      <span>Tabel</span>
     </button>
-    <button id="btnMobileTabSequence" class="mobile-tab-btn relative flex-1 py-1 flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 font-medium active-press cursor-pointer" onclick="UIController.activateTab('tabSequence')">
+    <button id="btnMobileTabSequence" class="mobile-tab-btn" onclick="UIController.activateTab('tabSequence')">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-      <span class="text-[10px] mt-0.5">Alur</span>
+      <span>Alur</span>
     </button>
-    <button id="btnMobileTabProfile" class="mobile-tab-btn relative flex-1 py-1 flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 font-medium active-press cursor-pointer" onclick="UIController.activateTab('tabProfile')">
+    <button id="btnMobileTabProfile" class="mobile-tab-btn" onclick="UIController.activateTab('tabProfile')">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-      <span class="text-[10px] mt-0.5">Profil HGL</span>
+      <span>Profil</span>
     </button>
   </nav>
 
@@ -426,28 +429,28 @@
       </div>
 
       <!-- FLOATING BUTTON TRIGGER SIDEBAR INPUT (Desktop & Mobile) -->
-      <button id="btnToggleSidebar" class="absolute bottom-3 left-3 z-20 flex items-center gap-2 bg-slate-900/95 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-full shadow-2xl border border-slate-700/80 backdrop-blur-md active-press cursor-pointer transition-all" title="Buka Input Tekanan Lapangan">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse flex-none"></span>
-        <span>📋 Input Lapangan</span>
-        <span id="sidebarNodeCountBadge" class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full font-mono flex-none">17</span>
+      <button id="btnToggleSidebar" class="sidebar-toggle-fab absolute bottom-4 left-4 z-20" title="Buka Input Tekanan Lapangan">
+        <span class="pulse-dot"></span>
+        <span>Input Lapangan</span>
+        <span id="sidebarNodeCountBadge" class="count-badge">17</span>
       </button>
 
       <!-- BACKDROP OVERLAY UNTUK SIDEBAR DRAWER MOBILE -->
       <div id="sidebarBackdrop" class="mobile-sheet-backdrop sm:hidden"></div>
 
       <!-- FLOATING SIDEBAR: INPUT TEKANAN CEPAT (LAPANGAN) - RESPONSIVE DRAWER / SIDEBAR -->
-      <div id="sidebarJunctionsContainer" class="fixed sm:absolute inset-x-0 sm:inset-x-auto bottom-0 sm:bottom-auto sm:top-3 sm:left-3 sm:right-auto z-40 sm:z-20 w-full sm:w-80 md:w-[360px] max-h-[85vh] sm:max-h-[calc(100%-24px)] flex-col bg-white/98 sm:bg-white/95 backdrop-blur-md rounded-t-3xl sm:rounded-xl shadow-2xl sm:shadow-xl border-t sm:border border-slate-200 overflow-hidden transition-all duration-200 hidden animate-sheet-up">
+      <div id="sidebarJunctionsContainer" class="sidebar-panel fixed sm:absolute inset-x-0 sm:inset-x-auto bottom-0 sm:bottom-auto sm:top-4 sm:left-4 sm:right-auto z-40 sm:z-20 w-full sm:w-80 md:w-[360px] max-h-[85vh] sm:max-h-[calc(100%-32px)] flex-col overflow-hidden transition-all duration-200 hidden animate-sheet-up">
         <div class="sheet-drag-pill sm:hidden"></div>
         
         <!-- Header Sidebar -->
-        <div class="p-3 bg-slate-900 text-white flex items-center justify-between flex-none">
+        <div class="sidebar-header flex-none">
           <div class="flex items-center gap-2 min-w-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             <h3 class="font-bold text-xs uppercase tracking-wide truncate">Input Tekanan Lapangan</h3>
             <span id="sidebarJunctionCountBadge" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono flex-none">17</span>
           </div>
           <div class="flex items-center gap-1.5 flex-none">
-            <button id="btnSolveNetwork" class="text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-medium px-2 py-1 rounded shadow-xs active-press cursor-pointer" title="Hitung estimasi titik yang belum terukur">
+            <button id="btnSolveNetwork" class="btn btn-primary btn-xs active-press" title="Hitung estimasi titik yang belum terukur">
               Simulasi Penuh
             </button>
             <!-- Tombol Minimize / Ciutkan Isi Panel -->
@@ -461,8 +464,8 @@
 
         <!-- Wrapper Konten Body Sidebar (Bisa di-minimize) -->
         <div id="sidebarBodyContent" class="flex flex-col flex-1 overflow-hidden transition-all duration-200">
-          <div class="p-2 bg-blue-50 border-b border-blue-100 text-[11px] text-blue-900 leading-tight flex-none">
-            💡 <b>Petunjuk:</b> Klik titik junction pada peta atau ketik tekanan di bawah. Debit air pipa terhitung seketika!
+          <div class="sidebar-body-hint flex-none">
+            <span class="font-semibold text-blue-800">💡 Petunjuk:</span> Klik titik junction pada peta atau ketik tekanan di bawah. Debit air pipa terhitung seketika!
           </div>
 
           <!-- PENCARIAN & FILTER SIMPUL JUNCTION (Sangat Membantu di Jaringan Besar) -->
@@ -509,7 +512,7 @@
       <div id="pipeDetailBackdrop" class="mobile-sheet-backdrop sm:hidden"></div>
 
       <!-- FLOATING PIPE DETAIL CARD (Kanan Bawah Desktop, Bottom Sheet Mobile) -->
-      <div id="pipeDetailCard" class="fixed sm:absolute inset-x-0 bottom-0 sm:bottom-6 sm:inset-x-auto sm:right-6 z-40 sm:z-10 w-full sm:w-96 rounded-t-3xl sm:rounded-xl shadow-2xl border-t sm:border border-slate-200 bg-white overflow-hidden hidden animate-sheet-up">
+      <div id="pipeDetailCard" class="pipe-detail-card fixed sm:absolute inset-x-0 bottom-0 sm:bottom-6 sm:inset-x-auto sm:right-6 z-40 sm:z-10 w-full sm:w-96 overflow-hidden hidden animate-sheet-up">
         <!-- Diisi dinamis oleh showPipeDetailCard -->
       </div>
     </div>
@@ -573,21 +576,21 @@
             <span>👉 Geser tabel ke samping untuk melihat seluruh kolom</span>
             <span class="text-blue-600 font-bold">↔️</span>
           </div>
-          <table class="w-full text-left border-collapse">
+          <table class="data-table">
             <thead>
-              <tr class="bg-slate-100 text-slate-700 font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
-                <th class="p-2.5">No</th>
-                <th class="p-2.5">Pipa (Dari &rarr; Ke)</th>
-                <th class="p-2.5">Diameter (mm)</th>
-                <th class="p-2.5">Panjang (m)</th>
-                <th class="p-2.5">Kekasaran (C)</th>
-                <th class="p-2.5">Kehilangan Tekan (m)</th>
-                <th class="p-2.5">Debit (L/det)</th>
-                <th class="p-2.5">Debit (m³/jam)</th>
-                <th class="p-2.5">Kecepatan (m/s)</th>
-                <th class="p-2.5">Status Aliran</th>
-                <th class="p-2.5">Arah Aliran</th>
-                <th class="p-2.5 text-center">Aksi</th>
+              <tr>
+                <th>No</th>
+                <th>Pipa (Dari &rarr; Ke)</th>
+                <th>Diameter (mm)</th>
+                <th>Panjang (m)</th>
+                <th>Kekasaran (C)</th>
+                <th>Kehilangan Tekan (m)</th>
+                <th>Debit (L/det)</th>
+                <th>Debit (m&#179;/jam)</th>
+                <th>Kecepatan (m/s)</th>
+                <th>Status Aliran</th>
+                <th>Arah Aliran</th>
+                <th class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody id="tablePipesBody">
@@ -667,21 +670,21 @@
             <span>👉 Geser tabel ke samping untuk melihat rincian alur sekuensial</span>
             <span class="text-blue-600 font-bold">↔️</span>
           </div>
-          <table class="w-full text-left border-collapse">
+          <table class="data-table">
             <thead>
-              <tr class="bg-slate-100 text-slate-700 font-bold text-[11px] uppercase tracking-wider border-b border-slate-200">
-                <th class="p-2.5 text-center">Urutan</th>
-                <th class="p-2.5">Ruas Jalur Aliran</th>
-                <th class="p-2.5">Kategori</th>
-                <th class="p-2.5">Jarak Kumulatif</th>
-                <th class="p-2.5">Elevasi (m dpl)</th>
-                <th class="p-2.5">Sisa Tekanan (bar)</th>
-                <th class="p-2.5">Total Head (m)</th>
-                <th class="p-2.5">Kehilangan Tekan (m)</th>
-                <th class="p-2.5">Debit (L/det)</th>
-                <th class="p-2.5">Debit (m³/jam)</th>
-                <th class="p-2.5">Kecepatan (m/s)</th>
-                <th class="p-2.5 text-center">Aksi</th>
+              <tr>
+                <th class="text-center">Urutan</th>
+                <th>Ruas Jalur Aliran</th>
+                <th>Kategori</th>
+                <th>Jarak Kumulatif</th>
+                <th>Elevasi (m dpl)</th>
+                <th>Sisa Tekanan (bar)</th>
+                <th>Total Head (m)</th>
+                <th>Kehilangan Tekan (m)</th>
+                <th>Debit (L/det)</th>
+                <th>Debit (m&#179;/jam)</th>
+                <th>Kecepatan (m/s)</th>
+                <th class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody id="tableSequenceBody">
@@ -716,22 +719,25 @@
   </main>
 
   <!-- MODAL INPUT TEKANAN JUNCTION (RESPONSIVE BOTTOM SHEET ON MOBILE) -->
-  <div id="pressureModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden">
-    <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform transition-all animate-sheet-up">
+  <div id="pressureModal" class="modal-backdrop fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden">
+    <div class="modal-sheet w-full max-w-md animate-sheet-up">
       <div class="bottom-sheet-handle sm:hidden"></div>
       <!-- Modal Header -->
-      <div class="bg-slate-900 text-white p-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded bg-blue-600 flex items-center justify-center font-bold text-xs">P</div>
-          <h3 class="font-bold text-sm">Input Tekanan Lapangan</h3>
+      <div class="modal-header modal-header-dark">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center font-black text-blue-300 text-sm">P</div>
+          <div>
+            <h3 class="font-bold text-sm">Input Tekanan Lapangan</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Masukkan hasil bacaan manometer di titik junction</p>
+          </div>
         </div>
-        <button id="btnClosePressureModal" class="text-slate-400 hover:text-white text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
+        <button id="btnClosePressureModal" class="modal-close-btn active-press">&times;</button>
       </div>
 
       <!-- Modal Body -->
-      <div class="p-5 space-y-4 text-xs">
+      <div class="modal-body space-y-4 text-xs">
         <!-- Info Junction -->
-        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+        <div class="field-group field-group-slate space-y-1">
           <div class="flex justify-between">
             <span class="text-slate-500">Titik Junction:</span>
             <span id="modalNodeLabel" class="font-bold text-slate-800 text-sm">-</span>
@@ -745,7 +751,7 @@
         <!-- Form Input Demand & Tekanan -->
         <div class="space-y-3">
           <!-- Input Demand EPANET -->
-          <div class="bg-blue-50/70 p-3 rounded-lg border border-blue-200 space-y-1">
+          <div class="field-group field-group-blue space-y-1">
             <div class="flex items-center justify-between">
               <label class="font-bold text-blue-950 flex items-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
@@ -754,15 +760,8 @@
               <span class="text-[10px] font-semibold text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded">Liter/detik</span>
             </div>
             <div class="flex gap-2 items-center">
-              <input 
-                type="number" 
-                inputmode="decimal"
-                id="modalDemandInput" 
-                step="0.1" 
-                placeholder="Contoh: 0 atau 2.0" 
-                class="flex-1 px-3 py-1.5 border border-blue-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
-              />
-              <span class="text-xs font-bold text-blue-900">L/s</span>
+              <input type="number" inputmode="decimal" id="modalDemandInput" step="0.1" placeholder="Contoh: 0 atau 2.0" class="field-input flex-1" />
+              <span class="field-unit-badge">L/s</span>
             </div>
             <p class="text-[10px] text-blue-800">
               💡 <i>Di EPANET, jika Anda ubah demand di sini, debit pipa hulu dan tekanan junction otomatis menyesuaikan.</i>
@@ -770,18 +769,11 @@
           </div>
 
           <!-- Input Tekanan Lapangan (Manometer) -->
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+          <div class="field-group field-group-slate space-y-1">
             <label class="block font-bold text-slate-700">Tekanan Manometer Terukur (Lapangan):</label>
             <div class="flex gap-2">
-              <input 
-                type="number" 
-                inputmode="decimal"
-                id="modalPressureInput" 
-                step="0.01" 
-                placeholder="Contoh: 5.62" 
-                class="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
-              />
-              <select id="modalPressureUnit" class="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-100 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-hidden">
+              <input type="number" inputmode="decimal" id="modalPressureInput" step="0.01" placeholder="Contoh: 5.62" class="field-input flex-1" />
+              <select id="modalPressureUnit" class="field-unit-badge border border-slate-200 cursor-pointer">
                 <option value="bar">bar</option>
                 <option value="mH2O">mH2O (meter)</option>
                 <option value="psi">psi</option>
@@ -794,7 +786,7 @@
         </div>
 
         <!-- Preview Kalkulasi Total Head -->
-        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 space-y-1">
+        <div class="field-group field-group-green space-y-1">
           <div class="text-emerald-900 font-semibold flex items-center justify-between">
             <span>Tinggi Tekan Total (HGL = Elevasi + Tekanan):</span>
             <span id="modalConvertedPressure" class="text-xs text-emerald-700 font-mono">-</span>
@@ -806,43 +798,36 @@
         </div>
       </div>
 
-      <!-- Modal Footer -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-        <button id="btnDeletePressureModal" type="button" onclick="UIController.deletePressureFromModal()" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold transition-colors active-press">
-          Reset Titik
-        </button>
+      <div class="modal-footer">
+        <button id="btnDeletePressureModal" type="button" onclick="UIController.deletePressureFromModal()" class="btn btn-danger btn-sm active-press">Reset Titik</button>
         <div class="flex gap-2">
-          <button type="button" onclick="UIController.closePressureModal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors active-press">
-            Batal
-          </button>
-          <button id="btnSavePressureModal" type="button" onclick="UIController.savePressureFromModal()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors active-press">
-            Simpan Nilai
-          </button>
+          <button type="button" onclick="UIController.closePressureModal()" class="btn btn-ghost btn-sm active-press">Batal</button>
+          <button id="btnSavePressureModal" type="button" onclick="UIController.savePressureFromModal()" class="btn btn-primary btn-sm active-press">Simpan Nilai</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- MODAL PENGATURAN SUMBER: POMPA & GRAVITASI RESERVOIR (RESPONSIVE BOTTOM SHEET ON MOBILE) -->
-  <div id="sourceSettingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden">
-    <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[88vh] sm:max-h-[90vh] overflow-hidden transform transition-all animate-sheet-up">
+  <div id="sourceSettingsModal" class="modal-backdrop fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden">
+    <div class="modal-sheet w-full max-w-xl max-h-[88vh] sm:max-h-[90vh] animate-sheet-up">
       <div class="bottom-sheet-handle sm:hidden"></div>
       <!-- Modal Header -->
-      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 flex items-center justify-between border-b border-indigo-900/50">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-400 shadow-inner">
+      <div class="modal-header modal-header-indigo">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
           <div>
-            <h3 class="font-bold text-sm tracking-wide">Pengaturan Sumber Air: Pompa & Gravitasi</h3>
-            <p class="text-[11px] text-slate-300">Konfigurasi kapasitas pompa transmisi atau sistem gravitasi reservoir</p>
+            <h3 class="font-bold text-sm">Pengaturan Sumber Air: Pompa &amp; Gravitasi</h3>
+            <p class="text-[10px] text-indigo-300 mt-0.5">Konfigurasi kapasitas pompa transmisi atau sistem gravitasi reservoir</p>
           </div>
         </div>
-        <button id="btnCloseSourceModal" class="text-slate-400 hover:text-white text-2xl leading-none px-2 py-0.5 active-press">&times;</button>
+        <button id="btnCloseSourceModal" class="modal-close-btn active-press">&times;</button>
       </div>
 
       <!-- Modal Body -->
-      <div class="p-5 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
+      <div class="p-5 space-y-4 text-xs max-h-[70vh] overflow-y-auto">
         <!-- 1. Pilihan Mode Sistem Pengaliran -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
           <label class="block font-bold text-slate-800 text-xs">Pilih Sistem Pengaliran Air:</label>
@@ -1004,17 +989,11 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-        <button id="btnResetSourceModal" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors">
-          Reset ke Default
-        </button>
+      <div class="modal-footer">
+        <button id="btnResetSourceModal" class="btn btn-ghost btn-sm">Reset ke Default</button>
         <div class="flex gap-2">
-          <button onclick="UIController.closeSourceSettingsModal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors">
-            Batal
-          </button>
-          <button id="btnSaveSourceModal" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors">
-            Simpan & Terapkan Perhitungan
-          </button>
+          <button onclick="UIController.closeSourceSettingsModal()" class="btn btn-ghost btn-sm">Batal</button>
+          <button id="btnSaveSourceModal" class="btn btn-indigo btn-sm">Simpan &amp; Terapkan</button>
         </div>
       </div>
     </div>
