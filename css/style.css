@@ -36,18 +36,62 @@
   --transition-slow: 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* Utility display overrides to ensure components like .header-btn do not break hidden states */
+/* Utility display overrides to ensure components like .header-btn respect responsive visibility */
 .hidden {
   display: none !important;
 }
+
 @media (min-width: 640px) {
   .sm\:hidden {
     display: none !important;
   }
+  .sm\:flex {
+    display: flex !important;
+  }
+  .sm\:inline-flex {
+    display: inline-flex !important;
+  }
+  .sm\:block {
+    display: block !important;
+  }
+  .sm\:inline {
+    display: inline !important;
+  }
 }
+
 @media (min-width: 768px) {
   .md\:hidden {
     display: none !important;
+  }
+  .md\:flex {
+    display: flex !important;
+  }
+  .md\:inline-flex {
+    display: inline-flex !important;
+  }
+  .md\:block {
+    display: block !important;
+  }
+  .md\:inline {
+    display: inline !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:hidden {
+    display: none !important;
+  }
+  .lg\:flex {
+    display: flex !important;
+  }
+  .lg\:inline-flex {
+    display: inline-flex !important;
+  }
+  .lg\:block {
+    display: block !important;
+  }
+  .lg\:inline {
+    display: inline !important;
   }
 }
 
