@@ -1097,13 +1097,13 @@ const UIController = (() => {
     if (sourceConfig.systemMode === 'gravity') {
       const q = sourceConfig.reservoir?.flow || 10;
       badge.textContent = `💧 Gravitasi: ${q.toFixed(1)} L/s`;
-      badge.className = 'bg-blue-900/80 text-blue-100 border border-blue-300/40 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-2xs max-w-[110px] sm:max-w-none truncate';
+      badge.className = 'bg-blue-900/80 text-blue-100 border border-blue-300/40 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-2xs max-w-[60px] xs:max-w-[100px] sm:max-w-none truncate';
     } else {
       const h = sourceConfig.pump?.head || 50;
       const q = sourceConfig.pump?.flow || 10;
       const status = sourceConfig.pump?.status === 'off' ? ' (OFF)' : '';
       badge.textContent = `⚡ Pompa: ${h.toFixed(0)}m / ${q.toFixed(1)} L/s${status}`;
-      badge.className = 'bg-indigo-900/80 text-indigo-100 border border-indigo-300/40 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-2xs max-w-[110px] sm:max-w-none truncate';
+      badge.className = 'bg-indigo-900/80 text-indigo-100 border border-indigo-300/40 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-2xs max-w-[60px] xs:max-w-[100px] sm:max-w-none truncate';
     }
   }
 

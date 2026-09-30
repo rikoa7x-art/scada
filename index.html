@@ -51,10 +51,10 @@
       <div class="flex items-center gap-1.5 flex-none">
 
         <!-- Region Selector -->
-        <div class="region-select-wrap">
+        <div class="region-select-wrap min-w-0 shrink">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
           <span class="text-slate-400 font-semibold hidden lg:inline text-[10px] uppercase tracking-wide">Wilayah</span>
-          <select id="selectRegion" class="max-w-[105px] xs:max-w-[125px] sm:max-w-[155px] truncate" title="Pilih Wilayah SPAM PDAM Kabupaten Subang">
+          <select id="selectRegion" class="min-w-0 max-w-[90px] xs:max-w-[125px] sm:max-w-[155px] truncate" title="Pilih Wilayah SPAM PDAM Kabupaten Subang">
             <option value="bunihayu">Bunihayu (17 Simpul)</option>
             <option value="cisalak">Cisalak (203 Simpul)</option>
             <option value="jalancagak">Jalancagak (35 Simpul)</option>
@@ -67,7 +67,7 @@
           </select>
         </div>
         <!-- Manage Custom Regions Button (Desktop) -->
-        <button id="btnManageCustomRegions" onclick="UIController.openManageRegionsModal()" class="header-btn px-2" title="Kelola Wilayah Kustom">
+        <button id="btnManageCustomRegions" onclick="UIController.openManageRegionsModal()" class="hidden md:flex header-btn px-2 items-center justify-center" title="Kelola Wilayah Kustom">
           <span class="text-sm">🗂️</span>
         </button>
 
@@ -81,7 +81,7 @@
         <button id="btnSourceSettings" class="header-btn header-btn-source active-press" title="Edit Kapasitas Head &amp; Debit Pompa atau Pengaliran Gravitasi Reservoir">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-none opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span class="hidden lg:inline font-semibold">Sumber:</span>
-          <span id="sourceBadge" class="bg-white/10 border border-white/15 px-1.5 py-0.5 rounded-md text-[10px] font-bold max-w-[80px] xs:max-w-[100px] sm:max-w-none truncate">&#9889; Pompa: 50m / 10 L/s</span>
+          <span id="sourceBadge" class="bg-white/10 border border-white/15 px-1.5 py-0.5 rounded-md text-[10px] font-bold max-w-[60px] xs:max-w-[100px] sm:max-w-none truncate">&#9889; Pompa: 50m / 10 L/s</span>
         </button>
 
         <!-- Desktop Toolbar -->
@@ -135,7 +135,7 @@
         </button>
 
         <!-- Mobile Menu Toggle -->
-        <button id="btnMobileMenuToggle" class="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-white/6 hover:bg-white/12 text-slate-300 border border-white/10 active-press transition-colors" title="Buka Menu Aksi Tambahan">
+        <button id="btnMobileMenuToggle" class="md:hidden flex-none shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-white/6 hover:bg-white/12 text-slate-300 border border-white/10 active-press transition-colors" title="Buka Menu Aksi Tambahan">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
         </button>
       </div>
