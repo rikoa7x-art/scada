@@ -2021,6 +2021,80 @@ const UIController = (() => {
   }
 
   /**
+   * Buka Modal Simpan Jaringan ke Cloud (dipanggil setelah upload JSON berhasil)
+   * @param {string} fileName - Nama file yang diunggah
+   * @param {number} nodeCount - Jumlah simpul
+   * @param {number} pipeCount - Jumlah pipa
+   */
+  function openSaveNetworkModal(fileName, nodeCount, pipeCount) {
+    const modal = document.getElementById('saveNetworkModal');
+    if (!modal) return;
+
+    // Isi info ringkasan jaringan
+    const displayName = fileName.replace(/\.json$/i, '').replace(/_/g, ' ');
+    const elFileName = document.getElementById('saveNetModalFileName');
+    const elSummary  = document.getElementById('saveNetModalSummary');
+    const elName     = document.getElementById('inputSaveNetworkName');
+    const elId       = document.getElementById('inputSaveNetworkId');
+
+    if (elFileName) elFileName.textContent = fileName || 'Jaringan Kustom';
+    if (elSummary)  elSummary.textContent  = `${nodeCount} Simpul • ${pipeCount} Pipa`;
+
+    // Isi nama awal dari nama file
+    if (elName) elName.value = displayName;
+
+    // Auto-generate slug ID dari nama file
+    const slug = displayName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .substring(0, 40);
+    if (elId) elId.value = slug;
+
+    // Auto-sync nama → ID saat user mengetik nama
+    if (elName && elId) {
+      elName.oninput = () => {
+        const newSlug = elName.value
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, '')
+          .trim()
+          .replace(/\s+/g, '_')
+          .substring(0, 40);
+        elId.value = newSlug;
+      };
+    }
+
+    // Validasi ID: hanya huruf kecil, angka, underscore
+    if (elId) {
+      elId.oninput = () => {
+        elId.value = elId.value.toLowerCase().replace(/[^a-z0-9_]/g, '').substring(0, 40);
+      };
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => elName?.focus(), 100);
+  }
+
+  /**
+   * Tutup Modal Simpan Jaringan ke Cloud
+   */
+  function closeSaveNetworkModal() {
+    const modal = document.getElementById('saveNetworkModal');
+    modal?.classList.add('hidden');
+  }
+
+  /**
+   * Ambil nilai dari input modal Simpan Jaringan (dipanggil oleh App)
+   */
+  function getSaveNetworkModalValues() {
+    return {
+      name: (document.getElementById('inputSaveNetworkName')?.value || '').trim(),
+      id:   (document.getElementById('inputSaveNetworkId')?.value   || '').trim()
+    };
+  }
+
+  /**
    * Tampilkan Toast Feedback Notifikasi Elegan
    */
   function showToast(message, type = 'info') {
@@ -2159,7 +2233,10 @@ const UIController = (() => {
     toggleSidebarMinimize,
     setSidebarMinimized,
     isSidebarOpen: () => isSidebarOpen,
-    isSidebarMinimized: () => isSidebarMinimized
+    isSidebarMinimized: () => isSidebarMinimized,
+    openSaveNetworkModal,
+    closeSaveNetworkModal,
+    getSaveNetworkModalValues
   };
 })();
 

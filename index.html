@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -125,7 +125,7 @@
         </div>
 
         <!-- Toggle Dashboard (Desktop) -->
-        <button id="btnHeaderToggleDashboard" type="button" onclick="UIController.toggleDashboard()" class="hidden sm:flex items-center gap-1.5 header-btn header-btn-ghost active-press" title="Sembunyikan / Tampilkan Panel Informasi Dashboard">
+        <button id="btnHeaderToggleDashboard" type="button" class="hidden sm:flex items-center gap-1.5 header-btn header-btn-ghost active-press" title="Sembunyikan / Tampilkan Panel Informasi Dashboard">
           <svg id="headerToggleDashIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
           <span class="hidden lg:inline text-[11px]">Panel</span>
         </button>
@@ -202,7 +202,6 @@
       <button
         id="btnToggleDashboard"
         type="button"
-        onclick="UIController.toggleDashboard()"
         class="toggle-dashboard-btn"
         title="Klik untuk sembunyikan atau tampilkan dashboard informasi"
       >
@@ -227,6 +226,17 @@
       </div>
 
       <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto text-xs">
+        <!-- Base Layer Selector Mobile (ditaruh di atas agar langsung terlihat tanpa scroll) -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <label class="block font-bold text-slate-700 mb-1.5">🗺️ Tipe Peta Dasar:</label>
+          <select id="selectBaseLayerMobile" class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500">
+            <option value="Google Hybrid" selected>Google Hybrid (Satelit + Jalan)</option>
+            <option value="OpenStreetMap">OpenStreetMap</option>
+            <option value="Google Satellite">Google Satellite</option>
+            <option value="Google Streets">Google Streets</option>
+          </select>
+        </div>
+
         <!-- Wilayah Selector Mobile -->
         <div class="bg-blue-50/70 p-3 rounded-xl border border-blue-200">
           <label class="block font-bold text-blue-900 mb-1.5 flex items-center gap-1.5">
@@ -247,7 +257,7 @@
         </div>
 
         <!-- Toggle Tampilan Dashboard Informasi Mobile -->
-        <button id="btnToggleDashboardMobileMenu" type="button" onclick="UIController.toggleDashboard(); document.getElementById('mobileActionMenu')?.classList.add('hidden');" class="w-full flex items-center justify-between bg-slate-100 hover:bg-slate-200 text-slate-800 p-2.5 rounded-xl border border-slate-300 font-bold active-press cursor-pointer transition-colors">
+        <button id="btnToggleDashboardMobileMenu" type="button" class="w-full flex items-center justify-between bg-slate-100 hover:bg-slate-200 text-slate-800 p-2.5 rounded-xl border border-slate-300 font-bold active-press cursor-pointer transition-colors">
           <div class="flex items-center gap-2">
             <span>📊</span>
             <span>Dashboard Info & KPI</span>
@@ -274,17 +284,6 @@
               <span>Backup Cloud</span>
             </button>
           </div>
-        </div>
-
-        <!-- Base Layer Selector Mobile -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-          <label class="block font-bold text-slate-700 mb-1.5">🗺️ Tipe Peta Dasar:</label>
-          <select id="selectBaseLayerMobile" class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg p-2 font-medium focus:ring-2 focus:ring-blue-500">
-            <option value="Google Hybrid" selected>Google Hybrid (Satelit + Jalan)</option>
-            <option value="OpenStreetMap">OpenStreetMap</option>
-            <option value="Google Satellite">Google Satellite</option>
-            <option value="Google Streets">Google Streets</option>
-          </select>
         </div>
 
         <!-- Action Buttons Grid Mobile -->
@@ -995,6 +994,80 @@
           <button onclick="UIController.closeSourceSettingsModal()" class="btn btn-ghost btn-sm">Batal</button>
           <button id="btnSaveSourceModal" class="btn btn-indigo btn-sm">Simpan &amp; Terapkan</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SIMPAN JARINGAN BARU KE SUPABASE CLOUD -->
+  <div id="saveNetworkModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-sheet-up">
+
+      <!-- Header Modal -->
+      <div class="p-4 bg-gradient-to-r from-indigo-700 to-blue-700 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center text-base">☁️</div>
+          <div>
+            <h3 class="font-bold text-sm">Simpan Jaringan ke Cloud</h3>
+            <p class="text-[11px] text-blue-200 mt-0.5">Simpan topologi jaringan yang baru diunggah ke Supabase</p>
+          </div>
+        </div>
+        <button onclick="UIController.closeSaveNetworkModal()" class="text-white/70 hover:text-white text-2xl leading-none px-1 active-press">×</button>
+      </div>
+
+      <!-- Body Modal -->
+      <div class="p-5 space-y-4">
+
+        <!-- Info ringkasan jaringan yang diunggah -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-none text-base">🗺️</div>
+          <div class="min-w-0">
+            <div id="saveNetModalFileName" class="font-bold text-blue-900 text-xs truncate">Jaringan Kustom</div>
+            <div id="saveNetModalSummary" class="text-[11px] text-blue-700 mt-0.5">0 Simpul • 0 Pipa</div>
+          </div>
+        </div>
+
+        <!-- Input Nama Wilayah -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">
+            📝 Nama Wilayah / Label Jaringan
+            <span class="text-red-500 ml-0.5">*</span>
+          </label>
+          <input
+            type="text"
+            id="inputSaveNetworkName"
+            placeholder="Contoh: SPAM Cijambe, Jaringan Baru Utara..."
+            maxlength="80"
+            class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-blue-400 placeholder-slate-400 transition-colors"
+          />
+          <p class="text-[11px] text-slate-500">Nama ini digunakan sebagai label di server Supabase. Gunakan nama yang jelas dan unik.</p>
+        </div>
+
+        <!-- Input ID Wilayah (slug) - auto-generated -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">🔑 ID Unik Wilayah (Key Server)</label>
+          <div class="flex items-center gap-2">
+            <input
+              type="text"
+              id="inputSaveNetworkId"
+              placeholder="contoh: cijambe / jaringan_baru"
+              maxlength="40"
+              class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-blue-400 placeholder-slate-400 lowercase transition-colors"
+            />
+          </div>
+          <p class="text-[11px] text-slate-500">Hanya huruf kecil, angka, dan underscore. Diisi otomatis dari nama — bisa diubah manual. <span class="font-bold text-amber-600">Hati-hati: ID yang sama akan menimpa data lama di server!</span></p>
+        </div>
+
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+        <button onclick="UIController.closeSaveNetworkModal()" class="btn btn-ghost btn-sm flex-none">
+          Lewati (Jangan Simpan)
+        </button>
+        <button id="btnConfirmSaveNetwork" onclick="App.confirmSaveNetworkToCloud()" class="btn btn-primary btn-sm flex-1 flex items-center justify-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg>
+          Simpan ke Supabase Cloud
+        </button>
       </div>
     </div>
   </div>

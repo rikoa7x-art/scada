@@ -502,6 +502,56 @@ const App = (() => {
   }
 
   /**
+   * Konfirmasi simpan jaringan yang baru diunggah ke Supabase dengan nama wilayah dari modal
+   */
+  async function confirmSaveNetworkToCloud() {
+    if (!networkData) {
+      UIController.showToast('Tidak ada data jaringan aktif.', 'error');
+      return;
+    }
+
+    const { name, id } = UIController.getSaveNetworkModalValues();
+
+    if (!name) {
+      const elName = document.getElementById('inputSaveNetworkName');
+      elName?.focus();
+      elName?.classList.add('ring-2', 'ring-red-400', 'border-red-400');
+      setTimeout(() => elName?.classList.remove('ring-2', 'ring-red-400', 'border-red-400'), 2000);
+      UIController.showToast('⚠️ Nama wilayah tidak boleh kosong!', 'warning');
+      return;
+    }
+
+    if (!id) {
+      UIController.showToast('⚠️ ID wilayah tidak boleh kosong!', 'warning');
+      return;
+    }
+
+    // Disable tombol saat proses berlangsung
+    const btn = document.getElementById('btnConfirmSaveNetwork');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+    }
+
+    UIController.showToast(`⏳ Menyimpan "${name}" ke Supabase Cloud...`, 'info');
+
+    // Simpan topologi jaringan ke Supabase dengan regionId dari input user
+    const success = await SupabaseClient.saveRegionTopology(id, networkData);
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg> Simpan ke Supabase Cloud`;
+    }
+
+    if (success) {
+      UIController.closeSaveNetworkModal();
+      UIController.showToast(`✅ Jaringan "${name}" (ID: ${id}) berhasil disimpan ke Supabase Cloud!`, 'success');
+    } else {
+      UIController.showToast('❌ Gagal menyimpan ke Supabase. Periksa koneksi internet dan coba lagi.', 'error');
+    }
+  }
+
+  /**
    * Setup Mode Switcher (Input Demand EPANET vs Input Tekanan Manometer)
    */
   function setupModeSwitcher() {
@@ -583,6 +633,15 @@ const App = (() => {
     }, 250);
 
     UIController.showToast(`✅ File JSON "${netName}" (${networkData.nodes.length} Simpul, ${networkData.pipes.length} Pipa) berhasil dimuat!`, 'success');
+
+    // 7. Tawari pengguna untuk menyimpan ke Supabase Cloud
+    setTimeout(() => {
+      UIController.openSaveNetworkModal(
+        fileName || netName + '.json',
+        networkData.nodes.length,
+        networkData.pipes.length
+      );
+    }, 600);
   }
 
   /**
@@ -1049,6 +1108,7 @@ const App = (() => {
     switchRegion,
     syncCurrentRegionTelemetry,
     backupCurrentRegionToCloud,
+    confirmSaveNetworkToCloud,
     getCurrentRegion,
     getNetworkData: () => networkData,
     // Cache management — digunakan oleh UI untuk force-refresh dari server
