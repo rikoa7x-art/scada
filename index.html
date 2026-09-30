@@ -16,7 +16,7 @@
   <!-- Chart.js: Lazy-loaded saat tab Profil HGL dibuka (lihat chart_controller.js) -->
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css?v=1.2.0">
+  <link rel="stylesheet" href="css/style.css?v=1.3.0">
 </head>
 <body class="bg-slate-100 text-slate-800 flex flex-col h-screen overflow-hidden">
 
@@ -77,8 +77,8 @@
           <span id="cloudStatusText" class="hidden md:inline">Cloud Aktif</span>
         </button>
 
-        <!-- Source Settings Button -->
-        <button id="btnSourceSettings" class="header-btn header-btn-source active-press" title="Edit Kapasitas Head &amp; Debit Pompa atau Pengaliran Gravitasi Reservoir">
+        <!-- Source Settings Button (Desktop & Tablet) -->
+        <button id="btnSourceSettings" class="hidden sm:inline-flex header-btn header-btn-source active-press" title="Edit Kapasitas Head &amp; Debit Pompa atau Pengaliran Gravitasi Reservoir">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-none opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span class="hidden lg:inline font-semibold">Sumber:</span>
           <span id="sourceBadge" class="bg-white/10 border border-white/15 px-1.5 py-0.5 rounded-md text-[10px] font-bold max-w-[60px] xs:max-w-[100px] sm:max-w-none truncate">&#9889; Pompa: 50m / 10 L/s</span>
@@ -279,6 +279,17 @@
           </div>
         </button>
 
+        <!-- Pengaturan Sumber Air Mobile -->
+        <button id="btnSourceSettingsMobile" type="button"
+          onclick="document.getElementById('mobileActionMenu')?.classList.add('hidden'); UIController.openSourceSettingsModal();"
+          class="w-full flex items-center justify-between bg-indigo-50 hover:bg-indigo-100 text-indigo-900 p-2.5 rounded-xl border border-indigo-200 font-bold active-press cursor-pointer transition-colors">
+          <div class="flex items-center gap-2">
+            <span>⚡</span>
+            <span>Kapasitas Sumber (Pompa / Reservoir)</span>
+          </div>
+          <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded-md font-bold">Edit</span>
+        </button>
+
         <!-- Supabase Cloud Sync Actions Mobile -->
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
           <div class="flex items-center justify-between">
@@ -411,7 +422,18 @@
       <div id="map" class="w-full h-full z-0"></div>
 
       <!-- FLOATING MAP CONTROLS (Kanan Atas) -->
-      <div class="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 flex items-center gap-1.5">
+      <div class="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 flex items-center gap-1.5 flex-wrap justify-end">
+        <!-- Floating Base Layer Selector (Peta Dasar Langsung di Layar HP) -->
+        <div class="flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl shadow-lg border border-slate-200 text-xs">
+          <span class="text-xs sm:text-sm">🗺️</span>
+          <select id="selectFloatingBaseLayer" class="bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-800 rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 text-[11px] sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors" title="Pilih Tipe Peta Dasar (Backdrop)">
+            <option value="Google Hybrid" selected>Hybrid</option>
+            <option value="OpenStreetMap">OSM</option>
+            <option value="Google Satellite">Satelit</option>
+            <option value="Google Streets">Jalan</option>
+          </select>
+        </div>
+
         <!-- Floating Pipe Flow Label Selector -->
         <div class="flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl shadow-lg border border-slate-200 text-xs">
           <span class="text-xs sm:text-sm">💧</span>
@@ -1116,12 +1138,12 @@
 
   <!-- SUPABASE & JAVASCRIPT MODULES -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=1.2.2"></script>
-  <script src="js/supabase_client.js?v=1.2.2"></script>
-  <script src="js/hydraulic_engine.js?v=1.2.2"></script>
-  <script src="js/map_manager.js?v=1.2.2"></script>
-  <script src="js/chart_controller.js?v=1.2.2"></script>
-  <script src="js/ui_controller.js?v=1.2.2"></script>
-  <script src="js/app.js?v=1.2.2"></script>
+  <script src="js/config.js?v=1.3.0"></script>
+  <script src="js/supabase_client.js?v=1.3.0"></script>
+  <script src="js/hydraulic_engine.js?v=1.3.0"></script>
+  <script src="js/map_manager.js?v=1.3.0"></script>
+  <script src="js/chart_controller.js?v=1.3.0"></script>
+  <script src="js/ui_controller.js?v=1.3.0"></script>
+  <script src="js/app.js?v=1.3.0"></script>
 </body>
 </html>

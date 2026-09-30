@@ -132,9 +132,24 @@ const UIController = (() => {
       });
     });
 
-    // Layer Switcher Dropdown / Buttons
+    // Layer Switcher Dropdown (Desktop, Mobile Drawer, & Floating Map)
+    function syncAllBaseLayerSelectors(val) {
+      const elDesktop = document.getElementById('selectBaseLayer');
+      const elMobile = document.getElementById('selectBaseLayerMobile');
+      const elFloating = document.getElementById('selectFloatingBaseLayer');
+      if (elDesktop && elDesktop.value !== val) elDesktop.value = val;
+      if (elMobile && elMobile.value !== val) elMobile.value = val;
+      if (elFloating && elFloating.value !== val) elFloating.value = val;
+    }
+
     document.getElementById('selectBaseLayer')?.addEventListener('change', (e) => {
       MapManager.switchBaseLayer(e.target.value);
+      syncAllBaseLayerSelectors(e.target.value);
+    });
+
+    document.getElementById('selectFloatingBaseLayer')?.addEventListener('change', (e) => {
+      MapManager.switchBaseLayer(e.target.value);
+      syncAllBaseLayerSelectors(e.target.value);
     });
 
     // Switcher Satuan Label Debit Pipa pada Peta GIS
@@ -207,8 +222,7 @@ const UIController = (() => {
     if (selectBaseMobile) {
       selectBaseMobile.addEventListener('change', (e) => {
         MapManager.switchBaseLayer(e.target.value);
-        const desktopSelect = document.getElementById('selectBaseLayer');
-        if (desktopSelect) desktopSelect.value = e.target.value;
+        syncAllBaseLayerSelectors(e.target.value);
         mobileActionMenu?.classList.add('hidden');
       });
     }

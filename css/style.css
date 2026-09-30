@@ -36,6 +36,21 @@
   --transition-slow: 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 
+/* Utility display overrides to ensure components like .header-btn do not break hidden states */
+.hidden {
+  display: none !important;
+}
+@media (min-width: 640px) {
+  .sm\:hidden {
+    display: none !important;
+  }
+}
+@media (min-width: 768px) {
+  .md\:hidden {
+    display: none !important;
+  }
+}
+
 /* ======================================================
    BASE FONT
    ====================================================== */
