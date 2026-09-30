@@ -101,18 +101,37 @@ const App = (() => {
   }
 
   /**
-   * Hapus wilayah kustom dari localStorage dan dropdown
+   * Hapus wilayah kustom dari localStorage, dropdown, dan Supabase Cache
    */
-  function deleteCustomRegion(id) {
+  async function deleteCustomRegionAndRefresh(id) {
+    if (!confirm('Yakin ingin menghapus wilayah kustom ini dari perangkat?')) return;
+
     try {
       const regions = loadCustomRegions().filter(r => r.id !== id);
       localStorage.setItem(CUSTOM_REGIONS_STORAGE_KEY, JSON.stringify(regions));
+      
       // Hapus dari AppConfig.regions
       const idx = AppConfig.regions?.findIndex(r => r.id === id);
       if (idx >= 0) AppConfig.regions.splice(idx, 1);
+      
       injectCustomRegionsToUI();
+      
+      // Hapus cache topologi
+      clearTopologyCache(id);
+      
+      UIController.showToast('Wilayah kustom berhasil dihapus dari perangkat', 'success');
+
+      // Refresh isi modal
+      UIController.openManageRegionsModal();
+
+      // Jika yang dihapus adalah wilayah yang sedang aktif, switch ke wilayah default (index 0)
+      if (currentRegionId === id) {
+        UIController.closeManageRegionsModal();
+        await switchRegion(AppConfig.regions[0].id, true);
+      }
     } catch (e) {
       console.warn('Gagal menghapus wilayah kustom:', e);
+      UIController.showToast('Gagal menghapus wilayah kustom', 'error');
     }
   }
 
@@ -1238,6 +1257,7 @@ const App = (() => {
     syncCurrentRegionTelemetry,
     backupCurrentRegionToCloud,
     confirmSaveNetworkToCloud,
+    deleteCustomRegionAndRefresh,
     getCurrentRegion,
     getNetworkData: () => networkData,
     // Cache management — digunakan oleh UI untuk force-refresh dari server

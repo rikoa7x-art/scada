@@ -66,6 +66,10 @@
             <option value="tanjungsiang">Tanjungsiang (272 Simpul)</option>
           </select>
         </div>
+        <!-- Manage Custom Regions Button (Desktop) -->
+        <button id="btnManageCustomRegions" onclick="UIController.openManageRegionsModal()" class="header-btn px-2" title="Kelola Wilayah Kustom">
+          <span class="text-sm">🗂️</span>
+        </button>
 
         <!-- Cloud Status Button -->
         <button id="btnCloudStatus" class="cloud-status-btn text-emerald-300" title="Status Koneksi Server Supabase SCADA (Klik untuk Re-Sync)">
@@ -263,6 +267,16 @@
             <span>Dashboard Info & KPI</span>
           </div>
           <span id="labelDashboardStatusMobile" class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">Terbuka</span>
+        </button>
+
+        <!-- Kelola Wilayah Kustom -->
+        <button id="btnManageCustomRegionsMobile" type="button"
+          onclick="document.getElementById('mobileActionMenu')?.classList.add('hidden'); UIController.openManageRegionsModal();"
+          class="w-full flex items-center justify-between bg-slate-100 hover:bg-slate-200 text-slate-800 p-2.5 rounded-xl border border-slate-300 font-bold active-press cursor-pointer transition-colors">
+          <div class="flex items-center gap-2">
+            <span>🗂️</span>
+            <span>Kelola Wilayah Kustom</span>
+          </div>
         </button>
 
         <!-- Supabase Cloud Sync Actions Mobile -->
@@ -1068,6 +1082,34 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg>
           Simpan ke Supabase Cloud
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KELOLA WILAYAH KUSTOM -->
+  <div id="manageRegionsModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-sheet-up">
+
+      <!-- Header -->
+      <div class="p-4 bg-gradient-to-r from-slate-800 to-slate-700 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-base">🗂️</div>
+          <div>
+            <h3 class="font-bold text-sm">Kelola Wilayah Kustom</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">Hapus wilayah yang sudah tidak terpakai</p>
+          </div>
+        </div>
+        <button onclick="UIController.closeManageRegionsModal()" class="text-white/60 hover:text-white text-2xl leading-none px-1 active-press">×</button>
+      </div>
+
+      <!-- Body: daftar wilayah kustom (diisi dinamis oleh JS) -->
+      <div id="manageRegionsList" class="p-4 space-y-2 max-h-[55vh] overflow-y-auto">
+        <!-- Diisi oleh openManageRegionsModal() -->
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button onclick="UIController.closeManageRegionsModal()" class="btn btn-ghost btn-sm">Tutup</button>
       </div>
     </div>
   </div>

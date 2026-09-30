@@ -2095,6 +2095,71 @@ const UIController = (() => {
   }
 
   /**
+   * Buka Modal Kelola Wilayah Kustom
+   */
+  function openManageRegionsModal() {
+    const modal = document.getElementById('manageRegionsModal');
+    if (!modal) return;
+
+    const listContainer = document.getElementById('manageRegionsList');
+    if (!listContainer) return;
+
+    // Bersihkan isi sebelumnya
+    listContainer.innerHTML = '';
+
+    // Ambil data wilayah kustom via fungsi helper yang kita buat di app.js
+    // Tapi tunggu, App belum diexpose ke UIController secara langsung.
+    // Untungnya kita bisa membaca localStorage secara langsung dari sini
+    // untuk keperluan UI sederhana, atau panggil fungsi App jika diexpose.
+    let customRegions = [];
+    try {
+      const raw = localStorage.getItem('pdam_spam_custom_regions_v1');
+      if (raw) customRegions = JSON.parse(raw);
+    } catch (e) {}
+
+    if (customRegions.length === 0) {
+      listContainer.innerHTML = `
+        <div class="text-center p-6 text-slate-500 text-sm border-2 border-dashed border-slate-200 rounded-xl">
+          Belum ada wilayah kustom yang tersimpan.
+        </div>
+      `;
+    } else {
+      customRegions.forEach(region => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200';
+        
+        const dateObj = new Date(region.savedAt);
+        const dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
+
+        item.innerHTML = `
+          <div class="min-w-0 pr-3">
+            <div class="font-bold text-slate-800 text-sm truncate" title="${region.name}">${region.name}</div>
+            <div class="text-[10px] font-mono text-slate-500 truncate mt-0.5">${region.id}</div>
+            <div class="text-[10px] text-slate-500 mt-1 flex gap-2">
+              <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">${region.nodeCount} Simpul</span>
+              <span>Disimpan: ${dateStr}</span>
+            </div>
+          </div>
+          <button onclick="App.deleteCustomRegionAndRefresh('${region.id}')" class="btn btn-ghost text-red-500 hover:bg-red-50 hover:text-red-600 p-2 rounded-lg flex-none" title="Hapus Wilayah">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+          </button>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  /**
+   * Tutup Modal Kelola Wilayah Kustom
+   */
+  function closeManageRegionsModal() {
+    const modal = document.getElementById('manageRegionsModal');
+    modal?.classList.add('hidden');
+  }
+
+  /**
    * Tampilkan Toast Feedback Notifikasi Elegan
    */
   function showToast(message, type = 'info') {
@@ -2236,7 +2301,9 @@ const UIController = (() => {
     isSidebarMinimized: () => isSidebarMinimized,
     openSaveNetworkModal,
     closeSaveNetworkModal,
-    getSaveNetworkModalValues
+    getSaveNetworkModalValues,
+    openManageRegionsModal,
+    closeManageRegionsModal
   };
 })();
 
