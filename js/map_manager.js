@@ -80,6 +80,9 @@ const MapManager = (() => {
     // Set default base layer: Google Hybrid
     baseLayers['Google Hybrid'].addTo(map);
 
+    // Tambahkan kontrol Layer bawaan Leaflet ke peta (sangat berguna untuk mobile)
+    L.control.layers(baseLayers, null, { position: 'bottomleft' }).addTo(map);
+
     return map;
   }
 
