@@ -16,7 +16,7 @@
   <!-- Chart.js: Lazy-loaded saat tab Profil HGL dibuka (lihat chart_controller.js) -->
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css?v=1.3.0">
+  <link rel="stylesheet" href="css/style.css?v=1.3.1">
 </head>
 <body class="bg-slate-100 text-slate-800 flex flex-col h-screen overflow-hidden">
 
@@ -914,9 +914,9 @@
                   type="number" 
                   inputmode="decimal"
                   id="modalPumpHead" 
-                  step="0.5" 
+                  step="0.1" 
                   min="0"
-                  max="300"
+                  max="2000"
                   placeholder="Contoh: 50.0" 
                   class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-hidden bg-white"
                 />
@@ -934,8 +934,8 @@
                   inputmode="decimal"
                   id="modalPumpFlow" 
                   step="0.1" 
-                  min="0.1"
-                  max="200"
+                  min="0"
+                  max="10000"
                   placeholder="Contoh: 10.0" 
                   class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-hidden bg-white"
                 />
@@ -981,8 +981,8 @@
                   inputmode="decimal"
                   id="modalReservoirFlow" 
                   step="0.1" 
-                  min="0.1" 
-                  max="200" 
+                  min="0" 
+                  max="10000" 
                   placeholder="Contoh: 10.0" 
                   class="w-full px-3 py-1.5 border border-blue-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
                 />
@@ -1003,6 +1003,8 @@
                   inputmode="decimal"
                   id="modalReservoirElev" 
                   step="0.5" 
+                  min="-500"
+                  max="5000"
                   placeholder="Contoh: 535.0" 
                   class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden bg-white"
                 />
@@ -1028,7 +1030,7 @@
         <button id="btnResetSourceModal" class="btn btn-ghost btn-sm">Reset ke Default</button>
         <div class="flex gap-2">
           <button onclick="UIController.closeSourceSettingsModal()" class="btn btn-ghost btn-sm">Batal</button>
-          <button id="btnSaveSourceModal" class="btn btn-indigo btn-sm">Simpan &amp; Terapkan</button>
+          <button id="btnSaveSourceModal" onclick="UIController.saveSourceSettingsFromModal()" class="btn btn-indigo btn-sm">Simpan &amp; Terapkan</button>
         </div>
       </div>
     </div>
@@ -1138,12 +1140,12 @@
 
   <!-- SUPABASE & JAVASCRIPT MODULES -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=1.3.0"></script>
-  <script src="js/supabase_client.js?v=1.3.0"></script>
-  <script src="js/hydraulic_engine.js?v=1.3.0"></script>
-  <script src="js/map_manager.js?v=1.3.0"></script>
-  <script src="js/chart_controller.js?v=1.3.0"></script>
-  <script src="js/ui_controller.js?v=1.3.0"></script>
-  <script src="js/app.js?v=1.3.0"></script>
+  <script src="js/config.js?v=1.3.1"></script>
+  <script src="js/supabase_client.js?v=1.3.1"></script>
+  <script src="js/hydraulic_engine.js?v=1.3.1"></script>
+  <script src="js/map_manager.js?v=1.3.1"></script>
+  <script src="js/chart_controller.js?v=1.3.1"></script>
+  <script src="js/ui_controller.js?v=1.3.1"></script>
+  <script src="js/app.js?v=1.3.1"></script>
 </body>
 </html>

@@ -1023,20 +1023,31 @@ const UIController = (() => {
   }
 
   /**
+   * Helper parse angka desimal dengan toleransi koma (koma -> titik)
+   */
+  function parseLocaleFloat(val, fallback = 0) {
+    if (val === null || val === undefined) return fallback;
+    if (typeof val === 'number') return isNaN(val) ? fallback : val;
+    const str = String(val).trim().replace(',', '.');
+    const num = parseFloat(str);
+    return isNaN(num) ? fallback : num;
+  }
+
+  /**
    * Simpan Pengaturan Sumber dari Modal
    */
   function saveSourceSettingsFromModal() {
     const isGravity = document.getElementById('optModeGravity')?.checked;
     const systemMode = isGravity ? 'gravity' : 'pump';
 
-    const pumpHead = parseFloat(document.getElementById('modalPumpHead')?.value) || 0;
-    let pumpFlow = parseFloat(document.getElementById('modalPumpFlow')?.value) || 0;
+    const pumpHead = parseLocaleFloat(document.getElementById('modalPumpHead')?.value, 50);
+    let pumpFlow = parseLocaleFloat(document.getElementById('modalPumpFlow')?.value, 10);
     const pumpFlowUnit = document.getElementById('modalPumpFlowUnit')?.value || 'lps';
     const pumpStatus = document.getElementById('modalPumpStatus')?.value || 'on';
 
-    let resFlow = parseFloat(document.getElementById('modalReservoirFlow')?.value) || 0;
+    let resFlow = parseLocaleFloat(document.getElementById('modalReservoirFlow')?.value, 10);
     const resFlowUnit = document.getElementById('modalReservoirFlowUnit')?.value || 'lps';
-    const resElev = parseFloat(document.getElementById('modalReservoirElev')?.value) || 535;
+    const resElev = parseLocaleFloat(document.getElementById('modalReservoirElev')?.value, 535);
 
     // Simpan dalam format L/s
     const pumpFlowLps = pumpFlowUnit === 'm3h' ? (pumpFlow / 3.6) : pumpFlow;
@@ -2317,7 +2328,8 @@ const UIController = (() => {
     closeSaveNetworkModal,
     getSaveNetworkModalValues,
     openManageRegionsModal,
-    closeManageRegionsModal
+    closeManageRegionsModal,
+    saveSourceSettingsFromModal
   };
 })();
 

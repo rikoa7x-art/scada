@@ -563,15 +563,22 @@ const App = (() => {
         sourceConfig.reservoir.flow = defSource.reservoir?.flow || 10;
       }
     } else {
-      // Terapkan setting tersimpan ke objek network
+      // Terapkan setting tersimpan ke objek network & sourceConfig
+      try {
+        const parsed = JSON.parse(savedSource);
+        if (parsed) {
+          sourceConfig = { ...sourceConfig, ...parsed };
+        }
+      } catch (e) {}
+
       if (networkData.pumps && networkData.pumps.length > 0) {
-        networkData.pumps[0].designHead = sourceConfig.pump.head;
-        networkData.pumps[0].designFlow = sourceConfig.pump.flow;
+        networkData.pumps[0].designHead = Number(sourceConfig.pump.head) || 50;
+        networkData.pumps[0].designFlow = Number(sourceConfig.pump.flow) || 10;
         networkData.pumps[0].status = sourceConfig.pump.status;
       }
-      const res = networkData.nodes.find(n => n.type === 'reservoir');
+      const res = networkData.nodes?.find(n => n.type === 'reservoir');
       if (res) {
-        res.elevation = sourceConfig.reservoir.elevation;
+        res.elevation = Number(sourceConfig.reservoir.elevation) || res.elevation;
       }
     }
   }
@@ -690,8 +697,15 @@ const App = (() => {
     }
 
     if (success) {
+      currentRegionId = id;
+      try {
+        localStorage.setItem(REGION_STORAGE_KEY, id);
+      } catch (e) {}
       // Simpan info wilayah kustom ke localStorage agar muncul di dropdown saat app dibuka ulang
       saveCustomRegion(id, name, networkData.nodes.length, networkData.pipes.length);
+      saveTopologyToCache(id, networkData);
+      saveMeasurementsToStorage();
+      UIController.setActiveRegionDisplay(id, name);
       UIController.closeSaveNetworkModal();
       UIController.showToast(`✅ Jaringan "${name}" (ID: ${id}) berhasil disimpan ke Supabase Cloud & terdaftar di aplikasi!`, 'success');
     } else {
@@ -877,20 +891,34 @@ const App = (() => {
 
     // Sinkronkan ke networkData
     if (networkData) {
-      if (networkData.pumps && networkData.pumps.length > 0) {
-        networkData.pumps[0].designHead = sourceConfig.pump.head;
-        networkData.pumps[0].designFlow = sourceConfig.pump.flow;
+      if (!networkData.pumps) networkData.pumps = [];
+      if (networkData.pumps.length > 0) {
+        networkData.pumps[0].designHead = Number(sourceConfig.pump.head) || 50;
+        networkData.pumps[0].designFlow = Number(sourceConfig.pump.flow) || 10;
         networkData.pumps[0].status = sourceConfig.pump.status;
       }
-      const res = networkData.nodes.find(n => n.type === 'reservoir');
+      const res = networkData.nodes?.find(n => n.type === 'reservoir');
       if (res) {
-        res.elevation = sourceConfig.reservoir.elevation;
+        res.elevation = Number(sourceConfig.reservoir.elevation) || res.elevation;
+      }
+
+      // Perbarui cache topologi di perangkat
+      saveTopologyToCache(currentRegionId, networkData);
+
+      // Jika wilayah kustom, sinkronkan juga perubahan pompa/reservoir ke Supabase Cloud
+      const reg = getCurrentRegion();
+      if (reg?.isCustom) {
+        SupabaseClient.saveRegionTopology(currentRegionId, networkData).then(ok => {
+          if (ok) console.log(`☁️ Perubahan pompa/sumber wilayah ${currentRegionId} tersinkron ke Cloud.`);
+        }).catch(err => {
+          console.warn('Gagal sinkronisasi sumber ke Supabase:', err);
+        });
       }
     }
 
     saveMeasurementsToStorage();
     recalculateAndRender();
-    UIController.showToast('Pengaturan sumber hidrolika berhasil disimpan.', 'success');
+    UIController.showToast('✅ Pengaturan kapasitas pompa & sumber berhasil disimpan!', 'success');
   }
 
   /**
