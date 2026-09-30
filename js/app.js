@@ -32,6 +32,7 @@ const App = (() => {
   };
 
   const REGION_STORAGE_KEY = 'pdam_spam_current_region';
+  const CUSTOM_REGIONS_STORAGE_KEY = 'pdam_spam_custom_regions_v1'; // Daftar wilayah kustom yang diupload user
 
   // === CACHE TOPOLOGI JSON ===
   // Topologi jaringan (nodes, pipes, pumps) disimpan di localStorage agar tidak
@@ -57,6 +58,120 @@ const App = (() => {
    */
   function getStorageKey(type, regionId = currentRegionId) {
     return `pdam_spam_${type}_${regionId}`;
+  }
+
+  // =========================================================
+  // MANAJEMEN WILAYAH KUSTOM (Upload JSON → Simpan ke Cloud)
+  // =========================================================
+
+  /**
+   * Baca semua wilayah kustom dari localStorage
+   * @returns {Array} Array of { id, name, nodeCount, pipeCount, savedAt }
+   */
+  function loadCustomRegions() {
+    try {
+      const raw = localStorage.getItem(CUSTOM_REGIONS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /**
+   * Simpan wilayah kustom baru ke localStorage dan inject ke AppConfig.regions + dropdown
+   */
+  function saveCustomRegion(id, name, nodeCount, pipeCount) {
+    try {
+      const regions = loadCustomRegions();
+      // Update jika ID sudah ada, atau tambahkan baru
+      const existing = regions.findIndex(r => r.id === id);
+      const entry = { id, name, nodeCount, pipeCount, isCustom: true, savedAt: new Date().toISOString() };
+      if (existing >= 0) {
+        regions[existing] = entry;
+      } else {
+        regions.push(entry);
+      }
+      localStorage.setItem(CUSTOM_REGIONS_STORAGE_KEY, JSON.stringify(regions));
+      // Inject ke AppConfig.regions dan UI dropdown
+      injectCustomRegionToAppConfig(entry);
+      injectCustomRegionsToUI();
+    } catch (e) {
+      console.warn('Gagal menyimpan wilayah kustom ke localStorage:', e);
+    }
+  }
+
+  /**
+   * Hapus wilayah kustom dari localStorage dan dropdown
+   */
+  function deleteCustomRegion(id) {
+    try {
+      const regions = loadCustomRegions().filter(r => r.id !== id);
+      localStorage.setItem(CUSTOM_REGIONS_STORAGE_KEY, JSON.stringify(regions));
+      // Hapus dari AppConfig.regions
+      const idx = AppConfig.regions?.findIndex(r => r.id === id);
+      if (idx >= 0) AppConfig.regions.splice(idx, 1);
+      injectCustomRegionsToUI();
+    } catch (e) {
+      console.warn('Gagal menghapus wilayah kustom:', e);
+    }
+  }
+
+  /**
+   * Masukkan satu wilayah kustom ke AppConfig.regions (jika belum ada)
+   */
+  function injectCustomRegionToAppConfig(entry) {
+    if (!AppConfig.regions) AppConfig.regions = [];
+    const exists = AppConfig.regions.some(r => r.id === entry.id);
+    if (!exists) {
+      AppConfig.regions.push({
+        id: entry.id,
+        name: entry.name,
+        file: null,          // Tidak punya file lokal — fetch dari Supabase
+        isCustom: true,
+        badge: `${entry.nodeCount} Simpul • ${entry.pipeCount} Pipa`,
+        defaultCenter: [-6.663, 107.688],
+        defaultZoom: 14,
+        defaultSource: {
+          systemMode: 'pump',
+          pump: { head: 50.0, flow: 10.0, status: 'on' },
+          reservoir: { elevation: 500.0, flow: 10.0 }
+        }
+      });
+    }
+  }
+
+  /**
+   * Inject semua wilayah kustom ke kedua dropdown selector (desktop & mobile)
+   */
+  function injectCustomRegionsToUI() {
+    const customRegions = loadCustomRegions();
+    const selectors = ['selectRegion', 'selectRegionMobile'];
+
+    selectors.forEach(selId => {
+      const sel = document.getElementById(selId);
+      if (!sel) return;
+
+      // Hapus semua option kustom lama (data-custom="true")
+      sel.querySelectorAll('option[data-custom="true"]').forEach(o => o.remove());
+
+      if (customRegions.length === 0) return;
+
+      // Tambahkan separator
+      const sep = document.createElement('option');
+      sep.disabled = true;
+      sep.textContent = '── Wilayah Kustom ──';
+      sep.setAttribute('data-custom', 'true');
+      sel.appendChild(sep);
+
+      // Tambahkan setiap wilayah kustom
+      customRegions.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = `${r.name} (${r.nodeCount} Simpul)`;
+        opt.setAttribute('data-custom', 'true');
+        sel.appendChild(opt);
+      });
+    });
   }
 
   /**
@@ -102,15 +217,20 @@ const App = (() => {
     // 3. Inisialisasi Klien Supabase & Realtime Listener
     initSupabase();
 
-    // 4. Deteksi Wilayah Terakhir yang Dibuka Pengguna
+    // 4. Muat & inject wilayah kustom dari localStorage ke AppConfig + dropdown
+    loadCustomRegions().forEach(entry => injectCustomRegionToAppConfig(entry));
+    injectCustomRegionsToUI();
+
+    // 5. Deteksi Wilayah Terakhir yang Dibuka Pengguna
     try {
       const savedRegionId = localStorage.getItem(REGION_STORAGE_KEY);
+      // Cek di semua region (termasuk kustom yang sudah di-inject)
       if (savedRegionId && AppConfig.regions?.some(r => r.id === savedRegionId)) {
         currentRegionId = savedRegionId;
       }
     } catch (e) {}
 
-    // 5. Muat Wilayah Aktif
+    // 6. Muat Wilayah Aktif
     await switchRegion(currentRegionId, true);
   }
 
@@ -328,8 +448,8 @@ const App = (() => {
    * Muat Topologi Jaringan Wilayah
    * Urutan prioritas:
    *   1. localStorage cache (paling cepat — tidak butuh network)
-   *   2. Supabase Cloud topology (jika ada backup khusus)
-   *   3. Fetch file JSON dari server (fallback terakhir)
+   *   2. Supabase Cloud topology (wajib untuk wilayah kustom, opsional untuk wilayah default)
+   *   3. Fetch file JSON dari server (fallback — hanya untuk wilayah bawaan, bukan kustom)
    */
   async function loadRegionalTopology(region) {
     try {
@@ -356,8 +476,15 @@ const App = (() => {
       if (cloudTopology && cloudTopology.nodes && cloudTopology.pipes) {
         console.log(`Memuat topologi ${region.name} dari Supabase Cloud.`);
         networkData = cloudTopology;
+      } else if (region.isCustom || !region.file) {
+        // === Wilayah kustom WAJIB ada di Supabase — jika tidak ada, tampilkan error ===
+        throw new Error(
+          `Data jaringan "${region.name}" tidak ditemukan di Supabase Cloud.\n` +
+          `Kemungkinan belum pernah disimpan atau terhapus. ` +
+          `Silakan upload ulang file JSON dan simpan kembali ke Cloud.`
+        );
       } else {
-        // === 3. Fetch file JSON dari server (fallback) ===
+        // === 3. Fetch file JSON dari server (fallback — hanya wilayah bawaan) ===
         const response = await fetch(region.file);
         if (!response.ok) {
           throw new Error(`Gagal memuat ${region.file} (HTTP ${response.status})`);
@@ -382,7 +509,7 @@ const App = (() => {
 
     } catch (err) {
       console.error(`Gagal memuat data jaringan untuk wilayah ${region.name}:`, err);
-      UIController.showToast(`Gagal memuat jaringan ${region.name}: ${err.message}`, 'error');
+      UIController.showToast(`❌ Gagal memuat jaringan ${region.name}: ${err.message}`, 'error');
     }
   }
 
@@ -544,8 +671,10 @@ const App = (() => {
     }
 
     if (success) {
+      // Simpan info wilayah kustom ke localStorage agar muncul di dropdown saat app dibuka ulang
+      saveCustomRegion(id, name, networkData.nodes.length, networkData.pipes.length);
       UIController.closeSaveNetworkModal();
-      UIController.showToast(`✅ Jaringan "${name}" (ID: ${id}) berhasil disimpan ke Supabase Cloud!`, 'success');
+      UIController.showToast(`✅ Jaringan "${name}" (ID: ${id}) berhasil disimpan ke Supabase Cloud & terdaftar di aplikasi!`, 'success');
     } else {
       UIController.showToast('❌ Gagal menyimpan ke Supabase. Periksa koneksi internet dan coba lagi.', 'error');
     }
