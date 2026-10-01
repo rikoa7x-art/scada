@@ -540,7 +540,6 @@ const HydraulicEngine = (() => {
     });
 
     // 2. Hitung debit pada setiap pipa berdasarkan kontinuitas aliran & setting sumber
-    // 2. Hitung debit pada setiap pipa berdasarkan kontinuitas aliran & setting sumber
     const transmissionFlow = configuredSupplyFlow > 0 ? configuredSupplyFlow : 10;
     const isBunihayu = networkData.projectName === 'epanet_bunihayu' && networkData.pipes.some(p => p.id === '479ed69a-bcf8-4840-81a3-5e4ee8385d96');
 
@@ -722,30 +721,102 @@ const HydraulicEngine = (() => {
         }
       });
 
-      // Tetapkan debit pipa
-      networkData.pipes.forEach(pipe => {
-        const dStart = depth.get(pipe.startNodeId) ?? 999999;
-        const dEnd = depth.get(pipe.endNodeId) ?? 999999;
-        const downstreamNodeId = dStart < dEnd ? pipe.endNodeId : pipe.startNodeId;
+      // Tetapkan debit pipa dengan hukum kontinuitas (Conservation of Mass)
+      // Debit di setiap pipa tidak boleh melebihi kapasitas sumber (baseSupply).
+      // Distribusi di percabangan harus proporsional sehingga total outflow = inflow - demand lokal.
 
-        let q = 0;
-        if (sumAllDemands > 0) {
+      if (sumAllDemands > 0) {
+        // Mode Demand-Driven: debit pipa = subtree demand, di-scale jika supply > total demand
+        // Tapi SELALU di-cap ke baseSupply (kapasitas sumber)
+        const scale = baseSupply > sumAllDemands ? (baseSupply / sumAllDemands) : 1;
+        networkData.pipes.forEach(pipe => {
+          const dStart = depth.get(pipe.startNodeId) ?? 999999;
+          const dEnd = depth.get(pipe.endNodeId) ?? 999999;
+          const downstreamNodeId = dStart < dEnd ? pipe.endNodeId : pipe.startNodeId;
+
           const subDem = subtreeDemand.get(downstreamNodeId) || 0;
-          const scale = baseSupply > sumAllDemands ? (baseSupply / sumAllDemands) : 1;
-          q = subDem * scale;
-        } else {
-          const D = Number(pipe.diameter) || 100;
-          const L = Math.max(1, Number(pipe.length) || 100);
-          const dLevel = depth.get(downstreamNodeId) || 1;
-          const decay = 1.0 / Math.pow(dLevel, 0.4);
-          q = Math.max(0.2, baseSupply * decay * (Math.pow(D / 100, 2)));
-        }
+          let q = subDem * scale;
+          // Debit pipa tidak boleh melebihi kapasitas sumber
+          q = Math.min(q, baseSupply);
 
-        pipeFlowMap[pipe.id] = Math.max(0.05, Math.round(q * 100) / 100);
-        if (!pipeDirMap[pipe.id]) {
-          pipeDirMap[pipe.id] = dStart <= dEnd ? 'forward' : 'backward';
-        }
-      });
+          pipeFlowMap[pipe.id] = Math.max(0.05, Math.round(q * 100) / 100);
+          if (!pipeDirMap[pipe.id]) {
+            pipeDirMap[pipe.id] = dStart <= dEnd ? 'forward' : 'backward';
+          }
+        });
+      } else {
+        // Mode Tanpa Demand: distribusi proporsional via BFS dari root
+        // Di setiap node, debit masuk didistribusikan ke cabang-cabang hilir
+        // secara proporsional berdasarkan luas penampang pipa (D²)
+        const nodeInflow = new Map();
+        nodeInflow.set(rootNodeId, baseSupply);
+
+        // BFS traversal: proses node berdasarkan depth (dari root ke leaf)
+        const nodesByDepth = Array.from(depth.entries())
+          .sort((a, b) => a[1] - b[1])
+          .map(entry => entry[0]);
+
+        nodesByDepth.forEach(nodeId => {
+          const inflow = nodeInflow.get(nodeId) || 0;
+          if (inflow <= 0) return;
+
+          // Cari semua pipa hilir (keluar dari node ini di spanning tree)
+          const childEdges = [];
+          const edges = adj.get(nodeId) || [];
+          edges.forEach(edge => {
+            const childDepth = depth.get(edge.nextNodeId);
+            const nodeDepth = depth.get(nodeId);
+            if (childDepth !== undefined && nodeDepth !== undefined && childDepth > nodeDepth) {
+              // Ini adalah pipa menuju hilir
+              if (parentPipe.get(edge.nextNodeId) === edge.pipe.id) {
+                childEdges.push(edge);
+              }
+            }
+          });
+
+          if (childEdges.length === 0) return;
+
+          // Hitung total luas penampang pipa hilir (proporsional D²)
+          let totalArea = 0;
+          childEdges.forEach(edge => {
+            const D = Number(edge.pipe.diameter) || 100;
+            totalArea += Math.pow(D, 2);
+          });
+
+          // Distribusikan inflow secara proporsional
+          const localDemand = demands[nodeId] || 0;
+          const availableFlow = Math.max(0, inflow - localDemand);
+
+          childEdges.forEach(edge => {
+            const D = Number(edge.pipe.diameter) || 100;
+            const fraction = totalArea > 0 ? Math.pow(D, 2) / totalArea : (1 / childEdges.length);
+            const q = availableFlow * fraction;
+
+            pipeFlowMap[edge.pipe.id] = Math.max(0.05, Math.round(q * 100) / 100);
+            if (!pipeDirMap[edge.pipe.id]) {
+              const dS = depth.get(edge.pipe.startNodeId) ?? 999999;
+              const dE = depth.get(edge.pipe.endNodeId) ?? 999999;
+              pipeDirMap[edge.pipe.id] = dS <= dE ? 'forward' : 'backward';
+            }
+
+            // Set inflow ke node hilir
+            const childInflow = nodeInflow.get(edge.nextNodeId) || 0;
+            nodeInflow.set(edge.nextNodeId, childInflow + q);
+          });
+        });
+
+        // Pastikan semua pipa memiliki debit (termasuk chord edges di luar spanning tree)
+        networkData.pipes.forEach(pipe => {
+          if (pipeFlowMap[pipe.id] === undefined) {
+            pipeFlowMap[pipe.id] = 0.05;
+            if (!pipeDirMap[pipe.id]) {
+              const dS = depth.get(pipe.startNodeId) ?? 999999;
+              const dE = depth.get(pipe.endNodeId) ?? 999999;
+              pipeDirMap[pipe.id] = dS <= dE ? 'forward' : 'backward';
+            }
+          }
+        });
+      }
 
       // Propagasi Head Maju dari Root
       const forwardQueue = [rootNodeId];
