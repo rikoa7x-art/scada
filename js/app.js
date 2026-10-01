@@ -740,9 +740,9 @@ const App = (() => {
   }
 
   /**
-   * Tangani JSON kustom yang diunggah pengguna
+   * Tangani JSON kustom yang diunggah pengguna — otomatis simpan ke Supabase Cloud
    */
-  function handleCustomJSON(data, fileName = '') {
+  async function handleCustomJSON(data, fileName = '') {
     if (!data || !data.nodes || !data.pipes) {
       alert('Format JSON tidak sesuai: Harus memiliki array "nodes" dan "pipes" (Standar EPANET / PDAM).');
       return;
@@ -778,14 +778,20 @@ const App = (() => {
       sourceConfig.reservoir.flow = Number(res.demand) || 10;
     }
 
-    // 3. Perbarui tampilan judul wilayah & subtitle
+    // 3. Generate nama & ID wilayah otomatis dari nama file / projectName
     const netName = data.projectName || (fileName ? fileName.replace(/\.json$/i, '') : 'Jaringan Kustom');
-    UIController.setActiveRegionDisplay('custom', netName);
+    const regionId = netName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .substring(0, 40) || 'jaringan_kustom';
 
-    // 4. Update badge sumber
+    // 4. Perbarui tampilan judul wilayah & badge sumber
+    UIController.setActiveRegionDisplay(regionId, netName);
     UIController.updateSourceBadge(sourceConfig);
 
-    // 5. Simpan dan render ulang
+    // 5. Simpan lokal & render
     saveMeasurementsToStorage();
     recalculateAndRender();
 
@@ -796,14 +802,21 @@ const App = (() => {
 
     UIController.showToast(`✅ File JSON "${netName}" (${networkData.nodes.length} Simpul, ${networkData.pipes.length} Pipa) berhasil dimuat!`, 'success');
 
-    // 7. Tawari pengguna untuk menyimpan ke Supabase Cloud
-    setTimeout(() => {
-      UIController.openSaveNetworkModal(
-        fileName || netName + '.json',
-        networkData.nodes.length,
-        networkData.pipes.length
-      );
-    }, 600);
+    // 7. Auto-simpan ke Supabase Cloud tanpa modal konfirmasi
+    UIController.showToast(`⏳ Menyimpan "${netName}" ke Supabase Cloud...`, 'info');
+    const success = await SupabaseClient.saveRegionTopology(regionId, networkData);
+
+    if (success) {
+      currentRegionId = regionId;
+      try { localStorage.setItem(REGION_STORAGE_KEY, regionId); } catch (e) {}
+      saveCustomRegion(regionId, netName, networkData.nodes.length, networkData.pipes.length);
+      saveTopologyToCache(regionId, networkData);
+      saveMeasurementsToStorage();
+      UIController.setActiveRegionDisplay(regionId, netName);
+      UIController.showToast(`☁️ Jaringan "${netName}" (ID: ${regionId}) berhasil tersimpan otomatis ke Supabase Cloud!`, 'success');
+    } else {
+      UIController.showToast(`⚠️ Gagal menyimpan "${netName}" ke Supabase. Jaringan tetap aktif di sesi ini — coba cadangkan manual nanti.`, 'warning');
+    }
   }
 
   /**
