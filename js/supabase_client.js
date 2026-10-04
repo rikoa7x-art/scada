@@ -101,7 +101,17 @@ const SupabaseClient = (() => {
     const safeRegion = (regionId || 'bunihayu').toString().toUpperCase();
     try {
       setStatus('syncing');
-      let url = `${config.url}/rest/v1/${config.tableName}?select=*`;
+      // OPTIMASI PERFORMA TAHAP 2: Kurangi payload dan beban transfer jaringan
+      // Hanya request kolom yang benar-benar digunakan, jangan select=*
+      let url = `${config.url}/rest/v1/${config.tableName}?select=node_id,pressure_bar,pressure_m,officer_name,notes,updated_at`;
+      
+      // Jika jumlah node wajar untuk URL GET (< 200 node), gunakan filter 'in' 
+      // untuk mencegah database mengirim seluruh baris telemetry dari wilayah lain.
+      const specialDemandId = `__SCADA_DEMANDS_${safeRegion}__`;
+      if (nodeIds && nodeIds.length > 0 && nodeIds.length <= 200) {
+        const fetchIds = [...nodeIds, specialDemandId];
+        url += `&node_id=in.(${encodeURIComponent(fetchIds.join(','))})`;
+      }
       
       const res = await fetch(url, {
         method: 'GET',

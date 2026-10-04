@@ -382,18 +382,21 @@ const App = (() => {
     // 2. Muat Topologi Jaringan (Cloud Supabase atau File JSON Lokal)
     await loadRegionalTopology(region);
 
-    // 3. Tarik Telemetry Lapangan Terkini dari Supabase Cloud
-    await syncCurrentRegionTelemetry(false);
-
-    // 4. Hitung Ulang Hidrolika dan Render
+    // OPTIMASI PERFORMA TAHAP 2: Stale-While-Revalidate (SWR)
+    // 3. Render langsung menggunakan data cache lokal agar instan tanpa lag jaringan
     recalculateAndRender(true);
-
-    // 5. Posisikan Peta ke Batas Jaringan Wilayah
+    
     if (doFitBounds) {
       setTimeout(() => {
         MapManager.fitNetworkBounds();
       }, 350);
     }
+
+    // 4. Tarik Telemetry Lapangan Terkini dari Supabase Cloud secara Background
+    syncCurrentRegionTelemetry(false).then(() => {
+      // 5. Re-render tanpa mengubah bounds peta jika ada data baru dari cloud
+      recalculateAndRender(false);
+    });
   }
 
   /**
