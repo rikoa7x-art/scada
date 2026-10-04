@@ -467,8 +467,11 @@ const App = (() => {
    * Muat Topologi Jaringan Wilayah
    * Urutan prioritas:
    *   1. localStorage cache (paling cepat — tidak butuh network)
-   *   2. Supabase Cloud topology (wajib untuk wilayah kustom, opsional untuk wilayah default)
-   *   3. Fetch file JSON dari server (fallback — hanya untuk wilayah bawaan, bukan kustom)
+   *   2. Supabase Cloud topology (fallback jika cache kosong)
+   *   3. Jika keduanya kosong — tampilkan panduan upload manual
+   *
+   * Catatan: Fetch file JSON bundel dari server DIHAPUS agar aplikasi ringan.
+   * Data jaringan wajib diinput manual via Upload JSON atau Supabase Cloud.
    */
   async function loadRegionalTopology(region) {
     try {
@@ -490,28 +493,23 @@ const App = (() => {
       }
 
       // === 2. Cek Supabase Cloud topology ===
-      UIController.showToast(`📡 Mengunduh data jaringan ${region.name}...`, 'info');
+      UIController.showToast(`📡 Mencari data jaringan ${region.name} di Supabase Cloud...`, 'info');
       const cloudTopology = await SupabaseClient.fetchRegionTopology(region.id);
       if (cloudTopology && cloudTopology.nodes && cloudTopology.pipes) {
         console.log(`Memuat topologi ${region.name} dari Supabase Cloud.`);
         networkData = cloudTopology;
-      } else if (region.isCustom || !region.file) {
-        // === Wilayah kustom WAJIB ada di Supabase — jika tidak ada, tampilkan error ===
-        throw new Error(
-          `Data jaringan "${region.name}" tidak ditemukan di Supabase Cloud.\n` +
-          `Kemungkinan belum pernah disimpan atau terhapus. ` +
-          `Silakan upload ulang file JSON dan simpan kembali ke Cloud.`
-        );
       } else {
-        // === 3. Fetch file JSON dari server (fallback — hanya wilayah bawaan) ===
-        const response = await fetch(region.file);
-        if (!response.ok) {
-          throw new Error(`Gagal memuat ${region.file} (HTTP ${response.status})`);
-        }
-        networkData = await response.json();
+        // === 3. Data tidak ditemukan di cache maupun Cloud — minta upload manual ===
+        networkData = null;
+        UIController.showToast(
+          `📂 Belum ada data jaringan untuk "${region.name}". ` +
+          `Silakan upload file JSON EPANET via tombol Upload JSON.`,
+          'warning'
+        );
+        return;
       }
 
-      // Inisialisasi demand awal dari JSON
+      // Inisialisasi demand awal dari data Cloud
       networkData.nodes.forEach(node => {
         if (userDemands[node.id] === undefined) {
           userDemands[node.id] = Number(node.demand) || 0;
@@ -524,10 +522,11 @@ const App = (() => {
 
       // === Simpan ke localStorage cache untuk load berikutnya ===
       saveTopologyToCache(region.id, networkData);
-      UIController.showToast(`✅ Data jaringan ${region.name} berhasil diunduh & dicache`, 'success');
+      UIController.showToast(`✅ Data jaringan ${region.name} berhasil diunduh dari Cloud & dicache`, 'success');
 
     } catch (err) {
       console.error(`Gagal memuat data jaringan untuk wilayah ${region.name}:`, err);
+      networkData = null;
       UIController.showToast(`❌ Gagal memuat jaringan ${region.name}: ${err.message}`, 'error');
     }
   }

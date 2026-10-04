@@ -111,11 +111,12 @@ const AppConfig = {
   },
 
   // Katalog Wilayah SPAM PDAM Kabupaten Subang
+  // Catatan: Tidak ada properti 'file' — data jaringan dimuat dari localStorage cache
+  // atau diunggah manual via tombol Upload JSON → otomatis tersimpan ke localStorage.
   regions: [
     {
       id: 'bunihayu',
       name: 'SPAM Bunihayu',
-      file: 'epanet_bunihayu.json',
       badge: '17 Simpul • 16 Pipa',
       defaultCenter: [-6.6637, 107.6882],
       defaultZoom: 15,
@@ -128,7 +129,6 @@ const AppConfig = {
     {
       id: 'cisalak',
       name: 'SPAM Cisalak',
-      file: 'epanet_cisalak.json',
       badge: '203 Simpul • 202 Pipa',
       defaultCenter: [-6.7149, 107.7648],
       defaultZoom: 14,
@@ -141,7 +141,6 @@ const AppConfig = {
     {
       id: 'jalancagak',
       name: 'SPAM Jalancagak (Ciseuti)',
-      file: 'epanet_jalancagak.json',
       badge: '35 Simpul • 33 Pipa',
       defaultCenter: [-6.6772, 107.6815],
       defaultZoom: 15,
@@ -154,7 +153,6 @@ const AppConfig = {
     {
       id: 'kasomalang',
       name: 'SPAM Kasomalang',
-      file: 'epanet_kasomalang.json',
       badge: '91 Simpul • 90 Pipa',
       defaultCenter: [-6.6814, 107.7357],
       defaultZoom: 15,
@@ -167,7 +165,6 @@ const AppConfig = {
     {
       id: 'pabuaran',
       name: 'SPAM Pabuaran',
-      file: 'epanet_pabuaran.json',
       badge: '290 Simpul • 290 Pipa',
       defaultCenter: [-6.4072, 107.5858],
       defaultZoom: 14,
@@ -180,7 +177,6 @@ const AppConfig = {
     {
       id: 'sagalaherang',
       name: 'SPAM Sagalaherang',
-      file: 'epanet_sagalaherang.json',
       badge: '211 Simpul • 217 Pipa (Gravitasi)',
       defaultCenter: [-6.6680, 107.6492],
       defaultZoom: 14,
@@ -193,7 +189,6 @@ const AppConfig = {
     {
       id: 'subang',
       name: 'SPAM Subang Kota',
-      file: 'epanet_subang.json',
       badge: '314 Simpul • 321 Pipa',
       defaultCenter: [-6.5521, 107.7855],
       defaultZoom: 14,
@@ -206,7 +201,6 @@ const AppConfig = {
     {
       id: 'tambakan',
       name: 'SPAM Tambakan',
-      file: 'epanet_tambakan.json',
       badge: '13 Simpul • 11 Pipa',
       defaultCenter: [-6.6681, 107.7020],
       defaultZoom: 16,
@@ -219,7 +213,6 @@ const AppConfig = {
     {
       id: 'tanjungsiang',
       name: 'SPAM Tanjungsiang',
-      file: 'epanet_tanjungsiang.json',
       badge: '272 Simpul • 279 Pipa (Gravitasi)',
       defaultCenter: [-6.7308, 107.8154],
       defaultZoom: 14,
