@@ -71,11 +71,7 @@
           <span class="text-sm">🗂️</span>
         </button>
 
-        <!-- Cloud Status Button -->
-        <button id="btnCloudStatus" class="cloud-status-btn text-emerald-300" title="Status Koneksi Server Supabase SCADA (Klik untuk Re-Sync)">
-          <span id="cloudStatusDot" class="status-dot"></span>
-          <span id="cloudStatusText" class="hidden md:inline">Cloud Aktif</span>
-        </button>
+        
 
         <!-- Source Settings Button (Desktop & Tablet) -->
         <button id="btnSourceSettings" class="hidden sm:inline-flex header-btn header-btn-source active-press" title="Edit Kapasitas Head &amp; Debit Pompa atau Pengaliran Gravitasi Reservoir">
@@ -122,10 +118,7 @@
             <input type="file" id="inputJsonFile" accept=".json" class="hidden">
           </label>
 
-          <button id="btnBackupCloud" class="header-btn header-btn-ghost active-press" title="Cadangkan Topologi Jaringan Ini ke Supabase Cloud">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg>
-            <span>Backup</span>
-          </button>
+          
         </div>
 
         <!-- Toggle Dashboard (Desktop) -->
@@ -156,10 +149,7 @@
             <span>Tekanan Lapangan</span>
           </button>
         </div>
-        <button id="btnSyncCloud" class="flex items-center gap-1.5 header-btn header-btn-ghost active-press" title="Tarik pembaruan data tekanan terkini dari server Supabase">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-          <span>Sync Cloud</span>
-        </button>
+        
       </div>
 
       <!-- KPI STRIP -->
@@ -290,74 +280,7 @@
           <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded-md font-bold">Edit</span>
         </button>
 
-        <!-- Supabase Cloud Sync Actions Mobile -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-700 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>Supabase Cloud SCADA</span>
-            </span>
-            <span id="cloudStatusBadgeMobile" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Terhubung</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <button id="btnSyncCloudMobile" class="flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white p-2 rounded-lg font-bold active-press text-[11px]">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              <span>Sync Tekanan</span>
-            </button>
-            <button id="btnSaveTopologyCloudMobile" class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-lg font-bold active-press text-[11px]">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              <span>Backup Cloud</span>
-            </button>
-          </div>
         </div>
-
-        <!-- Action Buttons Grid Mobile -->
-        <div class="grid grid-cols-2 gap-2">
-          <button id="btnLoadSampleMobile" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 p-3 rounded-xl border border-blue-200 font-bold active-press">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Muat Data Uji</span>
-          </button>
-
-          <button id="btnResetDataMobile" class="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 p-3 rounded-xl border border-red-200 font-bold active-press">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-            <span>Reset Data</span>
-          </button>
-
-          <button id="btnExportCSVMobile" class="flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-3 rounded-xl border border-emerald-200 font-bold active-press">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-            <span>Ekspor CSV</span>
-          </button>
-
-          <button id="btnPrintReportMobile" class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 p-3 rounded-xl border border-slate-300 font-bold active-press">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            <span>Cetak Laporan</span>
-          </button>
-        </div>
-
-        <!-- Upload JSON Mobile -->
-        <label class="flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-3 rounded-xl border border-indigo-200 font-bold cursor-pointer active-press">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span>Unggah File JSON Jaringan</span>
-          <input type="file" id="inputJsonFileMobile" accept=".json" class="hidden">
-        </label>
-
-        <!-- Tombol Refresh Cache Data Jaringan -->
-        <button id="btnRefreshTopologyMobile"
-          onclick="App.forceRefreshTopology().then(() => { document.getElementById('mobileActionMenu')?.classList.add('hidden'); })"
-          class="w-full flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-700 p-3 rounded-xl border border-amber-300 font-bold active-press"
-          title="Hapus cache lokal dan unduh ulang data jaringan dari server (gunakan jika topologi diperbarui)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-          <span>🔄 Refresh Data Jaringan (Hapus Cache)</span>
-        </button>
-      </div>
-
-      <div class="p-3 bg-slate-100 border-t border-slate-200 text-center">
-        <button id="btnCloseMobileMenuBtn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold active-press">
-          Tutup Menu
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- DESKTOP NAVIGATION TABS (Visible only on Tablet / Laptop / PC) -->
   <nav class="desktop-nav hidden sm:flex px-4 items-center justify-between z-20 flex-none">
@@ -1036,80 +959,6 @@
     </div>
   </div>
 
-  <!-- MODAL: SIMPAN JARINGAN BARU KE SUPABASE CLOUD -->
-  <div id="saveNetworkModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hidden">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-sheet-up">
-
-      <!-- Header Modal -->
-      <div class="p-4 bg-gradient-to-r from-indigo-700 to-blue-700 text-white flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center text-base">☁️</div>
-          <div>
-            <h3 class="font-bold text-sm">Simpan Jaringan ke Cloud</h3>
-            <p class="text-[11px] text-blue-200 mt-0.5">Simpan topologi jaringan yang baru diunggah ke Supabase</p>
-          </div>
-        </div>
-        <button onclick="UIController.closeSaveNetworkModal()" class="text-white/70 hover:text-white text-2xl leading-none px-1 active-press">×</button>
-      </div>
-
-      <!-- Body Modal -->
-      <div class="p-5 space-y-4">
-
-        <!-- Info ringkasan jaringan yang diunggah -->
-        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-none text-base">🗺️</div>
-          <div class="min-w-0">
-            <div id="saveNetModalFileName" class="font-bold text-blue-900 text-xs truncate">Jaringan Kustom</div>
-            <div id="saveNetModalSummary" class="text-[11px] text-blue-700 mt-0.5">0 Simpul • 0 Pipa</div>
-          </div>
-        </div>
-
-        <!-- Input Nama Wilayah -->
-        <div class="space-y-1.5">
-          <label class="block text-xs font-bold text-slate-700">
-            📝 Nama Wilayah / Label Jaringan
-            <span class="text-red-500 ml-0.5">*</span>
-          </label>
-          <input
-            type="text"
-            id="inputSaveNetworkName"
-            placeholder="Contoh: SPAM Cijambe, Jaringan Baru Utara..."
-            maxlength="80"
-            class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-blue-400 placeholder-slate-400 transition-colors"
-          />
-          <p class="text-[11px] text-slate-500">Nama ini digunakan sebagai label di server Supabase. Gunakan nama yang jelas dan unik.</p>
-        </div>
-
-        <!-- Input ID Wilayah (slug) - auto-generated -->
-        <div class="space-y-1.5">
-          <label class="block text-xs font-bold text-slate-700">🔑 ID Unik Wilayah (Key Server)</label>
-          <div class="flex items-center gap-2">
-            <input
-              type="text"
-              id="inputSaveNetworkId"
-              placeholder="contoh: cijambe / jaringan_baru"
-              maxlength="40"
-              class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-blue-400 placeholder-slate-400 lowercase transition-colors"
-            />
-          </div>
-          <p class="text-[11px] text-slate-500">Hanya huruf kecil, angka, dan underscore. Diisi otomatis dari nama — bisa diubah manual. <span class="font-bold text-amber-600">Hati-hati: ID yang sama akan menimpa data lama di server!</span></p>
-        </div>
-
-      </div>
-
-      <!-- Footer Modal -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
-        <button onclick="UIController.closeSaveNetworkModal()" class="btn btn-ghost btn-sm flex-none">
-          Lewati (Jangan Simpan)
-        </button>
-        <button id="btnConfirmSaveNetwork" onclick="App.confirmSaveNetworkToCloud()" class="btn btn-primary btn-sm flex-1 flex items-center justify-center gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg>
-          Simpan ke Supabase Cloud
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL: KELOLA WILAYAH KUSTOM -->
   <div id="manageRegionsModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hidden">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-sheet-up">
@@ -1138,10 +987,8 @@
     </div>
   </div>
 
-  <!-- SUPABASE & JAVASCRIPT MODULES -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <!-- JAVASCRIPT MODULES -->
   <script src="js/config.js?v=2.0.0" defer></script>
-  <script src="js/supabase_client.js?v=2.0.0" defer></script>
   <script src="js/hydraulic_engine.js?v=2.0.0" defer></script>
   <script src="js/map_manager.js?v=2.0.0" defer></script>
   <script src="js/chart_controller.js?v=2.0.0" defer></script>

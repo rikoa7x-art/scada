@@ -226,7 +226,6 @@ const App = (() => {
       onUploadJSON: handleCustomJSON,
       onSaveSourceConfig: saveSourceConfig,
       onSelectRegion: (regionId) => switchRegion(regionId, true),
-      onSyncCloud: () => syncCurrentRegionTelemetry(true),
       onBackupTopology: () => backupCurrentRegionToCloud()
     });
 
@@ -234,8 +233,6 @@ const App = (() => {
     setupModeSwitcher();
 
     // 3. Inisialisasi Klien Supabase & Realtime Listener
-    initSupabase();
-
     // 4. Muat & inject wilayah kustom dari localStorage ke AppConfig + dropdown
     loadCustomRegions().forEach(entry => injectCustomRegionToAppConfig(entry));
     injectCustomRegionsToUI();
@@ -251,111 +248,6 @@ const App = (() => {
 
     // 6. Muat Wilayah Aktif
     await switchRegion(currentRegionId, true);
-  }
-
-  /**
-   * Inisialisasi Supabase Cloud & Realtime Handler
-   */
-  function initSupabase() {
-    SupabaseClient.init();
-
-    // Sinkronkan badge status koneksi ke UI
-    SupabaseClient.onStatusChange((status) => {
-      UIController.updateCloudStatus(status);
-    });
-
-    // Langganan pembaruan telemetry secara real-time
-    SupabaseClient.subscribeToTelemetry((payload) => {
-      handleRealtimeTelemetryUpdate(payload);
-    });
-  }
-
-  /**
-   * Handler Saat Ada Pembaruan Telemetry Realtime dari Supabase
-   */
-  function handleRealtimeTelemetryUpdate(payload) {
-    if (!networkData || !networkData.nodes) return;
-    const { eventType, new: newRow, old: oldRow } = payload;
-    const nodeIdsMap = new Map(networkData.nodes.map(n => [n.id, n]));
-
-    if (eventType === 'INSERT' || eventType === 'UPDATE') {
-      const safeCurrentRegion = (currentRegionId || 'bunihayu').toString().toUpperCase();
-      // 1. Cek apakah ini pembaruan katalog demand wilayah
-      if (newRow && newRow.node_id === `__SCADA_DEMANDS_${safeCurrentRegion}__`) {
-        if (newRow.notes) {
-          try {
-            const parsed = JSON.parse(newRow.notes);
-            if (parsed && typeof parsed === 'object') {
-              Object.assign(userDemands, parsed);
-              if (networkData && networkData.nodes) {
-                networkData.nodes.forEach(n => {
-                  if (parsed[n.id] !== undefined) {
-                    n.demand = parsed[n.id];
-                  }
-                });
-              }
-              saveMeasurementsToStorage();
-              recalculateAndRender();
-              UIController.showToast('📡 Pembaruan Demand Wilayah disinkronkan secara Real-Time!', 'info');
-              return;
-            }
-          } catch (e) {}
-        }
-      }
-
-      // 2. Pembaruan titik simpul individual
-      if (newRow && newRow.node_id && nodeIdsMap.has(newRow.node_id)) {
-        const node = nodeIdsMap.get(newRow.node_id);
-        const incomingPressure = Number(newRow.pressure_bar);
-        let demandUpdated = false;
-
-        // Ekstrak demand jika ada di notes
-        if (newRow.notes) {
-          try {
-            if (newRow.notes.startsWith('{') && newRow.notes.endsWith('}')) {
-              const parsedNotes = JSON.parse(newRow.notes);
-              if (parsedNotes && parsedNotes.demand !== undefined && parsedNotes.demand !== null) {
-                const incomingDemand = Number(parsedNotes.demand);
-                if (userDemands[newRow.node_id] !== incomingDemand) {
-                  userDemands[newRow.node_id] = incomingDemand;
-                  if (node) node.demand = incomingDemand;
-                  demandUpdated = true;
-                }
-              }
-            }
-          } catch (e) {}
-        }
-
-        const localCurrent = nodeMeasurements[newRow.node_id]?.pressure;
-        const pressureChanged = localCurrent === undefined || Math.abs(localCurrent - incomingPressure) > 0.001;
-
-        if (pressureChanged || demandUpdated) {
-          if (incomingPressure > 0 || !nodeMeasurements[newRow.node_id]) {
-            nodeMeasurements[newRow.node_id] = {
-              pressure: incomingPressure,
-              unit: 'bar',
-              pressureMeters: Number(newRow.pressure_m) || (incomingPressure * 10.19716),
-              officer: newRow.officer_name || 'Petugas',
-              timestamp: newRow.updated_at || new Date().toISOString()
-            };
-          }
-
-          saveMeasurementsToStorage();
-          recalculateAndRender();
-
-          const info = [];
-          if (demandUpdated) info.push(`Demand: ${userDemands[newRow.node_id]} L/s`);
-          if (pressureChanged && incomingPressure > 0) info.push(`Tekanan: ${incomingPressure} bar`);
-          UIController.showToast(`📡 Telemetry Live: Simpul ${newRow.node_label || node.label} diperbarui (${info.join(', ') || 'OK'})`, 'info');
-        }
-      }
-    } else if (eventType === 'DELETE') {
-      if (oldRow && oldRow.node_id && nodeIdsMap.has(oldRow.node_id)) {
-        delete nodeMeasurements[oldRow.node_id];
-        saveMeasurementsToStorage();
-        recalculateAndRender();
-      }
-    }
   }
 
   /**
@@ -392,11 +284,7 @@ const App = (() => {
       }, 350);
     }
 
-    // 4. Tarik Telemetry Lapangan Terkini dari Supabase Cloud secara Background
-    syncCurrentRegionTelemetry(false).then(() => {
-      // 5. Re-render tanpa mengubah bounds peta jika ada data baru dari cloud
-      recalculateAndRender(false);
-    });
+    
   }
 
   /**
@@ -495,40 +383,10 @@ const App = (() => {
         return; // Selesai — tidak perlu fetch ke server
       }
 
-      // === 2. Cek Supabase Cloud topology ===
-      UIController.showToast(`📡 Mencari data jaringan ${region.name} di Supabase Cloud...`, 'info');
-      const cloudTopology = await SupabaseClient.fetchRegionTopology(region.id);
-      if (cloudTopology && cloudTopology.nodes && cloudTopology.pipes) {
-        console.log(`Memuat topologi ${region.name} dari Supabase Cloud.`);
-        networkData = cloudTopology;
-      } else {
-        // === 3. Data tidak ditemukan di cache maupun Cloud — minta upload manual ===
-        networkData = null;
-        UIController.showToast(
-          `📂 Belum ada data jaringan untuk "${region.name}". ` +
-          `Silakan upload file JSON EPANET via tombol Upload JSON.`,
-          'warning'
-        );
-        return;
-      }
-
-      // Inisialisasi demand awal dari data Cloud
-      networkData.nodes.forEach(node => {
-        if (userDemands[node.id] === undefined) {
-          userDemands[node.id] = Number(node.demand) || 0;
-        } else {
-          node.demand = userDemands[node.id];
-        }
-      });
-
-      initSourceConfigFromNetwork(region);
-
-      // === Simpan ke localStorage cache untuk load berikutnya ===
-      saveTopologyToCache(region.id, networkData);
-      UIController.showToast(`✅ Data jaringan ${region.name} berhasil diunduh dari Cloud & dicache`, 'success');
-
+      networkData = null;
+      UIController.showToast("Belum ada data jaringan untuk " + region.name + ", silakan upload JSON.", "warning");
+      return;
     } catch (err) {
-      console.error(`Gagal memuat data jaringan untuk wilayah ${region.name}:`, err);
       networkData = null;
       UIController.showToast(`❌ Gagal memuat jaringan ${region.name}: ${err.message}`, 'error');
     }
@@ -585,135 +443,11 @@ const App = (() => {
     }
   }
 
-  /**
-   * Tarik Telemetry & Demand Lapangan Terkini dari Supabase Cloud
-   */
-  async function syncCurrentRegionTelemetry(showFeedback = true) {
-    if (!networkData || !networkData.nodes) return;
+  
 
-    if (showFeedback) {
-      UIController.showToast('Menghubungkan ke Supabase Cloud...', 'info');
-    }
+  
 
-    try {
-      const nodeIds = networkData.nodes.map(n => n.id);
-      const cloudResult = await SupabaseClient.getTelemetryForRegion(nodeIds, currentRegionId);
-
-      if (cloudResult) {
-        let count = 0;
-        if (cloudResult.measurements && Object.keys(cloudResult.measurements).length > 0) {
-          Object.assign(nodeMeasurements, cloudResult.measurements);
-          count += Object.keys(cloudResult.measurements).length;
-        }
-        if (cloudResult.demands && Object.keys(cloudResult.demands).length > 0) {
-          Object.assign(userDemands, cloudResult.demands);
-          if (networkData && networkData.nodes) {
-            networkData.nodes.forEach(n => {
-              if (cloudResult.demands[n.id] !== undefined) {
-                n.demand = cloudResult.demands[n.id];
-              }
-            });
-          }
-          count += Object.keys(cloudResult.demands).length;
-        }
-
-        if (count > 0) {
-          saveMeasurementsToStorage();
-          recalculateAndRender();
-
-          if (showFeedback) {
-            UIController.showToast(`✅ Berhasil menyinkronkan data tekanan & demand dari Supabase Cloud!`, 'success');
-          }
-        } else {
-          if (showFeedback) {
-            UIController.showToast(`Server terhubung. Belum ada data baru untuk ${getCurrentRegion().name}.`, 'info');
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('syncCurrentRegionTelemetry error:', err);
-      if (showFeedback) {
-        UIController.showToast('Gagal menarik data dari Supabase. Menggunakan data cache lokal.', 'warning');
-      }
-    }
-  }
-
-  /**
-   * Cadangkan Topologi Jaringan Wilayah Aktif ke Cloud
-   */
-  async function backupCurrentRegionToCloud() {
-    if (!networkData) {
-      alert('Tidak ada data jaringan yang aktif.');
-      return;
-    }
-
-    UIController.showToast(`Mencadangkan topologi ${getCurrentRegion().name} ke Supabase...`, 'info');
-    const success = await SupabaseClient.saveRegionTopology(currentRegionId, networkData);
-    if (success) {
-      UIController.showToast(`✅ Topologi jaringan ${getCurrentRegion().name} berhasil dicadangkan ke Supabase Cloud!`, 'success');
-    } else {
-      UIController.showToast('Gagal mencadangkan topologi ke Supabase. Periksa koneksi internet.', 'error');
-    }
-  }
-
-  /**
-   * Konfirmasi simpan jaringan yang baru diunggah ke Supabase dengan nama wilayah dari modal
-   */
-  async function confirmSaveNetworkToCloud() {
-    if (!networkData) {
-      UIController.showToast('Tidak ada data jaringan aktif.', 'error');
-      return;
-    }
-
-    const { name, id } = UIController.getSaveNetworkModalValues();
-
-    if (!name) {
-      const elName = document.getElementById('inputSaveNetworkName');
-      elName?.focus();
-      elName?.classList.add('ring-2', 'ring-red-400', 'border-red-400');
-      setTimeout(() => elName?.classList.remove('ring-2', 'ring-red-400', 'border-red-400'), 2000);
-      UIController.showToast('⚠️ Nama wilayah tidak boleh kosong!', 'warning');
-      return;
-    }
-
-    if (!id) {
-      UIController.showToast('⚠️ ID wilayah tidak boleh kosong!', 'warning');
-      return;
-    }
-
-    // Disable tombol saat proses berlangsung
-    const btn = document.getElementById('btnConfirmSaveNetwork');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan...';
-    }
-
-    UIController.showToast(`⏳ Menyimpan "${name}" ke Supabase Cloud...`, 'info');
-
-    // Simpan topologi jaringan ke Supabase dengan regionId dari input user
-    const success = await SupabaseClient.saveRegionTopology(id, networkData);
-
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><polyline points="12 13 12 9 10 11"/><polyline points="12 9 14 11"/></svg> Simpan ke Supabase Cloud`;
-    }
-
-    if (success) {
-      currentRegionId = id;
-      try {
-        localStorage.setItem(REGION_STORAGE_KEY, id);
-      } catch (e) {}
-      // Simpan info wilayah kustom ke localStorage agar muncul di dropdown saat app dibuka ulang
-      saveCustomRegion(id, name, networkData.nodes.length, networkData.pipes.length);
-      saveTopologyToCache(id, networkData);
-      saveMeasurementsToStorage();
-      UIController.setActiveRegionDisplay(id, name);
-      UIController.closeSaveNetworkModal();
-      UIController.showToast(`✅ Jaringan "${name}" (ID: ${id}) berhasil disimpan ke Supabase Cloud & terdaftar di aplikasi!`, 'success');
-    } else {
-      UIController.showToast('❌ Gagal menyimpan ke Supabase. Periksa koneksi internet dan coba lagi.', 'error');
-    }
-  }
+  
 
   /**
    * Setup Mode Switcher (Input Demand EPANET vs Input Tekanan Manometer)
@@ -804,146 +538,11 @@ const App = (() => {
 
     UIController.showToast(`✅ File JSON "${netName}" (${networkData.nodes.length} Simpul, ${networkData.pipes.length} Pipa) berhasil dimuat!`, 'success');
 
-    // 7. Auto-simpan ke Supabase Cloud tanpa modal konfirmasi
-    UIController.showToast(`⏳ Menyimpan "${netName}" ke Supabase Cloud...`, 'info');
-    const success = await SupabaseClient.saveRegionTopology(regionId, networkData);
-
-    if (success) {
-      currentRegionId = regionId;
-      try { localStorage.setItem(REGION_STORAGE_KEY, regionId); } catch (e) {}
-      saveCustomRegion(regionId, netName, networkData.nodes.length, networkData.pipes.length);
-      saveTopologyToCache(regionId, networkData);
-      saveMeasurementsToStorage();
-      UIController.setActiveRegionDisplay(regionId, netName);
-      UIController.showToast(`☁️ Jaringan "${netName}" (ID: ${regionId}) berhasil tersimpan otomatis ke Supabase Cloud!`, 'success');
-    } else {
-      UIController.showToast(`⚠️ Gagal menyimpan "${netName}" ke Supabase. Jaringan tetap aktif di sesi ini — coba cadangkan manual nanti.`, 'warning');
-    }
-  }
-
-  /**
-   * [OPTIMASI MOBILE] Tracking tab aktif
-   */
-  let activeTabId = 'tabMap';
-
-  /**
-   * Dipanggil oleh UIController saat user pindah tab
-   */
-  function onTabActivated(tabId) {
-    activeTabId = tabId;
-    if (tabId === 'tabProfile') {
-      refreshProfileChart();
-    }
-  }
-
-  // Debounce timer untuk mencegah kalkulasi berlebihan saat input cepat
-  let _recalcTimer = null;
-
-  /**
-   * Hitung Ulang Hidrolika dan Perbarui Komponen UI
-   * Menggunakan debounce 250ms agar kalkulasi Hazen-Williams tidak dijalankan
-   * setiap keystroke — hanya dijalankan setelah user berhenti input.
-   * [OPTIMASI MOBILE] Pipa menggunakan pagination 20 kartu, Chart.js di-lazy load hanya saat tab profil aktif
-   */
-  function recalculateAndRender(immediate = false) {
-    if (!networkData) return;
-    if (_recalcTimer) clearTimeout(_recalcTimer);
-    if (immediate) {
-      _doRecalculate();
-    } else {
-      _recalcTimer = setTimeout(_doRecalculate, 250);
-    }
-  }
-
-  function _doRecalculate() {
-
-    // 1. Eksekusi engine sesuai mode aktif dan konfigurasi sumber (pompa/gravitasi)
-    if (currentMode === 'demand') {
-      currentHydraulicResult = HydraulicEngine.solveNetworkByDemand(networkData, userDemands, sourceConfig);
-    } else {
-      currentHydraulicResult = HydraulicEngine.solveNetworkHydraulics(networkData, nodeMeasurements, sourceConfig, userDemands);
-    }
-
-    if (!currentHydraulicResult) return;
-
-    // 2. Render Peta GIS
-    MapManager.renderNetwork(networkData, currentHydraulicResult.nodes, currentHydraulicResult.pipes, sourceConfig);
-
-    // 3. Update Ringkasan KPI & Badge Sumber
-    UIController.updateSummaryCards(
-      currentHydraulicResult.summary,
-      currentHydraulicResult.nodes,
-      currentHydraulicResult.pipes
-    );
-    UIController.updateSourceBadge(sourceConfig);
-
-    // 4. Render Tabel Pipa (Ringan: sudah dioptimasi dengan pagination 20 kartu mobile)
-    UIController.renderPipesTable(
-      networkData,
-      currentHydraulicResult.nodes,
-      currentHydraulicResult.pipes
-    );
-
-    // 5. Render Daftar Batch Input di Sidebar
-    UIController.renderJunctionsSidebarTable(
-      networkData,
-      currentHydraulicResult.nodes,
-      sourceConfig
-    );
-
-    // 6. Susun dan Render Skema Alur Hidrolis Berurutan (Reservoir -> Ujung)
-    const sequenceSteps = HydraulicEngine.buildSequentialNetworkFlow(
-      networkData,
-      currentHydraulicResult.nodes,
-      currentHydraulicResult.pipes,
-      sourceConfig
-    );
-    UIController.renderSequentialFlowTable(sequenceSteps);
-
-    // 7. Update Grafik Profil HGL hanya jika tab profil sedang dibuka (Chart.js lazy-loaded)
-    if (activeTabId === 'tabProfile') {
-      refreshProfileChart();
-    }
-  }
-
-
-  /**
-   * Simpan Pengaturan Sumber (Pompa & Reservoir Gravitasi)
-   */
-  function saveSourceConfig(newConfig) {
-    sourceConfig = {
-      ...sourceConfig,
-      ...newConfig,
-      pump: { ...sourceConfig.pump, ...(newConfig.pump || {}) },
-      reservoir: { ...sourceConfig.reservoir, ...(newConfig.reservoir || {}) }
-    };
-
-    // Sinkronkan ke networkData
-    if (networkData) {
-      if (!networkData.pumps) networkData.pumps = [];
-      if (networkData.pumps.length > 0) {
-        networkData.pumps[0].designHead = Number(sourceConfig.pump.head) || 50;
-        networkData.pumps[0].designFlow = Number(sourceConfig.pump.flow) || 10;
-        networkData.pumps[0].status = sourceConfig.pump.status;
-      }
-      const res = networkData.nodes?.find(n => n.type === 'reservoir');
-      if (res) {
-        res.elevation = Number(sourceConfig.reservoir.elevation) || res.elevation;
-      }
-
-      // Perbarui cache topologi di perangkat
-      saveTopologyToCache(currentRegionId, networkData);
-
-      // Jika wilayah kustom, sinkronkan juga perubahan pompa/reservoir ke Supabase Cloud
-      const reg = getCurrentRegion();
-      if (reg?.isCustom) {
-        SupabaseClient.saveRegionTopology(currentRegionId, networkData).then(ok => {
-          if (ok) console.log(`☁️ Perubahan pompa/sumber wilayah ${currentRegionId} tersinkron ke Cloud.`);
-        }).catch(err => {
-          console.warn('Gagal sinkronisasi sumber ke Supabase:', err);
-        });
-      }
-    }
+    // 7. Simpan lokal saja
+    saveCustomRegion(regionId, netName, networkData.nodes.length, networkData.pipes.length);
+    saveTopologyToCache(regionId, networkData);
+    currentRegionId = regionId;
+    try { localStorage.setItem(REGION_STORAGE_KEY, regionId); } catch(e){}
 
     saveMeasurementsToStorage();
     recalculateAndRender();
@@ -988,29 +587,7 @@ const App = (() => {
         console.warn('recalculateAndRender warning:', calcErr);
       }
 
-      // 2. Sinkronkan ke Supabase Cloud (Demand + Tekanan)
-      const officer = localStorage.getItem('pdam_officer_name') || AppConfig.supabase?.defaultOfficer || 'Petugas Lapangan';
-      const safeRegion = currentRegionId || 'bunihayu';
-      const currentRegionObj = getCurrentRegion();
-      const noteText = `Wilayah: ${currentRegionObj?.name || safeRegion}`;
-
-      SupabaseClient.upsertTelemetry(nodeId, nodeLabel, pBar !== null ? pBar : 0, officer, noteText, dVal)
-        .then(res => {
-          if (res?.success) {
-            const info = [];
-            if (dVal > 0) info.push(`Demand: ${dVal} L/s`);
-            if (pBar !== null) info.push(`Tekanan: ${pBar.toFixed(2)} bar`);
-            UIController.showToast(`✅ ${nodeLabel} tersimpan & tersinkron ke Supabase Cloud (${info.join(', ') || 'OK'})`, 'success');
-          }
-        })
-        .catch(err => {
-          console.warn('Gagal sinkron ke Supabase:', err);
-        });
-
-      // 3. Cadangkan katalog demand wilayah ke Supabase Cloud
-      SupabaseClient.saveRegionDemands(safeRegion, userDemands).catch(err => {
-        console.warn('Gagal simpan katalog demand ke Supabase:', err);
-      });
+      
 
       return { success: true, demand: dVal, pressure: pBar };
     } catch (err) {
@@ -1054,12 +631,7 @@ const App = (() => {
     saveMeasurementsToStorage();
     recalculateAndRender();
 
-    // Hapus dari Supabase Cloud
-    SupabaseClient.deleteTelemetry(nodeId).then(ok => {
-      if (ok) {
-        UIController.showToast(`🗑️ Data telemetry ${nodeLabel} dihapus dari Supabase Cloud`, 'info');
-      }
-    });
+    
   }
 
   /**

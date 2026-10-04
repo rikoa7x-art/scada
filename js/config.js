@@ -81,16 +81,7 @@ const AppConfig = {
       weight: 2
     }
   },
-
-  // Konfigurasi Koneksi Supabase SCADA Server
-  supabase: {
-    url: 'https://nbjfxzulzxxujudntdab.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iamZ4enVsenh4dWp1ZG50ZGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTE2MzIsImV4cCI6MjEwNDc4NzYzMn0.LlIr9TLE3sE7X9xsohQcFrsU0OM8lisy1ymUvV-kdLo',
-    tableName: 'scada_telemetry',
-    defaultOfficer: 'Petugas Lapangan PDAM'
-  },
-
-  // Katalog Wilayah SPAM PDAM Kabupaten Subang
+// Katalog Wilayah SPAM PDAM Kabupaten Subang
   // Catatan: Tidak ada properti 'file' — data jaringan dimuat dari localStorage cache
   // atau diunggah manual via tombol Upload JSON → otomatis tersimpan ke localStorage.
   regions: [
