@@ -386,7 +386,7 @@ const App = (() => {
     await syncCurrentRegionTelemetry(false);
 
     // 4. Hitung Ulang Hidrolika dan Render
-    recalculateAndRender();
+    recalculateAndRender(true);
 
     // 5. Posisikan Peta ke Batas Jaringan Wilayah
     if (doFitBounds) {
@@ -833,12 +833,26 @@ const App = (() => {
     }
   }
 
+  // Debounce timer untuk mencegah kalkulasi berlebihan saat input cepat
+  let _recalcTimer = null;
+
   /**
    * Hitung Ulang Hidrolika dan Perbarui Komponen UI
+   * Menggunakan debounce 250ms agar kalkulasi Hazen-Williams tidak dijalankan
+   * setiap keystroke — hanya dijalankan setelah user berhenti input.
    * [OPTIMASI MOBILE] Pipa menggunakan pagination 20 kartu, Chart.js di-lazy load hanya saat tab profil aktif
    */
-  function recalculateAndRender() {
+  function recalculateAndRender(immediate = false) {
     if (!networkData) return;
+    if (_recalcTimer) clearTimeout(_recalcTimer);
+    if (immediate) {
+      _doRecalculate();
+    } else {
+      _recalcTimer = setTimeout(_doRecalculate, 250);
+    }
+  }
+
+  function _doRecalculate() {
 
     // 1. Eksekusi engine sesuai mode aktif dan konfigurasi sumber (pompa/gravitasi)
     if (currentMode === 'demand') {
@@ -1049,12 +1063,7 @@ const App = (() => {
    * Muat Skenario Uji Lapangan Awal
    */
   function loadSampleData() {
-    if (currentRegionId === 'bunihayu') {
-      nodeMeasurements = { ...AppConfig.sampleFieldMeasurements };
-    } else {
-      // Buat data uji realistis berdasarkan elevasi simpul dan tekanan sumber
-      nodeMeasurements = generateRealisticSampleMeasurements();
-    }
+    nodeMeasurements = generateRealisticSampleMeasurements();
     saveMeasurementsToStorage();
     recalculateAndRender();
     UIController.showToast(`Data uji lapangan dimuat untuk ${getCurrentRegion().name}`, 'info');
@@ -1253,8 +1262,6 @@ const App = (() => {
       const raw = localStorage.getItem(getStorageKey('measurements', regionId));
       if (raw) {
         nodeMeasurements = JSON.parse(raw);
-      } else if (regionId === 'bunihayu') {
-        nodeMeasurements = { ...AppConfig.sampleFieldMeasurements };
       } else {
         nodeMeasurements = {};
       }
