@@ -1,6 +1,6 @@
 /**
  * App - Orkestrasi Aplikasi Utama Monitoring Debit Air SPAM PDAM
- * Mendukung Multi-Wilayah Terpadu (9 Wilayah SPAM PDAM Subang) & Sinkronisasi Supabase Real-Time
+ * Mendukung Multi-Wilayah Terpadu (9 Wilayah SPAM PDAM Subang) (Penyimpanan 100% Local Storage)
  */
 
 const App = (() => {
@@ -226,6 +226,7 @@ const App = (() => {
       onUploadJSON: handleCustomJSON,
       onSaveSourceConfig: saveSourceConfig,
       onSelectRegion: (regionId) => switchRegion(regionId, true),
+      onSyncCloud: () => syncCurrentRegionTelemetry(true),
       onBackupTopology: () => backupCurrentRegionToCloud()
     });
 
@@ -233,6 +234,8 @@ const App = (() => {
     setupModeSwitcher();
 
     // 3. Inisialisasi Klien Supabase & Realtime Listener
+    initSupabase();
+
     // 4. Muat & inject wilayah kustom dari localStorage ke AppConfig + dropdown
     loadCustomRegions().forEach(entry => injectCustomRegionToAppConfig(entry));
     injectCustomRegionsToUI();
@@ -248,6 +251,101 @@ const App = (() => {
 
     // 6. Muat Wilayah Aktif
     await switchRegion(currentRegionId, true);
+  }
+
+  /**
+   * Inisialisasi Supabase Cloud & Realtime Handler
+   */
+  function initSupabase() {
+    // Mode offline: Supabase dinonaktifkan, data 100% di Local Storage
+  }
+
+  /**
+   * Handler Saat Ada Pembaruan Telemetry Realtime dari Supabase
+   */
+  function handleRealtimeTelemetryUpdate(payload) {
+    if (!networkData || !networkData.nodes) return;
+    const { eventType, new: newRow, old: oldRow } = payload;
+    const nodeIdsMap = new Map(networkData.nodes.map(n => [n.id, n]));
+
+    if (eventType === 'INSERT' || eventType === 'UPDATE') {
+      const safeCurrentRegion = (currentRegionId || 'bunihayu').toString().toUpperCase();
+      // 1. Cek apakah ini pembaruan katalog demand wilayah
+      if (newRow && newRow.node_id === `__SCADA_DEMANDS_${safeCurrentRegion}__`) {
+        if (newRow.notes) {
+          try {
+            const parsed = JSON.parse(newRow.notes);
+            if (parsed && typeof parsed === 'object') {
+              Object.assign(userDemands, parsed);
+              if (networkData && networkData.nodes) {
+                networkData.nodes.forEach(n => {
+                  if (parsed[n.id] !== undefined) {
+                    n.demand = parsed[n.id];
+                  }
+                });
+              }
+              saveMeasurementsToStorage();
+              recalculateAndRender();
+              UIController.showToast('📡 Pembaruan Demand Wilayah disinkronkan secara Real-Time!', 'info');
+              return;
+            }
+          } catch (e) {}
+        }
+      }
+
+      // 2. Pembaruan titik simpul individual
+      if (newRow && newRow.node_id && nodeIdsMap.has(newRow.node_id)) {
+        const node = nodeIdsMap.get(newRow.node_id);
+        const incomingPressure = Number(newRow.pressure_bar);
+        let demandUpdated = false;
+
+        // Ekstrak demand jika ada di notes
+        if (newRow.notes) {
+          try {
+            if (newRow.notes.startsWith('{') && newRow.notes.endsWith('}')) {
+              const parsedNotes = JSON.parse(newRow.notes);
+              if (parsedNotes && parsedNotes.demand !== undefined && parsedNotes.demand !== null) {
+                const incomingDemand = Number(parsedNotes.demand);
+                if (userDemands[newRow.node_id] !== incomingDemand) {
+                  userDemands[newRow.node_id] = incomingDemand;
+                  if (node) node.demand = incomingDemand;
+                  demandUpdated = true;
+                }
+              }
+            }
+          } catch (e) {}
+        }
+
+        const localCurrent = nodeMeasurements[newRow.node_id]?.pressure;
+        const pressureChanged = localCurrent === undefined || Math.abs(localCurrent - incomingPressure) > 0.001;
+
+        if (pressureChanged || demandUpdated) {
+          if (incomingPressure > 0 || !nodeMeasurements[newRow.node_id]) {
+            nodeMeasurements[newRow.node_id] = {
+              pressure: incomingPressure,
+              unit: 'bar',
+              pressureMeters: Number(newRow.pressure_m) || (incomingPressure * 10.19716),
+              officer: newRow.officer_name || 'Petugas',
+              timestamp: newRow.updated_at || new Date().toISOString()
+            };
+          }
+
+          saveMeasurementsToStorage();
+          recalculateAndRender();
+
+          const info = [];
+          if (demandUpdated) info.push(`Demand: ${userDemands[newRow.node_id]} L/s`);
+          if (pressureChanged && incomingPressure > 0) info.push(`Tekanan: ${incomingPressure} bar`);
+          UIController.showToast(`📡 Telemetry Live: Simpul ${newRow.node_label || node.label} diperbarui (${info.join(', ') || 'OK'})`, 'info');
+        }
+      }
+    } else if (eventType === 'DELETE') {
+      if (oldRow && oldRow.node_id && nodeIdsMap.has(oldRow.node_id)) {
+        delete nodeMeasurements[oldRow.node_id];
+        saveMeasurementsToStorage();
+        recalculateAndRender();
+      }
+    }
   }
 
   /**
@@ -283,8 +381,6 @@ const App = (() => {
         MapManager.fitNetworkBounds();
       }, 350);
     }
-
-    
   }
 
   /**
@@ -383,10 +479,39 @@ const App = (() => {
         return; // Selesai — tidak perlu fetch ke server
       }
 
+      // === 2. Fallback: Fetch file JSON lokal untuk wilayah bawaan jika ada ===
+      if (region.file) {
+        try {
+          const response = await fetch(region.file);
+          if (response.ok) {
+            networkData = await response.json();
+            networkData.nodes.forEach(node => {
+              if (userDemands[node.id] === undefined) {
+                userDemands[node.id] = Number(node.demand) || 0;
+              } else {
+                node.demand = userDemands[node.id];
+              }
+            });
+            initSourceConfigFromNetwork(region);
+            saveTopologyToCache(region.id, networkData);
+            UIController.showToast(`✅ Jaringan ${region.name} berhasil dimuat & disimpan ke Local Storage`, 'success');
+            return;
+          }
+        } catch (fetchErr) {
+          console.warn(`Tidak dapat memuat file JSON lokal ${region.file}:`, fetchErr);
+        }
+      }
+
+      // === 3. Data tidak ditemukan di cache maupun file lokal — minta upload manual ===
       networkData = null;
-      UIController.showToast("Belum ada data jaringan untuk " + region.name + ", silakan upload JSON.", "warning");
-      return;
+      UIController.showToast(
+        `📂 Belum ada data jaringan untuk "${region.name}". ` +
+        `Silakan upload file JSON EPANET via tombol Upload JSON.`,
+        'warning'
+      );
+
     } catch (err) {
+      console.error(`Gagal memuat data jaringan untuk wilayah ${region.name}:`, err);
       networkData = null;
       UIController.showToast(`❌ Gagal memuat jaringan ${region.name}: ${err.message}`, 'error');
     }
@@ -443,11 +568,50 @@ const App = (() => {
     }
   }
 
-  
+  /**
+   * Tarik Telemetry & Demand Lapangan dari Local Storage
+   */
+  async function syncCurrentRegionTelemetry(showFeedback = true) {
+    if (!networkData || !networkData.nodes) return;
+    loadSavedMeasurementsForRegion(currentRegionId, getCurrentRegion());
+    recalculateAndRender();
+    if (showFeedback) {
+      UIController.showToast(`Data wilayah ${getCurrentRegion().name} disinkronkan dari Local Storage`, 'info');
+    }
+  }
 
-  
+  /**
+   * Cadangkan Topologi Jaringan Wilayah Aktif ke Local Storage
+   */
+  async function backupCurrentRegionToCloud() {
+    if (!networkData) {
+      alert('Tidak ada data jaringan yang aktif.');
+      return;
+    }
+    saveTopologyToCache(currentRegionId, networkData);
+    saveMeasurementsToStorage();
+    UIController.showToast(`Topologi jaringan ${getCurrentRegion().name} berhasil disimpan di Local Storage!`, 'success');
+  }
 
-  
+  /**
+   * Simpan jaringan yang baru diunggah ke Local Storage
+   */
+  async function confirmSaveNetworkToCloud() {
+    if (!networkData) {
+      UIController.showToast('Tidak ada data jaringan aktif.', 'error');
+      return;
+    }
+    const { name, id } = UIController.getSaveNetworkModalValues();
+    if (!name || !id) return;
+    currentRegionId = id;
+    try { localStorage.setItem(REGION_STORAGE_KEY, id); } catch (e) {}
+    saveCustomRegion(id, name, networkData.nodes.length, networkData.pipes.length);
+    saveTopologyToCache(id, networkData);
+    saveMeasurementsToStorage();
+    UIController.setActiveRegionDisplay(id, name);
+    UIController.closeSaveNetworkModal();
+    UIController.showToast(`Jaringan "${name}" (ID: ${id}) berhasil disimpan ke Local Storage!`, 'success');
+  }
 
   /**
    * Setup Mode Switcher (Input Demand EPANET vs Input Tekanan Manometer)
@@ -538,11 +702,129 @@ const App = (() => {
 
     UIController.showToast(`✅ File JSON "${netName}" (${networkData.nodes.length} Simpul, ${networkData.pipes.length} Pipa) berhasil dimuat!`, 'success');
 
-    // 7. Simpan lokal saja
+    // 7. Simpan wilayah kustom ke Local Storage
+    currentRegionId = regionId;
+    try { localStorage.setItem(REGION_STORAGE_KEY, regionId); } catch (e) {}
     saveCustomRegion(regionId, netName, networkData.nodes.length, networkData.pipes.length);
     saveTopologyToCache(regionId, networkData);
-    currentRegionId = regionId;
-    try { localStorage.setItem(REGION_STORAGE_KEY, regionId); } catch(e){}
+    saveMeasurementsToStorage();
+    UIController.setActiveRegionDisplay(regionId, netName);
+    UIController.showToast(`Jaringan "${netName}" (ID: ${regionId}) berhasil disimpan ke Local Storage!`, 'success');
+  }
+
+  /**
+   * [OPTIMASI MOBILE] Tracking tab aktif
+   */
+  let activeTabId = 'tabMap';
+
+  /**
+   * Dipanggil oleh UIController saat user pindah tab
+   */
+  function onTabActivated(tabId) {
+    activeTabId = tabId;
+    if (tabId === 'tabProfile') {
+      refreshProfileChart();
+    }
+  }
+
+  // Debounce timer untuk mencegah kalkulasi berlebihan saat input cepat
+  let _recalcTimer = null;
+
+  /**
+   * Hitung Ulang Hidrolika dan Perbarui Komponen UI
+   * Menggunakan debounce 250ms agar kalkulasi Hazen-Williams tidak dijalankan
+   * setiap keystroke — hanya dijalankan setelah user berhenti input.
+   * [OPTIMASI MOBILE] Pipa menggunakan pagination 20 kartu, Chart.js di-lazy load hanya saat tab profil aktif
+   */
+  function recalculateAndRender(immediate = false) {
+    if (!networkData) return;
+    if (_recalcTimer) clearTimeout(_recalcTimer);
+    if (immediate) {
+      _doRecalculate();
+    } else {
+      _recalcTimer = setTimeout(_doRecalculate, 250);
+    }
+  }
+
+  function _doRecalculate() {
+
+    // 1. Eksekusi engine sesuai mode aktif dan konfigurasi sumber (pompa/gravitasi)
+    if (currentMode === 'demand') {
+      currentHydraulicResult = HydraulicEngine.solveNetworkByDemand(networkData, userDemands, sourceConfig);
+    } else {
+      currentHydraulicResult = HydraulicEngine.solveNetworkHydraulics(networkData, nodeMeasurements, sourceConfig, userDemands);
+    }
+
+    if (!currentHydraulicResult) return;
+
+    // 2. Render Peta GIS
+    MapManager.renderNetwork(networkData, currentHydraulicResult.nodes, currentHydraulicResult.pipes, sourceConfig);
+
+    // 3. Update Ringkasan KPI & Badge Sumber
+    UIController.updateSummaryCards(
+      currentHydraulicResult.summary,
+      currentHydraulicResult.nodes,
+      currentHydraulicResult.pipes
+    );
+    UIController.updateSourceBadge(sourceConfig);
+
+    // 4. Render Tabel Pipa (Ringan: sudah dioptimasi dengan pagination 20 kartu mobile)
+    UIController.renderPipesTable(
+      networkData,
+      currentHydraulicResult.nodes,
+      currentHydraulicResult.pipes
+    );
+
+    // 5. Render Daftar Batch Input di Sidebar
+    UIController.renderJunctionsSidebarTable(
+      networkData,
+      currentHydraulicResult.nodes,
+      sourceConfig
+    );
+
+    // 6. Susun dan Render Skema Alur Hidrolis Berurutan (Reservoir -> Ujung)
+    const sequenceSteps = HydraulicEngine.buildSequentialNetworkFlow(
+      networkData,
+      currentHydraulicResult.nodes,
+      currentHydraulicResult.pipes,
+      sourceConfig
+    );
+    UIController.renderSequentialFlowTable(sequenceSteps);
+
+    // 7. Update Grafik Profil HGL hanya jika tab profil sedang dibuka (Chart.js lazy-loaded)
+    if (activeTabId === 'tabProfile') {
+      refreshProfileChart();
+    }
+  }
+
+
+  /**
+   * Simpan Pengaturan Sumber (Pompa & Reservoir Gravitasi)
+   */
+  function saveSourceConfig(newConfig) {
+    sourceConfig = {
+      ...sourceConfig,
+      ...newConfig,
+      pump: { ...sourceConfig.pump, ...(newConfig.pump || {}) },
+      reservoir: { ...sourceConfig.reservoir, ...(newConfig.reservoir || {}) }
+    };
+
+    // Sinkronkan ke networkData
+    if (networkData) {
+      if (!networkData.pumps) networkData.pumps = [];
+      if (networkData.pumps.length > 0) {
+        networkData.pumps[0].designHead = Number(sourceConfig.pump.head) || 50;
+        networkData.pumps[0].designFlow = Number(sourceConfig.pump.flow) || 10;
+        networkData.pumps[0].status = sourceConfig.pump.status;
+      }
+      const res = networkData.nodes?.find(n => n.type === 'reservoir');
+      if (res) {
+        res.elevation = Number(sourceConfig.reservoir.elevation) || res.elevation;
+      }
+
+      // Perbarui cache topologi di perangkat
+      saveTopologyToCache(currentRegionId, networkData);
+    }
 
     saveMeasurementsToStorage();
     recalculateAndRender();
@@ -550,7 +832,7 @@ const App = (() => {
   }
 
   /**
-   * Simpan Tekanan dan Demand pada Junction (Otomatis Sync ke Supabase)
+   * Simpan Tekanan dan Demand pada Junction (Disimpan ke Local Storage)
    */
   async function saveNodeData(nodeId, pressure, unit = 'bar', demand = 0) {
     try {
@@ -587,8 +869,6 @@ const App = (() => {
         console.warn('recalculateAndRender warning:', calcErr);
       }
 
-      
-
       return { success: true, demand: dVal, pressure: pBar };
     } catch (err) {
       console.error('saveNodeData error:', err);
@@ -621,7 +901,7 @@ const App = (() => {
   }
 
   /**
-   * Hapus Tekanan pada Junction (Otomatis Sync ke Supabase)
+   * Hapus Tekanan pada Junction (Disimpan ke Local Storage)
    */
   async function deletePressure(nodeId) {
     const node = networkData?.nodes.find(n => n.id === nodeId);
@@ -631,7 +911,7 @@ const App = (() => {
     saveMeasurementsToStorage();
     recalculateAndRender();
 
-    
+    UIController.showToast(`Pengukuran ${nodeLabel} dihapus dari Local Storage`, 'info');
   }
 
   /**
