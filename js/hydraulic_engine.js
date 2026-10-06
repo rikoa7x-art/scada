@@ -57,6 +57,25 @@ const HydraulicEngine = (() => {
   }
 
   /**
+   * Estimasi gradien head loss (m/km) berdasarkan diameter pipa dan debit sumber.
+   * Digunakan saat data pengukuran lapangan belum tersedia untuk propagasi head awal.
+   * [FIX BUG-6] Menggantikan gradien konstan 2.5 m/km yang terlalu rendah untuk pipa kecil.
+   * @param {number} diameterMm - Diameter pipa (mm)
+   * @param {number} sourceFlowLps - Debit sumber estimasi (L/s)
+   * @returns {number} Gradien estimasi (m/km), di-clamp ke range 0.5 - 30 m/km
+   */
+  function _estimateGradient(diameterMm, sourceFlowLps = 10) {
+    const D = diameterMm || 100;
+    // Estimasi debit proporsional terhadap luas penampang relatif terhadap DN110
+    const areaRatio = Math.pow(D / 110, 2);
+    const estQ = Math.min(sourceFlowLps, sourceFlowLps * areaRatio * 0.5);
+    if (estQ <= 0.01) return 2.5;
+    const R = calculateResistance(1000, D, 140); // resistansi per km
+    const hf_per_km = R * Math.pow(estQ / 1000.0, 1.852);
+    return Math.max(0.5, Math.min(30, hf_per_km));
+  }
+
+  /**
    * Hitung debit aliran pipa berdasarkan beda tinggi tekan Hazen-Williams
    * @param {Object} pipe - Objek pipa { length, diameter, roughness, ... }
    * @param {Object} startNode - Objek node awal { elevation, pressure (dalam mH2O), ... }
@@ -211,6 +230,7 @@ const HydraulicEngine = (() => {
     const isPumpActive = !isGravity && (sourceConfig?.pump?.status !== 'off');
     const pumpHeadSetting = isPumpActive ? (Number(sourceConfig?.pump?.head) || 50) : 0;
     const reservoirElevSetting = Number(sourceConfig?.reservoir?.elevation) || null;
+    const sourceFlow = isGravity ? (Number(sourceConfig?.reservoir?.flow) || 10) : (Number(sourceConfig?.pump?.flow) || 10);
 
     // 1. Inisialisasi node
     networkData.nodes.forEach(node => {
@@ -288,14 +308,15 @@ const HydraulicEngine = (() => {
 
         // Jika satu node diketahui head-nya dan yang lain belum
         if (n1.totalHead !== null && n2.totalHead === null) {
-          // Estimasi kehilangan energi awal berdasarkan gradien standar (1 - 3 m/km)
-          const estLoss = (Number(pipe.length) / 1000.0) * 2.5;
-          n2.totalHead = Math.max(n1.elevation, n1.totalHead - estLoss);
+          // [FIX BUG-6] Estimasi kehilangan energi awal berdasarkan diameter pipa dan debit sumber
+          const estLoss = (Number(pipe.length) / 1000.0) * _estimateGradient(Number(pipe.diameter), sourceFlow);
+          // [FIX BUG-2] Hitung head n2 tanpa clamp salah n1.elevation, agar tekanan negatif terdeteksi
+          n2.totalHead = n1.totalHead - estLoss;
           n2.pressureHeadMeters = n2.totalHead - n2.elevation;
           n2.isEstimated = true;
           changed = true;
         } else if (n2.totalHead !== null && n1.totalHead === null) {
-          const estLoss = (Number(pipe.length) / 1000.0) * 2.5;
+          const estLoss = (Number(pipe.length) / 1000.0) * _estimateGradient(Number(pipe.diameter), sourceFlow);
           n1.totalHead = n2.totalHead + estLoss;
           n1.pressureHeadMeters = n1.totalHead - n1.elevation;
           n1.isEstimated = true;
@@ -305,10 +326,8 @@ const HydraulicEngine = (() => {
     }
 
     // 4. Hitung debit pada setiap pipa
-    let totalFlowLps = 0;
     let totalPipesCalculated = 0;
     let criticalPipesCount = 0;
-    const sourceFlow = isGravity ? (Number(sourceConfig?.reservoir?.flow) || 10) : (Number(sourceConfig?.pump?.flow) || 10);
 
     networkData.pipes.forEach(pipe => {
       const startNode = nodesMap.get(pipe.startNodeId);
@@ -321,13 +340,35 @@ const HydraulicEngine = (() => {
       });
 
       if (result.status === 'calculated') {
-        totalFlowLps += result.flowRateLps;
         totalPipesCalculated++;
         if (result.velocityStatus === 'critical' || result.velocityStatus === 'warning') {
           criticalPipesCount++;
         }
       }
     });
+
+    // [FIX BUG-7] Total debit sistem adalah total aliran suplai dari simpul sumber (bukan penjumlahan pipa downstream)
+    let totalInflowLps = 0;
+    const sourceNodeIds = new Set();
+    networkData.nodes.filter(n => n.type === 'reservoir').forEach(n => sourceNodeIds.add(n.id));
+    if (networkData.pumps) {
+      networkData.pumps.forEach(p => {
+        if (p.endNodeId) sourceNodeIds.add(p.endNodeId);
+      });
+    }
+
+    networkData.pipes.forEach(pipe => {
+      const calc = pipesMap.get(pipe.id)?.calculation;
+      if (calc && calc.status === 'calculated') {
+        if (sourceNodeIds.has(pipe.startNodeId) && calc.direction === 'forward') {
+          totalInflowLps += calc.flowRateLps;
+        } else if (sourceNodeIds.has(pipe.endNodeId) && calc.direction === 'reverse') {
+          totalInflowLps += calc.flowRateLps;
+        }
+      }
+    });
+
+    const displayTotalFlow = totalInflowLps > 0 ? totalInflowLps : sourceFlow;
 
     return {
       nodes: nodesMap,
@@ -338,7 +379,7 @@ const HydraulicEngine = (() => {
         totalPipes: networkData.pipes.length,
         calculatedPipes: totalPipesCalculated,
         criticalPipes: criticalPipesCount,
-        totalFlowLps: totalFlowLps
+        totalFlowLps: displayTotalFlow
       }
     };
   }
@@ -726,9 +767,10 @@ const HydraulicEngine = (() => {
       // Distribusi di percabangan harus proporsional sehingga total outflow = inflow - demand lokal.
 
       if (sumAllDemands > 0) {
-        // Mode Demand-Driven: debit pipa = subtree demand, di-scale jika supply > total demand
-        // Tapi SELALU di-cap ke baseSupply (kapasitas sumber)
-        const scale = baseSupply > sumAllDemands ? (baseSupply / sumAllDemands) : 1;
+        // [FIX BUG-3] Mode Demand-Driven:
+        // Skala debit proporsional terhadap rasio kapasitas sumber (baseSupply) dan total demand.
+        // Menjamin kontinuitas debit dan batas kapasitas sumber terjaga di seluruh percabangan.
+        const scale = baseSupply / sumAllDemands;
         networkData.pipes.forEach(pipe => {
           const dStart = depth.get(pipe.startNodeId) ?? 999999;
           const dEnd = depth.get(pipe.endNodeId) ?? 999999;
@@ -805,7 +847,7 @@ const HydraulicEngine = (() => {
           });
         });
 
-        // Pastikan semua pipa memiliki debit (termasuk chord edges di luar spanning tree)
+        // Pastikan semua pipa memiliki debit awal
         networkData.pipes.forEach(pipe => {
           if (pipeFlowMap[pipe.id] === undefined) {
             pipeFlowMap[pipe.id] = 0.05;
@@ -838,11 +880,43 @@ const HydraulicEngine = (() => {
             const C = Number(pipe.roughness) || 140;
             const hf = calcPipeLoss(L, D, C, q);
 
-            nodeHeads[v] = Math.max((Number(networkData.nodes.find(n => n.id === v)?.elevation) || 0) + 1, uHead - hf);
+            // [FIX BUG-4] Evaluasi arah aliran berdasarkan pipeDirMap
+            // Jika aliran bergerak dari u ke v: head berkurang (uHead - hf)
+            // Jika aliran bergerak dari v ke u (jalur terbalik): head bertambah (uHead + hf)
+            const isFlowUtoV = (pipeDirMap[pipe.id] === 'forward' && pipe.startNodeId === u) ||
+                               (pipeDirMap[pipe.id] === 'backward' && pipe.endNodeId === u);
+            const nextHead = isFlowUtoV ? (uHead - hf) : (uHead + hf);
+
+            // [FIX BUG-1] Hapus clamping (+1m) agar tekanan negatif/vakum dapat terdeteksi oleh teknisi
+            nodeHeads[v] = nextHead;
             forwardQueue.push(v);
           }
         });
       }
+
+      // [FIX BUG-5] Hitung debit dan arah pipa loop (chord edges di luar spanning tree)
+      // berdasarkan beda tinggi tekan hidrolis riil (ΔH) antar simpul yang terhubung
+      networkData.pipes.forEach(pipe => {
+        const isTreePipe = parentPipe.get(pipe.startNodeId) === pipe.id || parentPipe.get(pipe.endNodeId) === pipe.id;
+        if (!isTreePipe) {
+          const hStart = nodeHeads[pipe.startNodeId] !== undefined ? nodeHeads[pipe.startNodeId] : rootHead;
+          const hEnd = nodeHeads[pipe.endNodeId] !== undefined ? nodeHeads[pipe.endNodeId] : rootHead;
+          const deltaH = hStart - hEnd;
+          const hf = Math.abs(deltaH);
+          const L = Math.max(1, Number(pipe.length) || 100);
+          const D = Number(pipe.diameter) || 100;
+          const C = Number(pipe.roughness) || 140;
+          const R = calculateResistance(L, D, C);
+
+          let q_chord = 0.05;
+          if (hf > 0.0001 && R > 0) {
+            // Formula Hazen-Williams inverse: Q = (hf / R)^(1/1.852)
+            q_chord = Math.min(baseSupply, Math.pow(hf / R, 1.0 / 1.852) * 1000.0);
+          }
+          pipeFlowMap[pipe.id] = Math.max(0.05, Math.round(q_chord * 100) / 100);
+          pipeDirMap[pipe.id] = deltaH >= 0 ? 'forward' : 'backward';
+        }
+      });
     }
 
     // 4. Bangun Node State Map
@@ -900,6 +974,7 @@ const HydraulicEngine = (() => {
         vBadge = 'bg-amber-100 text-amber-800 border-amber-300';
       }
 
+      const isReverse = pipeDirMap[pipe.id] === 'backward';
       const calc = {
         status: 'calculated',
         pipeId: pipe.id,
@@ -912,7 +987,9 @@ const HydraulicEngine = (() => {
         velocityBadgeClass: vBadge,
         headLoss: hf,
         unitHeadLoss: unitHf,
-        direction: 'forward',
+        direction: isReverse ? 'reverse' : 'forward',
+        fromNodeId: isReverse ? pipe.endNodeId : pipe.startNodeId,
+        toNodeId: isReverse ? pipe.startNodeId : pipe.endNodeId,
         resistanceR: R,
         startHead: nodeHeads[pipe.startNodeId],
         endHead: nodeHeads[pipe.endNodeId]
